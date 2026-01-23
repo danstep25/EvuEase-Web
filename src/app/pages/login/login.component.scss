@@ -6,7 +6,6 @@
   position: relative;
 }
 
-// Left Side - Branding Section
 .branding-section {
   flex: 1;
   background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
@@ -106,7 +105,6 @@
   letter-spacing: 0.05em;
 }
 
-// Decorative Shapes
 .decorative-shapes {
   position: absolute;
   top: 0;
@@ -148,7 +146,6 @@
   animation-delay: 4s;
 }
 
-// Right Side - Form Section
 .form-section {
   flex: 1;
   background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
@@ -382,7 +379,6 @@
   transform: translateX(4px);
 }
 
-// Animations
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -414,7 +410,6 @@
   }
 }
 
-// Responsive Design
 @media (max-width: 1024px) {
   .login-container {
     flex-direction: column;
@@ -488,7 +483,6 @@
   }
 }
 
-// Browser compatibility
 @supports not (backdrop-filter: blur(10px)) {
   .icon-circle {
     background: rgba(255, 255, 255, 0.15);
@@ -507,7 +501,6 @@
   }
 }
 
-// Print styles
 @media print {
   .login-container {
     min-height: auto;

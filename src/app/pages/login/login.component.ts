@@ -25,11 +25,7 @@ export class LoginComponent {
   onSubmit(): void {
     if (this.loginForm.valid) {
       const { username, password } = this.loginForm.value;
-      // TODO: Implement authentication logic
       console.log('Login attempt:', { username, password });
-      
-      // Navigate after successful authentication
-      // this.router.navigate(['/dashboard']);
     }
   }
 

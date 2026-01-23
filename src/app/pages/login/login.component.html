@@ -1,8 +1,6 @@
 <div class="login-container">
-  <!-- Left Side - Branding Section -->
   <div class="branding-section">
     <div class="branding-content">
-      <!-- Graduation Icon with Animation -->
       <div class="icon-wrapper">
         <div class="icon-circle">
           <svg 
@@ -15,20 +13,16 @@
         </div>
       </div>
       
-      <!-- App Title -->
       <h1 class="app-title">EvalEase</h1>
       
-      <!-- Subtitle -->
       <p class="app-subtitle">
         Student Subject Evaluation System
       </p>
       
-      <!-- Institution Name -->
       <p class="institution-name">
         STI College Tarlac
       </p>
 
-      <!-- Decorative Elements -->
       <div class="decorative-shapes">
         <div class="shape shape-1"></div>
         <div class="shape shape-2"></div>
@@ -37,7 +31,6 @@
     </div>
   </div>
 
-  <!-- Right Side - Login Form Section -->
   <div class="form-section">
     <div class="login-card">
       <div class="card-header">
@@ -45,13 +38,11 @@
         <p class="welcome-subtext">Sign in to continue to your portal</p>
       </div>
 
-      <!-- Login Form -->
       <form 
         [formGroup]="loginForm" 
         (ngSubmit)="onSubmit()" 
         class="login-form">
         
-        <!-- Username Field -->
         <div class="form-field">
           <label 
             for="username" 
@@ -86,7 +77,6 @@
           }
         </div>
 
-        <!-- Password Field -->
         <div class="form-field">
           <label 
             for="password" 
@@ -121,7 +111,6 @@
           }
         </div>
 
-        <!-- Sign In Button -->
         <button
           type="submit"
           [disabled]="loginForm.invalid"
