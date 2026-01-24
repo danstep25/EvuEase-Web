@@ -1,0 +1,83 @@
+<div class="dashboard-page">
+  <header class="page-header">
+    <h1 class="page-title">{{ pageTitle }}</h1>
+    <p class="page-subtitle">{{ pageSubtitle }}</p>
+  </header>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-blue">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+          <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Total Users</p>
+        <p class="stat-value">{{ totalUsers }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-green">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Active Users</p>
+        <p class="stat-value">{{ activeUsers }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-orange">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+          <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">System Logs (Today)</p>
+        <p class="stat-value">{{ systemLogsToday }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-sections">
+    <section class="user-overview-section">
+      <h2 class="section-title">User Overview</h2>
+      <div class="user-categories">
+        <div class="user-category">
+          <span class="category-label">Registrars</span>
+          <span class="category-value category-blue">{{ userOverview.registrars }}</span>
+        </div>
+        <div class="user-category">
+          <span class="category-label">Evaluators</span>
+          <span class="category-value category-green">{{ userOverview.evaluators }}</span>
+        </div>
+        <div class="user-category">
+          <span class="category-label">Administrators</span>
+          <span class="category-value category-purple">{{ userOverview.administrators }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="activity-section">
+      <h2 class="section-title">Recent System Activity</h2>
+      <div class="activity-list">
+        @for (activity of recentActivity; track activity.date) {
+          <div class="activity-item">
+            <div class="activity-main">
+              <p class="activity-action">{{ activity.action }}</p>
+              <p class="activity-description">{{ activity.user }}: {{ activity.description }}</p>
+            </div>
+            <div class="activity-meta">
+              <p class="activity-date">{{ activity.date }}</p>
+              <p class="activity-ip">{{ activity.ip }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+</div>
+

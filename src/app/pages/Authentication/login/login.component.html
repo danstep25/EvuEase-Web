@@ -45,9 +45,9 @@
         
         <div class="form-field">
           <label 
-            for="username" 
+            for="email" 
             class="form-label">
-            Username
+            Email
           </label>
           <div class="input-wrapper">
             <div class="input-icon">
@@ -64,16 +64,15 @@
               </svg>
             </div>
             <input
-              id="username"
+              id="email"
               type="text"
-              formControlName="username"
-              placeholder="Enter your username"
+              formControlName="email"
+              placeholder="Enter your email"
               class="form-input"
-              [class.input-error]="usernameControl?.invalid && usernameControl?.touched"
-              autocomplete="username" />
+              [class.input-error]="emailControl?.invalid && emailControl?.touched" />
           </div>
-          @if (usernameControl?.invalid && usernameControl?.touched) {
-            <p class="error-message">Username is required</p>
+          @if (emailControl?.invalid && emailControl?.touched) {
+            <p class="error-message">Email is required</p>
           }
         </div>
 
