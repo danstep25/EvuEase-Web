@@ -11,6 +11,7 @@ import { DEFAULT_PAGINATION } from '../../../shared/constants/pagination.constan
 import { SORT_DEFAULTS } from '../../../shared/constants/sort.constant';
 import { USER_STATUSES, STATUS_MAP, DEFAULT_STATUS } from '../../../shared/constants/status.constant';
 import { BasePaginationHandler } from '../../../shared/handlers/base-pagination.handler';
+import { NotificationService } from '../../../shared/services/notification.service';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import { UserFormComponent } from './user-form/user-form.component';
 
@@ -25,6 +26,7 @@ export class UserManagementComponent extends BasePaginationHandler implements On
   private readonly userService = inject(UserService);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly notificationService = inject(NotificationService);
   private readonly destroy$ = new Subject<void>();
 
   pageTitle = 'User Management';
@@ -145,37 +147,47 @@ export class UserManagementComponent extends BasePaginationHandler implements On
     }
     
     if (this.selectedUser) {
-      // Update existing user - userData is already in UpdateUserRequest format
       this.userService.updateUser(this.selectedUser.id.toString(), userData as UpdateUserRequest).subscribe({
         next: () => {
           if (this.userFormComponent) {
             this.userFormComponent.setSubmitting(false);
           }
+          this.notificationService.success(
+            'User Updated',
+            `User "${userData.fullName}" has been successfully updated.`
+          );
           this.onCloseUserForm();
           this.loadUsers();
         },
         error: (error) => {
           if (this.userFormComponent) {
             this.userFormComponent.setSubmitting(false);
-            this.userFormComponent.setError(error.userMessage || error.message || 'Failed to update user. Please try again.');
+            const errorMsg = error.userMessage || error.message || 'Failed to update user. Please try again.';
+            this.userFormComponent.setError(errorMsg);
+            this.notificationService.error('Update Failed', errorMsg);
           }
           console.error('Error updating user:', error);
         }
       });
     } else {
-      // Create new user - userData is already in CreateUserRequest format
       this.userService.createUser(userData as CreateUserRequest).subscribe({
         next: () => {
           if (this.userFormComponent) {
             this.userFormComponent.setSubmitting(false);
           }
+          this.notificationService.success(
+            'User Created',
+            `User "${userData.fullName}" has been successfully created.`
+          );
           this.onCloseUserForm();
           this.loadUsers();
         },
         error: (error) => {
           if (this.userFormComponent) {
             this.userFormComponent.setSubmitting(false);
-            this.userFormComponent.setError(error.userMessage || error.message || 'Failed to create user. Please try again.');
+            const errorMsg = error.userMessage || error.message || 'Failed to create user. Please try again.';
+            this.userFormComponent.setError(errorMsg);
+            this.notificationService.error('Create Failed', errorMsg);
           }
           console.error('Error creating user:', error);
         }
