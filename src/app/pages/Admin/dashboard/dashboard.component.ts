@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
+import { UserService } from '../user-management/user.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -12,18 +13,21 @@ import { RouterOutlet } from '@angular/router';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent {
-  pageTitle = 'Admin Dashboard';
-  pageSubtitle = 'System administration and user management';
+export class DashboardComponent implements OnInit {
+  private readonly userService = inject(UserService);
 
-  totalUsers = 6;
-  activeUsers = 5;
-  systemLogsToday = 5;
+  readonly pageTitle = 'Admin Dashboard';
+  readonly pageSubtitle = 'System administration and user management';
+
+  totalUsers = 0;
+  activeUsers = 0;
+  systemLogsToday = 0;
+  isLoading = false;
 
   userOverview = {
-    registrars: 2,
-    evaluators: 3,
-    administrators: 1
+    registrars: 0,
+    evaluators: 0,
+    administrators: 0
   };
 
   recentActivity = [
@@ -42,5 +46,36 @@ export class DashboardComponent {
       ip: '192.168.1.15'
     }
   ];
+
+  ngOnInit(): void {
+    this.loadUserStatistics();
+  }
+
+  loadUserStatistics(): void {
+    this.isLoading = true;
+    this.userService.getStatistics().subscribe({
+      next: (stats) => {
+        this.totalUsers = stats.totalUsers;
+        this.activeUsers = stats.activeUsers;
+        this.userOverview = {
+          registrars: stats.registrars,
+          evaluators: stats.evaluators,
+          administrators: stats.administrators
+        };
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading user statistics:', error);
+        this.isLoading = false;
+        this.totalUsers = 0;
+        this.activeUsers = 0;
+        this.userOverview = {
+          registrars: 0,
+          evaluators: 0,
+          administrators: 0
+        };
+      }
+    });
+  }
 }
 

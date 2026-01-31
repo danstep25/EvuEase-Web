@@ -1,13 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, RouterOutlet, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-
-interface NavItem {
-  label: string;
-  route: string;
-  icon: string;
-}
+import { ADMIN_NAV_MENU, NavItem } from '../../../shared/constants/nav-menu.constant';
+import { AuthService } from '../../../core/services/auth.service';
+import { User } from '../../../core/models/user.model';
 
 @Component({
   selector: 'app-base',
@@ -20,18 +17,15 @@ interface NavItem {
   templateUrl: './base.component.html',
   styleUrl: './base.component.scss'
 })
-export class BaseComponent {
+export class BaseComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly authService = inject(AuthService);
 
-  readonly navItems: NavItem[] = [
-    { label: 'Dashboard', route: 'dashboard', icon: 'home' },
-    { label: 'User Management', route: 'user-management', icon: 'people' },
-    { label: 'System Logs', route: 'system-logs', icon: 'description' }
-  ];
-
+  navItems: NavItem[] = ADMIN_NAV_MENU;
   currentRoute = '';
-  loggedInUser = 'Admin User';
+  loggedInUser: string = '';
+  currentUser: User | null = null;
 
   constructor() {
     this.updateCurrentRoute(this.router.url);
@@ -41,6 +35,50 @@ export class BaseComponent {
       .subscribe((event: any) => {
         this.updateCurrentRoute(event.url);
       });
+  }
+
+  ngOnInit(): void {
+    this.loadUserFromStorage();
+    this.filterNavItemsByRole();
+    
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      this.loggedInUser = user?.name || 'User';
+      this.filterNavItemsByRole();
+    });
+  }
+
+  private loadUserFromStorage(): void {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        this.currentUser = JSON.parse(userStr);
+        this.loggedInUser = this.currentUser?.name || 'User';
+      } catch {
+        this.loggedInUser = 'User';
+      }
+    } else {
+      const user = this.authService.getCurrentUser();
+      if (user) {
+        this.currentUser = user;
+        this.loggedInUser = user.name || 'User';
+      }
+    }
+  }
+
+  private filterNavItemsByRole(): void {
+    if (!this.currentUser) {
+      this.navItems = [];
+      return;
+    }
+
+    const userRole = this.currentUser.role?.toLowerCase() || '';
+    this.navItems = ADMIN_NAV_MENU.filter(item => {
+      if (!item.roles || item.roles.length === 0) {
+        return true;
+      }
+      return item.roles.some(role => role.toLowerCase() === userRole);
+    });
   }
 
   private updateCurrentRoute(url: string): void {
@@ -53,6 +91,6 @@ export class BaseComponent {
   }
 
   logout(): void {
-    this.router.navigate(['/']);
+    this.authService.logout();
   }
 }

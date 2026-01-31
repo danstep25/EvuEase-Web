@@ -1,48 +1,64 @@
 export interface User {
-  id: string;
-  username: string;
+  id: number;
+  name: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  role: UserRole;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  role: string;
+  emailVerifiedAt?: string | null;
+  createdAt?: string | null;
+  // Optional fields for compatibility
+  userId?: string;
+  fullName?: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  isActive?: boolean;
+  status?: 'Active' | 'Inactive' | number;
+  lastLogin?: string;
+  updatedAt?: string;
+}
+
+export interface UserListResponse {
+  pageIndex: number;
+  pageSize: number;
+  totalRecords: number;
+  totalEntries: number;
+  totalPages: number;
+  result: User[];
 }
 
 export enum UserRole {
-  ADMIN = 'ADMIN',
-  REGISTRAR = 'REGISTRAR',
-  EVALUATOR = 'EVALUATOR',
-  STUDENT = 'STUDENT'
+  ADMIN = 'admin',
+  REGISTRAR = 'Registrar',
+  EVALUATOR = 'Evaluator',
+  STUDENT = 'Student'
 }
 
 export interface LoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 
-export interface LoginResponse {
-  user: User;
+export interface LoginResponseData {
   token: string;
-  refreshToken: string;
-  expiresIn: number;
+  email: string;
+  name: string;
+  role: string;
+  expiresAt: string;
 }
 
 export interface CreateUserRequest {
-  username: string;
+  fullName: string;
   email: string;
-  firstName: string;
-  lastName: string;
   password: string;
-  role: UserRole;
+  role: number;
+  status: number;
 }
 
 export interface UpdateUserRequest {
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  role?: UserRole;
-  isActive?: boolean;
+  id: number;
+  fullName: string;
+  email: string;
+  role: number;
+  status: number;
 }
 

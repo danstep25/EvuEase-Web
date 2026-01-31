@@ -110,7 +110,8 @@ export class BaseApiService {
 
   private handleUnauthorized(): void {
     localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('expires_at');
     window.location.href = '/';
   }
 
