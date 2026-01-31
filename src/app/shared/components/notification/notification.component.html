@@ -1,0 +1,44 @@
+<div class="notification-container">
+  @for (notification of notifications; track notification.id) {
+    <div 
+      class="notification-item"
+      [class]="getTypeClass(notification.type)"
+    >
+      <div class="notification-content">
+        <div class="notification-icon-wrapper">
+          <svg 
+            class="notification-icon"
+            [class]="getIconColorClass(notification.type)"
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path 
+              stroke-linecap="round" 
+              stroke-linejoin="round" 
+              stroke-width="2" 
+              [attr.d]="getIcon(notification.type)"
+            />
+          </svg>
+        </div>
+        
+        <div class="notification-text">
+          <h4 class="notification-title">{{ notification.title }}</h4>
+          <p class="notification-message">{{ notification.message }}</p>
+        </div>
+        
+        <button 
+          type="button"
+          class="notification-close"
+          (click)="remove(notification.id)"
+          aria-label="Close notification"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
+</div>
+
