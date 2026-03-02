@@ -1,0 +1,180 @@
+@if (isOpen) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" (click)="onClose()">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-xl font-bold text-blue-900">{{ title }}</h2>
+      </div>
+
+      <form [formGroup]="curriculaForm" (ngSubmit)="onSubmit()" class="px-6 py-4">
+        @if (errorMessage) {
+          <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            {{ errorMessage }}
+          </div>
+        }
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="programId" class="block text-sm font-semibold text-gray-900 mb-2">
+              Program <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <select
+                id="programId"
+                formControlName="programId"
+                class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white outline-none appearance-none cursor-pointer"
+                [class.border-red-500]="formControls.programId?.invalid && formControls.programId?.touched"
+                [disabled]="isLoadingPrograms"
+              >
+                <option [value]="null">Select Program</option>
+                @for (program of programs; track program.programId) {
+                  <option [value]="program.programId">{{ program.programCode }} - {{ program.programTitle }}</option>
+                }
+              </select>
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+            @if (formControls.programId?.invalid && formControls.programId?.touched) {
+              <p class="mt-1 text-sm text-red-600">Program is required</p>
+            }
+          </div>
+
+          <div>
+            <label for="version" class="block text-sm font-semibold text-gray-900 mb-2">
+              Curriculum Version <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="version"
+              formControlName="version"
+              placeholder="(e.g., 25-01)"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              [class.border-red-500]="formControls.version?.invalid && formControls.version?.touched"
+            />
+            @if (formControls.version?.invalid && formControls.version?.touched) {
+              <p class="mt-1 text-sm text-red-600">
+                @if (formControls.version?.errors?.['required']) {
+                  Curriculum Version is required
+                } @else if (formControls.version?.errors?.['maxlength']) {
+                  Curriculum Version must not exceed 50 characters
+                }
+              </p>
+            }
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="syId" class="block text-sm font-semibold text-gray-900 mb-2">
+              School Year <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <select
+                id="syId"
+                formControlName="syId"
+                class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white outline-none appearance-none cursor-pointer"
+                [class.border-red-500]="formControls.syId?.invalid && formControls.syId?.touched"
+                [disabled]="isLoadingSyTerms"
+              >
+                <option [value]="null">Select School Year</option>
+                @for (syTerm of syTerms; track syTerm.syId) {
+                  <option [value]="syTerm.syId">{{ syTerm.syYear }} - {{ syTerm.sySemester }}</option>
+                }
+              </select>
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+            @if (formControls.syId?.invalid && formControls.syId?.touched) {
+              <p class="mt-1 text-sm text-red-600">School Year is required</p>
+            }
+          </div>
+
+          <div>
+            <label for="effectiveDate" class="block text-sm font-semibold text-gray-900 mb-2">
+              Effective Date <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <input
+                type="date"
+                id="effectiveDate"
+                formControlName="effectiveDate"
+                placeholder="MM/DD/YYYY"
+                class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                [class.border-red-500]="formControls.effectiveDate?.invalid && formControls.effectiveDate?.touched"
+              />
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+            </div>
+            @if (formControls.effectiveDate?.invalid && formControls.effectiveDate?.touched) {
+              <p class="mt-1 text-sm text-red-600">Effective date is required</p>
+            }
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <label for="curriculumStatus" class="block text-sm font-semibold text-gray-900 mb-2">
+              Status <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <select
+                id="curriculumStatus"
+                formControlName="curriculumStatus"
+                class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white outline-none appearance-none cursor-pointer"
+                [class.border-red-500]="formControls.curriculumStatus?.invalid && formControls.curriculumStatus?.touched"
+              >
+                <option [value]="CurriculumStatus.Active">{{ CurriculumStatus.Active }}</option>
+                <option [value]="CurriculumStatus.Inactive">{{ CurriculumStatus.Inactive }}</option>
+              </select>
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+            @if (formControls.curriculumStatus?.invalid && formControls.curriculumStatus?.touched) {
+              <p class="mt-1 text-sm text-red-600">Status is required</p>
+            }
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          <button
+            type="button"
+            (click)="onClose()"
+            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors duration-200"
+            [disabled]="isSubmitting"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="isSubmitting || curriculaForm.invalid"
+          >
+            @if (isSubmitting) {
+              <span class="flex items-center gap-2">
+                <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {{ submitButtonText }}
+              </span>
+            } @else {
+              {{ submitButtonText }}
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+

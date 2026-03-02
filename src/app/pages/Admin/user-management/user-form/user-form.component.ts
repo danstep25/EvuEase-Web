@@ -116,7 +116,6 @@ export class UserFormComponent implements OnInit, OnChanges {
     const formValue = this.userForm.value;
     
     if (this.isEditMode) {
-      // For edit mode, use UpdateUserRequest format matching backend
       if (!this.user) {
         this.errorMessage = 'User information is missing';
         this.isSubmitting = false;
@@ -131,8 +130,6 @@ export class UserFormComponent implements OnInit, OnChanges {
       };
       this.save.emit(updateUserData);
     } else {
-      // For create mode, use CreateUserRequest format matching backend
-      // Backend expects role and status as numbers
       const createUserData: CreateUserRequest = {
         fullName: formValue.fullName,
         email: formValue.email,

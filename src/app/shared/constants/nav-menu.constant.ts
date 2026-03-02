@@ -27,6 +27,58 @@ export const ADMIN_NAV_MENU: NavItem[] = [
   }
 ];
 
+export const REGISTRAR_NAV_MENU: NavItem[] = [
+  { 
+    label: 'Dashboard', 
+    route: 'dashboard', 
+    icon: 'home',
+    module: 'dashboard',
+    roles: ['Registrar']
+  },
+  { 
+    label: 'Programs', 
+    route: 'program-management', 
+    icon: 'school',
+    module: 'program',
+    roles: ['Registrar']
+  },
+  { 
+    label: 'School Year & Term', 
+    route: 'school-year-term', 
+    icon: 'calendar',
+    module: 'school-year',
+    roles: ['Registrar']
+  },
+  { 
+    label: 'Curriculum Mgmt', 
+    route: 'curriculum-management', 
+    icon: 'briefcase',
+    module: 'curriculum',
+    roles: ['Registrar']
+  },
+  { 
+    label: 'Students', 
+    route: 'students', 
+    icon: 'people',
+    module: 'students',
+    roles: ['Registrar']
+  },
+  { 
+    label: 'Faculty Center', 
+    route: 'faculty-center', 
+    icon: 'bar-chart',
+    module: 'faculty',
+    roles: ['Registrar']
+  },
+  { 
+    label: 'Archive', 
+    route: 'archive', 
+    icon: 'box',
+    module: 'archive',
+    roles: ['Registrar']
+  }
+];
+
 
 
 

@@ -1,8 +1,20 @@
 .page-content {
   padding: 2rem;
+  padding-top: calc(2rem + 10px);
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background-color: #9333ea;
+  }
 }
 
 .page-header {
@@ -31,7 +43,6 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-// Table styling
 table {
   min-width: 100%;
   
@@ -44,7 +55,6 @@ table {
   }
 }
 
-// Badge styling
 .badge {
   display: inline-flex;
   align-items: center;

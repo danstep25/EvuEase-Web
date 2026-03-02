@@ -31,7 +31,35 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'registrar',
+    loadComponent: () => import('./pages/Registrar/base/base.component').then(m => m.RegistrarBaseComponent),
+    canActivate: [authGuard],
+    children: [
+      {
+        path: 'program-management',
+        loadComponent: () => import('./pages/Registrar/program-management/program-management.component').then(m => m.RegistrarProgramManagementComponent)
+      },
+      {
+        path: 'school-year-term',
+        loadComponent: () => import('./pages/Registrar/school-year-term/school-year-term.component').then(m => m.SchoolYearTermComponent)
+      },
+      {
+        path: 'curriculum-management',
+        loadComponent: () => import('./pages/Registrar/curriculum-management/curriculum-management.component').then(m => m.CurriculumManagementComponent)
+      },
+      {
+        path: 'students',
+        loadComponent: () => import('./pages/Registrar/students/students.component').then(m => m.StudentsComponent)
+      },
+      {
+        path: '',
+        redirectTo: 'program-management',
+        pathMatch: 'full'
+      }
+    ]
+  },
+  {
     path: '**',
-    redirectTo: ''
+    loadComponent: () => import('./pages/not-found/not-found.component').then(m => m.NotFoundComponent)
   }
 ];

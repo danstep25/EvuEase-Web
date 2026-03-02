@@ -1,0 +1,204 @@
+@if (isOpen) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" (click)="onClose()">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+      <div class="bg-white px-6 py-4 flex items-center justify-between rounded-t-lg border-b border-gray-200">
+        <h2 class="text-xl font-bold text-gray-900">{{ title }}</h2>
+        <button
+          type="button"
+          (click)="onClose()"
+          class="text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <form [formGroup]="miscellaneousFeeForm" (ngSubmit)="onSubmit()" class="px-6 py-4">
+        @if (errorMessage) {
+          <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            {{ errorMessage }}
+          </div>
+        }
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="syId" class="block text-sm font-semibold text-gray-900 mb-2">
+              School Year ID <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <select
+                id="syId"
+                formControlName="syId"
+                class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white outline-none appearance-none cursor-pointer"
+                [class.border-red-500]="formControls.syId?.invalid && formControls.syId?.touched"
+                [disabled]="isLoadingSyTerms"
+              >
+                <option [value]="null">Select School Year</option>
+                @for (syTerm of syTerms; track syTerm.syId) {
+                  <option [value]="syTerm.syCode">
+                    {{ syTerm.syCode }} - {{ syTerm.syYear }} ({{ syTerm.sySemester }})
+                  </option>
+                }
+              </select>
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+            @if (formControls.syId?.invalid && formControls.syId?.touched) {
+              <p class="mt-1 text-sm text-red-600">School Year ID is required</p>
+            }
+          </div>
+
+          <div>
+            <label for="batch" class="block text-sm font-semibold text-gray-900 mb-2">
+              Batch <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <select
+                id="batch"
+                formControlName="batch"
+                class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white outline-none appearance-none cursor-pointer"
+                [class.border-red-500]="formControls.batch?.invalid && formControls.batch?.touched"
+              >
+                @for (year of batchYears; track year) {
+                  <option [value]="year">{{ year }}</option>
+                }
+              </select>
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+            @if (formControls.batch?.invalid && formControls.batch?.touched) {
+              <p class="mt-1 text-sm text-red-600">Batch is required</p>
+            }
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label for="semester" class="block text-sm font-semibold text-gray-900 mb-2">
+            Semester <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <select
+              id="semester"
+              formControlName="semester"
+              class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white outline-none appearance-none cursor-pointer"
+              [class.border-red-500]="formControls.semester?.invalid && formControls.semester?.touched"
+            >
+              <option [value]="null">Select Semester</option>
+              @for (semester of semesters; track semester) {
+                <option [value]="semester">{{ semester }}</option>
+              }
+            </select>
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+          </div>
+          @if (formControls.semester?.invalid && formControls.semester?.touched) {
+            <p class="mt-1 text-sm text-red-600">Semester is required</p>
+          }
+        </div>
+
+        <div class="mb-4">
+          <label for="miscellaneousFee" class="block text-sm font-semibold text-gray-900 mb-2">
+            Miscellaneous Fee Name <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="miscellaneousFee"
+            formControlName="miscellaneousFee"
+            placeholder="e.g., Connectivity Fee"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            [class.border-red-500]="formControls.miscellaneousFee?.invalid && formControls.miscellaneousFee?.touched"
+          />
+          @if (formControls.miscellaneousFee?.invalid && formControls.miscellaneousFee?.touched) {
+            <p class="mt-1 text-sm text-red-600">
+              @if (formControls.miscellaneousFee?.errors?.['required']) {
+                Miscellaneous Fee Name is required
+              } @else if (formControls.miscellaneousFee?.errors?.['maxlength']) {
+                Miscellaneous Fee Name must not exceed 255 characters
+              }
+            </p>
+          }
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <label for="cash" class="block text-sm font-semibold text-gray-900 mb-2">
+              Cash Amount <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              id="cash"
+              formControlName="cash"
+              step="0.01"
+              min="0"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              [class.border-red-500]="formControls.cash?.invalid && formControls.cash?.touched"
+            />
+            @if (formControls.cash?.invalid && formControls.cash?.touched) {
+              <p class="mt-1 text-sm text-red-600">
+                @if (formControls.cash?.errors?.['required']) {
+                  Cash Amount is required
+                } @else if (formControls.cash?.errors?.['min']) {
+                  Cash Amount must be at least 0
+                }
+              </p>
+            }
+          </div>
+
+          <div>
+            <label for="lowMonthlyPayment" class="block text-sm font-semibold text-gray-900 mb-2">
+              Low Monthly Payment <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              id="lowMonthlyPayment"
+              formControlName="lowMonthlyPayment"
+              step="0.01"
+              min="0"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              [class.border-red-500]="formControls.lowMonthlyPayment?.invalid && formControls.lowMonthlyPayment?.touched"
+            />
+            @if (formControls.lowMonthlyPayment?.invalid && formControls.lowMonthlyPayment?.touched) {
+              <p class="mt-1 text-sm text-red-600">
+                @if (formControls.lowMonthlyPayment?.errors?.['required']) {
+                  Low Monthly Payment is required
+                } @else if (formControls.lowMonthlyPayment?.errors?.['min']) {
+                  Low Monthly Payment must be at least 0
+                }
+              </p>
+            }
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          <button
+            type="button"
+            (click)="onClose()"
+            class="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            [disabled]="isSubmitting"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ submitButtonText }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+
+

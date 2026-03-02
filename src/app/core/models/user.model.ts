@@ -5,7 +5,6 @@ export interface User {
   role: string;
   emailVerifiedAt?: string | null;
   createdAt?: string | null;
-  // Optional fields for compatibility
   userId?: string;
   fullName?: string;
   firstName?: string;

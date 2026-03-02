@@ -47,7 +47,6 @@ export class UserManagementComponent extends BasePaginationHandler implements On
       search: ['']
     });
 
-    // Debounce search input with delay (500ms)
     this.searchForm.get('search')?.valueChanges.pipe(
       debounceTime(500),
       distinctUntilChanged(),
@@ -81,9 +80,8 @@ export class UserManagementComponent extends BasePaginationHandler implements On
         if (response.success && response.data) {
           this.users = response.data.map(user => ({
             ...user,
-            fullName: user.name // Use name directly from API
+            fullName: user.name
           }));
-          // No need for filteredUsers since API handles filtering
           this.filteredUsers = [...this.users];
           
           if (response.pagination) {

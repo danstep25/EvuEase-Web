@@ -27,7 +27,6 @@ export class AuthService {
       tap(response => {
         if (response.success && response.data) {
           this.storeAuthData(response.data);
-          // Extract user ID from JWT token if available
           const userId = this.extractUserIdFromToken(response.data.token);
           this.currentUserSubject.next({
             id: userId || 0, // Use 0 as fallback if ID not found in token
@@ -62,7 +61,6 @@ export class AuthService {
       return false;
     }
 
-    // Check if token is expired using expiresAt
     const expiresAt = localStorage.getItem('expires_at');
     if (expiresAt) {
       const expirationDate = new Date(expiresAt);
@@ -72,7 +70,6 @@ export class AuthService {
       }
     }
 
-    // Also check JWT expiration as fallback
     return !this.isTokenExpired(token);
   }
 
@@ -89,7 +86,6 @@ export class AuthService {
 
   private storeAuthData(data: LoginResponseData): void {
     localStorage.setItem('auth_token', data.token);
-    // Extract user ID from token
     const userId = this.extractUserIdFromToken(data.token);
     localStorage.setItem('user', JSON.stringify({
       id: userId || 0,
@@ -114,7 +110,6 @@ export class AuthService {
   private extractUserIdFromToken(token: string): number | null {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      // Try different possible property names for user ID
       const userId = payload.UserId || payload.userId || payload.id || payload.sub;
       return userId ? Number(userId) : null;
     } catch {

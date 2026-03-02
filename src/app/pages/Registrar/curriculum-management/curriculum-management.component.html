@@ -1,0 +1,375 @@
+<div class="page-content">
+  <header class="page-header">
+    <h1 class="page-title">{{ pageTitle }}</h1>
+    <p class="page-subtitle">{{ pageSubtitle }}</p>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs-container mb-6">
+    <div class="flex border-b border-gray-200">
+      <button
+        (click)="onTabChange(CurriculumTab.Curricula)"
+        [class]="'tab-button ' + (activeTab === CurriculumTab.Curricula ? 'active' : '')"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+        </svg>
+        Curricula
+      </button>
+      <button
+        (click)="onTabChange(CurriculumTab.Courses)"
+        [class]="'tab-button ' + (activeTab === CurriculumTab.Courses ? 'active' : '')"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+        </svg>
+        Courses
+      </button>
+      <button
+        (click)="onTabChange(CurriculumTab.Fees)"
+        [class]="'tab-button ' + (activeTab === CurriculumTab.Fees ? 'active' : '')"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Fees & Charges
+      </button>
+    </div>
+  </div>
+
+  <!-- Curricula Tab Content -->
+  @if (activeTab === CurriculumTab.Curricula) {
+    <!-- Search and Add Curriculum Bar -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div class="flex items-center justify-between gap-4">
+        <!-- Search Input -->
+        <div class="flex-1 relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <form [formGroup]="searchForm">
+            <input
+              type="text"
+              formControlName="search"
+              placeholder="Search curricula..."
+              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+            />
+          </form>
+        </div>
+
+        <!-- Add Curriculum Button -->
+        <button
+          (click)="onAddCurricula()"
+          class="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors duration-200 shadow-sm"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          <span>Add Curriculum</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Curricula Table -->
+    <div class="content-area">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+        <table class="w-full border-collapse">
+          <!-- Table Header -->
+          <thead>
+            <tr class="border-b-2 border-gray-200">
+              <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">CURRICULUM ID</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">VERSION</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">PROGRAM</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">SCHOOL YEAR</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">EFFECTIVE DATE</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">STATUS</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">ACTIONS</th>
+            </tr>
+          </thead>
+
+          <!-- Table Body -->
+          <tbody>
+            @if (isLoading) {
+              <tr>
+                <td colspan="7" class="py-8 text-center text-gray-500">
+                  <div class="flex items-center justify-center">
+                    <svg class="animate-spin h-5 w-5 mr-3 text-purple-600" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Loading curricula...
+                  </div>
+                </td>
+              </tr>
+            } @else if (curricula.length === 0) {
+              <tr>
+                <td colspan="7" class="py-8 text-center text-gray-500">
+                  No curricula found
+                </td>
+              </tr>
+            } @else {
+              @for (curriculum of curricula; track curriculum.id) {
+                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  <!-- Curriculum ID -->
+                  <td class="py-4 px-4 text-gray-900 font-medium">
+                    {{ curriculum.curriculumCode || 'N/A' }}
+                  </td>
+
+                  <!-- Version -->
+                  <td class="py-4 px-4 text-gray-700">
+                    {{ curriculum.version || 'N/A' }}
+                  </td>
+
+                  <!-- Program -->
+                  <td class="py-4 px-4 text-gray-700">
+                    {{ curriculum.programCode || 'N/A' }}
+                  </td>
+
+                  <!-- School Year -->
+                  <td class="py-4 px-4 text-gray-700">
+                    {{ curriculum.syYear || 'N/A' }}
+                  </td>
+
+                  <!-- Effective Date -->
+                  <td class="py-4 px-4 text-gray-700">
+                    {{ formatDate(curriculum.effectiveDate) || 'N/A' }}
+                  </td>
+
+                  <!-- Status Badge -->
+                  <td class="py-4 px-4">
+                    <span [class]="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + getStatusBadgeClass(curriculum.curriculumStatus)">
+                      {{ getStatusText(curriculum) }}
+                    </span>
+                  </td>
+
+                  <!-- Actions -->
+                  <td class="py-4 px-4">
+                    <div class="flex items-center gap-3">
+                      <button
+                        (click)="onEditCurricula(curriculum)"
+                        class="text-blue-600 hover:text-blue-800 transition-colors"
+                        title="Edit curriculum"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                      </button>
+                      <button
+                        (click)="onDeleteCurricula(curriculum)"
+                        class="text-red-600 hover:text-red-800 transition-colors"
+                        title="Delete curriculum"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages > 1) {
+        <div class="mt-6 flex items-center justify-between">
+          <div class="text-sm text-gray-700">
+            Showing {{ getDisplayRange() }} curricula
+          </div>
+          <div class="flex gap-2">
+            <button
+              (click)="onPreviousPage()"
+              [disabled]="currentPage === 1"
+              class="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+            >
+              Previous
+            </button>
+            <button
+              (click)="onNextPage()"
+              [disabled]="currentPage === totalPages"
+              class="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Courses Tab Content -->
+  @if (activeTab === CurriculumTab.Courses) {
+    <!-- View Mode Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div class="flex items-center justify-between">
+        <!-- Title and Subtitle on the left -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-1">View Mode</h3>
+          <p class="text-sm text-gray-600">Choose how you want to view courses.</p>
+        </div>
+        
+        <!-- View Mode Buttons on the right -->
+        <div class="flex gap-3">
+          <button
+            (click)="onViewModeChange(CourseViewMode.List)"
+            [class]="'px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ' + (viewMode === CourseViewMode.List ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300')"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+            </svg>
+            List View
+          </button>
+          <button
+            (click)="onViewModeChange(CourseViewMode.Table)"
+            [class]="'px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ' + (viewMode === CourseViewMode.Table ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300')"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+            Curriculum Table View
+          </button>
+        </div>
+      </div>
+    </div>
+
+    @if (viewMode === CourseViewMode.List) {
+      <app-list-view
+        [courses]="courses"
+        [programs]="programs"
+        [isLoadingCourses]="isLoadingCourses"
+        [courseSearchTerm]="courseSearchTerm"
+        [selectedProgramFilter]="selectedProgramFilter"
+        [selectedPrerequisiteFilter]="selectedPrerequisiteFilter"
+        [selectedYearFilter]="selectedYearFilter"
+        [selectedSemesterFilter]="selectedSemesterFilter"
+        [currentPageInput]="currentPage"
+        [totalPagesInput]="totalPages"
+        [pageSizeInput]="pageSize"
+        [totalRecordsInput]="totalRecords"
+        (searchTermChange)="onListViewSearchTermChange($event)"
+        (programFilterChange)="onListViewProgramFilterChange($event)"
+        (prerequisiteFilterChange)="onListViewPrerequisiteFilterChange($event)"
+        (yearFilterChange)="onListViewYearFilterChange($event)"
+        (semesterFilterChange)="onListViewSemesterFilterChange($event)"
+        (addCourse)="onAddCourse()"
+        (editCourse)="onEditCourse($event)"
+        (deleteCourse)="onDeleteCourse($event)"
+        (pageChange)="onListViewPageChange($event)"
+      ></app-list-view>
+    }
+
+    @if (viewMode === CourseViewMode.Table) {
+      <app-curriculum-table-view
+        [courses]="courses"
+        [programs]="programs"
+        [curricula]="curricula"
+        [isLoadingCourses]="isLoadingCourses"
+        [isLoadingCurricula]="isLoadingCurricula"
+        [selectedProgramFilter]="selectedProgramFilter"
+        [selectedCurriculumFilter]="selectedCurriculumFilter"
+        (programFilterChange)="onTableViewProgramFilterChange($event)"
+        (curriculumFilterChange)="onTableViewCurriculumFilterChange($event)"
+      ></app-curriculum-table-view>
+    }
+  }
+
+  <!-- Fees Tab Content -->
+  @if (activeTab === CurriculumTab.Fees) {
+    <!-- Sub-tabs for Fees & Charges -->
+    <div class="tabs-container mb-6">
+      <div class="flex border-b border-gray-200">
+        <button
+          (click)="onFeeTabChange(FeeTab.TuitionFees)"
+          [class]="'tab-button ' + (activeFeeTab === FeeTab.TuitionFees ? 'active' : '')"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Tuition Fees
+        </button>
+        <button
+          (click)="onFeeTabChange(FeeTab.OtherSchoolFees)"
+          [class]="'tab-button ' + (activeFeeTab === FeeTab.OtherSchoolFees ? 'active' : '')"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+          Other School Fees
+        </button>
+        <button
+          (click)="onFeeTabChange(FeeTab.MiscellaneousFees)"
+          [class]="'tab-button ' + (activeFeeTab === FeeTab.MiscellaneousFees ? 'active' : '')"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+          Miscellaneous Fees
+        </button>
+        <button
+          (click)="onFeeTabChange(FeeTab.Downpayment)"
+          [class]="'tab-button ' + (activeFeeTab === FeeTab.Downpayment ? 'active' : '')"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+          </svg>
+          % Downpayment %
+        </button>
+      </div>
+    </div>
+
+    <!-- Tuition Fees Sub-tab Content -->
+    @if (activeFeeTab === FeeTab.TuitionFees) {
+      <app-tuition-fees></app-tuition-fees>
+    }
+
+    <!-- Other School Fees Sub-tab Content -->
+    @if (activeFeeTab === FeeTab.OtherSchoolFees) {
+      <app-other-school-fees></app-other-school-fees>
+    }
+
+    <!-- Miscellaneous Fees Sub-tab Content -->
+    @if (activeFeeTab === FeeTab.MiscellaneousFees) {
+      <app-miscellaneous-fees></app-miscellaneous-fees>
+    }
+
+    <!-- Downpayment Sub-tab Content -->
+    @if (activeFeeTab === FeeTab.Downpayment) {
+      <div class="content-area">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center text-gray-500">
+          <p>Downpayment management coming soon...</p>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- Curriculum Form Modal -->
+<app-curricula-form
+  [curricula]="selectedCurricula"
+  [isOpen]="showCurriculaForm"
+  (close)="onCloseCurriculaForm()"
+  (save)="onSaveCurricula($event)"
+></app-curricula-form>
+
+<!-- Course Form Modal -->
+<app-course-form
+  [course]="selectedCourse"
+  [isOpen]="showCourseForm"
+  (close)="onCloseCourseForm()"
+  (save)="onSaveCourse($event)"
+></app-course-form>
+
+<!-- Delete Confirmation Modal -->
+<app-confirmation-modal
+  [isOpen]="showDeleteConfirmation"
+  [config]="deleteConfirmationConfig"
+  (confirm)="onConfirmDelete()"
+  (cancel)="onCancelDelete()"
+></app-confirmation-modal>
+

@@ -52,7 +52,6 @@ export class LoginComponent {
           
           const role = response.data.role?.toLowerCase();
           
-          // Navigate based on role
           if (role === 'admin') {
             this.router.navigate(['/admin']);
           } else if (role === 'evaluator') {
@@ -60,7 +59,6 @@ export class LoginComponent {
           } else if (role === 'registrar') {
             this.router.navigate(['/registrar']);
           } else {
-            // Default fallback
             this.router.navigate(['/admin']);
           }
         } else {

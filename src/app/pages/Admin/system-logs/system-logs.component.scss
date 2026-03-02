@@ -1,8 +1,20 @@
 .page-content {
   padding: 2rem;
+  padding-top: calc(2rem + 10px);
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background-color: #9333ea;
+  }
 }
 
 .page-header {
@@ -31,19 +43,16 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-// Stats Grid - Responsive grid layout
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
   margin-bottom: 2rem;
 
-  // On smaller screens, stack cards vertically
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
   }
 
-  // On medium screens, show 2 columns
   @media (min-width: 769px) and (max-width: 1024px) {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -65,7 +74,6 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 
-  // First card spans full width on mobile, or can be positioned differently
   &:first-child {
     @media (max-width: 768px) {
       grid-column: 1;
@@ -136,7 +144,6 @@
   color: #d32f2f;
 }
 
-// Custom select dropdown arrow
 select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
   background-position: right 0.5rem center;
@@ -149,7 +156,6 @@ select:focus {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239333ea' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
 }
 
-// Table styling
 table {
   min-width: 100%;
   
@@ -162,7 +168,6 @@ table {
   }
 }
 
-// Badge styling
 .badge {
   display: inline-flex;
   align-items: center;
