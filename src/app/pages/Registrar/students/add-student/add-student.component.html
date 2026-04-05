@@ -1,0 +1,385 @@
+<div class="page-content page-content--form">
+  <a routerLink="/registrar/students" class="back-link">← Back to Students List</a>
+
+  <header class="page-header">
+    <h1 class="page-title">{{ pageTitle }}</h1>
+    <p class="page-subtitle">{{ pageSubtitle }}</p>
+  </header>
+
+  <div class="form-card">
+    <p class="required-note"><span class="text-red-500">*</span> Required fields</p>
+
+    @if (errorMessage) {
+      <div class="banner-error" role="alert">
+        {{ errorMessage }}
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      
+      @if (!isEditMode) {
+      <section class="form-section">
+        <h2 class="section-heading">Admission Information</h2>
+        <div class="grid-2">
+          <div>
+            <label for="admitType" class="field-label">Admit Type <span class="text-red-500">*</span></label>
+            <div class="select-wrap">
+              <select
+                id="admitType"
+                formControlName="admitType"
+                class="field-control"
+                [disabled]="isLoadingLookups"
+                [class.border-red-500]="showFieldError(formControls.admitType)"
+                [attr.aria-invalid]="showFieldError(formControls.admitType) ? true : null"
+                [attr.aria-describedby]="showFieldError(formControls.admitType) ? 'admitType-error' : null"
+              >
+                @for (opt of admitTypes; track opt.value) {
+                  <option [ngValue]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+            @if (showFieldError(formControls.admitType)) {
+              <p class="field-error" id="admitType-error" role="alert">{{ fieldError(formControls.admitType) }}</p>
+            }
+          </div>
+
+          <div>
+            <label for="yearLevel" class="field-label">Year Level <span class="text-red-500">*</span></label>
+            <div class="select-wrap">
+              <select
+                id="yearLevel"
+                formControlName="yearLevel"
+                class="field-control"
+                [disabled]="isLoadingLookups"
+                [class.border-red-500]="showFieldError(formControls.yearLevel)"
+                [attr.aria-invalid]="showFieldError(formControls.yearLevel) ? true : null"
+                [attr.aria-describedby]="showFieldError(formControls.yearLevel) ? 'yearLevel-error' : null"
+              >
+                @for (yl of yearLevels; track yl) {
+                  <option [ngValue]="yl">{{ yl }}</option>
+                }
+              </select>
+            </div>
+            @if (showFieldError(formControls.yearLevel)) {
+              <p class="field-error" id="yearLevel-error" role="alert">{{ fieldError(formControls.yearLevel) }}</p>
+            }
+          </div>
+
+          <div>
+            <label for="schoolYear" class="field-label">School Year <span class="text-red-500">*</span></label>
+            <div class="select-wrap">
+              <select
+                id="schoolYear"
+                formControlName="schoolYear"
+                class="field-control"
+                [disabled]="isLoadingLookups || schoolYearOptions.length === 0"
+                [class.border-red-500]="showFieldError(formControls.schoolYear)"
+                [attr.aria-invalid]="showFieldError(formControls.schoolYear) ? true : null"
+                [attr.aria-describedby]="showFieldError(formControls.schoolYear) ? 'schoolYear-error' : null"
+              >
+                @if (schoolYearOptions.length === 0) {
+                  <option value="">No school years available</option>
+                } @else {
+                  @for (y of schoolYearOptions; track y) {
+                    <option [ngValue]="y">{{ y }}</option>
+                  }
+                }
+              </select>
+            </div>
+            @if (showFieldError(formControls.schoolYear)) {
+              <p class="field-error" id="schoolYear-error" role="alert">{{ fieldError(formControls.schoolYear) }}</p>
+            }
+          </div>
+
+          <div>
+            <label for="syTermId" class="field-label">Term <span class="text-red-500">*</span></label>
+            <div class="select-wrap">
+              <select
+                id="syTermId"
+                formControlName="syTermId"
+                class="field-control"
+                [disabled]="isLoadingLookups || termRows.length === 0"
+                [class.border-red-500]="showFieldError(formControls.syTermId)"
+                [attr.aria-invalid]="showFieldError(formControls.syTermId) ? true : null"
+                [attr.aria-describedby]="showFieldError(formControls.syTermId) ? 'syTermId-error' : null"
+              >
+                @if (termRows.length === 0) {
+                  <option [ngValue]="null">Select school year first</option>
+                } @else {
+                  @for (row of termRows; track row.syId) {
+                    <option [ngValue]="row.syId">{{ row.label }}</option>
+                  }
+                }
+              </select>
+            </div>
+            @if (showFieldError(formControls.syTermId)) {
+              <p class="field-error" id="syTermId-error" role="alert">{{ fieldError(formControls.syTermId) }}</p>
+            }
+          </div>
+        </div>
+      </section>
+      }
+
+      
+      <section class="form-section">
+        <h2 class="section-heading">Personal Information</h2>
+        <div class="grid-2">
+          <div>
+            <label for="studentNumber" class="field-label">Student Number <span class="text-red-500">*</span></label>
+            <input
+              id="studentNumber"
+              type="text"
+              formControlName="studentNumber"
+              class="field-control"
+              autocomplete="off"
+              maxlength="50"
+              [class.border-red-500]="showFieldError(formControls.studentNumber)"
+              [attr.aria-invalid]="showFieldError(formControls.studentNumber) ? true : null"
+              [attr.aria-describedby]="showFieldError(formControls.studentNumber) ? 'studentNumber-error' : null"
+            />
+            @if (showFieldError(formControls.studentNumber)) {
+              <p class="field-error" id="studentNumber-error" role="alert">{{ fieldError(formControls.studentNumber) }}</p>
+            }
+          </div>
+
+          <div>
+            <label for="programCode" class="field-label">Program <span class="text-red-500">*</span></label>
+            <div class="select-wrap">
+              <select
+                id="programCode"
+                formControlName="programCode"
+                class="field-control"
+                [disabled]="isLoadingLookups"
+                [class.border-red-500]="showFieldError(formControls.programCode)"
+                [attr.aria-invalid]="showFieldError(formControls.programCode) ? true : null"
+                [attr.aria-describedby]="showFieldError(formControls.programCode) ? 'programCode-error' : null"
+              >
+                <option value="">Select Program</option>
+                @for (p of programs; track p.programId) {
+                  <option [value]="p.programCode">{{ p.programCode }}</option>
+                }
+              </select>
+            </div>
+            @if (showFieldError(formControls.programCode)) {
+              <p class="field-error" id="programCode-error" role="alert">{{ fieldError(formControls.programCode) }}</p>
+            }
+          </div>
+
+          <div>
+            <label for="firstName" class="field-label">First Name <span class="text-red-500">*</span></label>
+            <input
+              id="firstName"
+              type="text"
+              formControlName="firstName"
+              class="field-control"
+              maxlength="100"
+              [class.border-red-500]="showFieldError(formControls.firstName)"
+              [attr.aria-invalid]="showFieldError(formControls.firstName) ? true : null"
+              [attr.aria-describedby]="showFieldError(formControls.firstName) ? 'firstName-error' : null"
+            />
+            @if (showFieldError(formControls.firstName)) {
+              <p class="field-error" id="firstName-error" role="alert">{{ fieldError(formControls.firstName) }}</p>
+            }
+          </div>
+
+          <div>
+            <label for="lastName" class="field-label">Last Name <span class="text-red-500">*</span></label>
+            <input
+              id="lastName"
+              type="text"
+              formControlName="lastName"
+              class="field-control"
+              maxlength="100"
+              [class.border-red-500]="showFieldError(formControls.lastName)"
+              [attr.aria-invalid]="showFieldError(formControls.lastName) ? true : null"
+              [attr.aria-describedby]="showFieldError(formControls.lastName) ? 'lastName-error' : null"
+            />
+            @if (showFieldError(formControls.lastName)) {
+              <p class="field-error" id="lastName-error" role="alert">{{ fieldError(formControls.lastName) }}</p>
+            }
+          </div>
+
+          <div>
+            <label for="middleName" class="field-label">Middle Name</label>
+            <input
+              id="middleName"
+              type="text"
+              formControlName="middleName"
+              class="field-control"
+              maxlength="100"
+              [class.border-red-500]="showFieldError(formControls.middleName)"
+              [attr.aria-invalid]="showFieldError(formControls.middleName) ? true : null"
+              [attr.aria-describedby]="showFieldError(formControls.middleName) ? 'middleName-error' : null"
+            />
+            @if (showFieldError(formControls.middleName)) {
+              <p class="field-error" id="middleName-error" role="alert">{{ fieldError(formControls.middleName) }}</p>
+            }
+          </div>
+
+          <div>
+            <label for="gender" class="field-label">Gender <span class="text-red-500">*</span></label>
+            <div class="select-wrap">
+              <select
+                id="gender"
+                formControlName="gender"
+                class="field-control"
+                [class.border-red-500]="showFieldError(formControls.gender)"
+                [attr.aria-invalid]="showFieldError(formControls.gender) ? true : null"
+                [attr.aria-describedby]="showFieldError(formControls.gender) ? 'gender-error' : null"
+              >
+                @for (g of genders; track g.value) {
+                  <option [ngValue]="g.value">{{ g.label }}</option>
+                }
+              </select>
+            </div>
+            @if (showFieldError(formControls.gender)) {
+              <p class="field-error" id="gender-error" role="alert">{{ fieldError(formControls.gender) }}</p>
+            }
+          </div>
+
+          <div class="span-2 max-w-md">
+            <label for="birthdate" class="field-label">Birthdate <span class="text-red-500">*</span></label>
+            <input
+              id="birthdate"
+              type="date"
+              formControlName="birthdate"
+              class="field-control"
+              [class.border-red-500]="showFieldError(formControls.birthdate)"
+              [attr.aria-invalid]="showFieldError(formControls.birthdate) ? true : null"
+              [attr.aria-describedby]="showFieldError(formControls.birthdate) ? 'birthdate-error' : null"
+            />
+            @if (showFieldError(formControls.birthdate)) {
+              <p class="field-error" id="birthdate-error" role="alert">{{ fieldError(formControls.birthdate) }}</p>
+            }
+          </div>
+        </div>
+      </section>
+
+      
+      <section class="form-section">
+        <h2 class="section-heading">Contact Information</h2>
+        <div class="grid-2">
+          <div>
+            <label for="address" class="field-label">Address <span class="text-red-500">*</span></label>
+            <input
+              id="address"
+              type="text"
+              formControlName="address"
+              class="field-control"
+              autocomplete="street-address"
+              maxlength="500"
+              [class.border-red-500]="showFieldError(formControls.address)"
+              [attr.aria-invalid]="showFieldError(formControls.address) ? true : null"
+              [attr.aria-describedby]="showFieldError(formControls.address) ? 'address-error' : null"
+            />
+            @if (showFieldError(formControls.address)) {
+              <p class="field-error" id="address-error" role="alert">{{ fieldError(formControls.address) }}</p>
+            }
+          </div>
+          <div>
+            <label for="contactNumber" class="field-label">Contact Number <span class="text-red-500">*</span></label>
+            <input
+              id="contactNumber"
+              type="tel"
+              formControlName="contactNumber"
+              class="field-control"
+              autocomplete="tel"
+              inputmode="tel"
+              [class.border-red-500]="showFieldError(formControls.contactNumber)"
+              [attr.aria-invalid]="showFieldError(formControls.contactNumber) ? true : null"
+              [attr.aria-describedby]="showFieldError(formControls.contactNumber) ? 'contactNumber-error' : null"
+            />
+            @if (showFieldError(formControls.contactNumber)) {
+              <p class="field-error" id="contactNumber-error" role="alert">{{ fieldError(formControls.contactNumber) }}</p>
+            }
+          </div>
+          <div>
+            <label for="email" class="field-label">Email Address <span class="text-red-500">*</span></label>
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              class="field-control"
+              autocomplete="email"
+              maxlength="200"
+              [class.border-red-500]="showFieldError(formControls.email)"
+              [attr.aria-invalid]="showFieldError(formControls.email) ? true : null"
+              [attr.aria-describedby]="showFieldError(formControls.email) ? 'email-error' : null"
+            />
+            @if (showFieldError(formControls.email)) {
+              <p class="field-error" id="email-error" role="alert">{{ fieldError(formControls.email) }}</p>
+            }
+          </div>
+        </div>
+      </section>
+
+      
+      <section class="form-section">
+        <h2 class="section-heading">Academic Information</h2>
+        <div class="grid-2 grid-2--academic">
+          <div class="field-stack">
+            <label for="currentYearLevel" class="field-label">Current Year Level <span class="text-red-500">*</span></label>
+            <div class="select-wrap">
+              <select
+                id="currentYearLevel"
+                formControlName="currentYearLevel"
+                class="field-control"
+                [class.border-red-500]="showFieldError(formControls.currentYearLevel)"
+                [attr.aria-invalid]="showFieldError(formControls.currentYearLevel) ? true : null"
+                [attr.aria-describedby]="showFieldError(formControls.currentYearLevel) ? 'currentYearLevel-error' : null"
+              >
+                @for (yl of yearLevels; track yl) {
+                  <option [ngValue]="yl">{{ yl }}</option>
+                }
+              </select>
+            </div>
+            @if (showFieldError(formControls.currentYearLevel)) {
+              <p class="field-error" id="currentYearLevel-error" role="alert">
+                {{ fieldError(formControls.currentYearLevel) }}
+              </p>
+            }
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="isTransferee" />
+              <span>Is Transferee</span>
+            </label>
+          </div>
+          <div>
+            <label for="academicStatus" class="field-label">Status <span class="text-red-500">*</span></label>
+            <div class="select-wrap">
+              <select
+                id="academicStatus"
+                formControlName="academicStatus"
+                class="field-control"
+                [class.border-red-500]="showFieldError(formControls.academicStatus)"
+                [attr.aria-invalid]="showFieldError(formControls.academicStatus) ? true : null"
+                [attr.aria-describedby]="showFieldError(formControls.academicStatus) ? 'academicStatus-error' : null"
+              >
+                @for (s of academicStatuses; track s.value) {
+                  <option [ngValue]="s.value">{{ s.label }}</option>
+                }
+              </select>
+            </div>
+            @if (showFieldError(formControls.academicStatus)) {
+              <p class="field-error" id="academicStatus-error" role="alert">
+                {{ fieldError(formControls.academicStatus) }}
+              </p>
+            }
+          </div>
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-submit" [disabled]="formActionsDisabled">
+          @if (isSubmitting) {
+            <span>Saving…</span>
+          } @else if (isEditMode) {
+            <span>Update Student</span>
+          } @else {
+            <span>Add Student</span>
+          }
+        </button>
+        <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="isSubmitting">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

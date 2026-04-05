@@ -1,0 +1,169 @@
+<div class="dp-toolbar">
+  <div class="dp-toolbar__search">
+    <svg class="dp-toolbar__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+    <form [formGroup]="searchForm" class="dp-toolbar__form">
+      <input type="search" formControlName="search" class="dp-toolbar__input" placeholder="Search downpayment..." />
+    </form>
+  </div>
+  <button type="button" class="dp-toolbar__add" (click)="onAdd()">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+    </svg>
+    <span>Add New Downpayment</span>
+  </button>
+</div>
+
+<div class="dp-table-card">
+  <div class="dp-table-wrap">
+    <table class="dp-table">
+      <thead>
+        <tr>
+          <th>Program code</th>
+          <th>Program title</th>
+          <th>Batch</th>
+          <th>Downpayment %</th>
+          <th>Effective school year</th>
+          <th>Last updated</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isLoading) {
+          <tr>
+            <td colspan="7" class="dp-table__state">
+              <span class="dp-spinner" aria-hidden="true"></span>
+              Loading…
+            </td>
+          </tr>
+        } @else if (rows.length === 0) {
+          <tr>
+            <td colspan="7" class="dp-table__state dp-table__state--muted">No downpayment rules found.</td>
+          </tr>
+        } @else {
+          @for (row of rows; track row.id) {
+            <tr>
+              <td class="dp-table__code">{{ row.programCode || '—' }}</td>
+              <td class="dp-table__title">{{ row.programTitle || '—' }}</td>
+              <td>{{ row.batch || '—' }}</td>
+              <td>
+                <span class="dp-badge dp-badge--percent">{{ formatPercent(row.downpaymentPercent) }}</span>
+              </td>
+              <td>
+                <span class="dp-badge dp-badge--year">{{ row.effectiveSchoolYear || '—' }}</span>
+              </td>
+              <td class="dp-table__date">{{ formatLastUpdated(row.updatedAt || row.createdAt) }}</td>
+              <td>
+                <div class="dp-actions">
+                  <button type="button" class="dp-icon-btn" title="View" (click)="onView(row)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  </button>
+                  <button type="button" class="dp-icon-btn" title="Edit" (click)="onEdit(row)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (totalPages > 1) {
+  <div class="dp-pager">
+    <span class="dp-pager__meta">Page {{ currentPage }} of {{ totalPages }}</span>
+    <div class="dp-pager__btns">
+      <button type="button" class="dp-pager__btn" (click)="onPreviousPage()" [disabled]="currentPage === 1">Previous</button>
+      <button type="button" class="dp-pager__btn" (click)="onNextPage()" [disabled]="currentPage === totalPages">Next</button>
+    </div>
+  </div>
+}
+
+<app-downpayment-form
+  [downpayment]="selected"
+  [isOpen]="showForm"
+  [takenDownpaymentProgramCodes]="takenDownpaymentProgramCodes"
+  (close)="onCloseForm()"
+  (save)="onSave($event)"
+/>
+
+@if (viewProgram) {
+  <div class="dp-view-backdrop" (click)="onCloseView()">
+    <div class="dp-history-panel" (click)="$event.stopPropagation()">
+      <div class="dp-history-head">
+        <div class="dp-history-head__text">
+          <h3 class="dp-history-title">Downpayment Change History</h3>
+          <p class="dp-history-sub">
+            {{ viewProgram.programCode }} - {{ viewProgram.programTitle }}
+          </p>
+        </div>
+        <button type="button" class="dp-view-close" (click)="onCloseView()" aria-label="Close">×</button>
+      </div>
+
+      @if (historyLoading) {
+        <div class="dp-history-state">
+          <span class="dp-spinner" aria-hidden="true"></span>
+          Loading history…
+        </div>
+      } @else if (historyError && historyRows.length === 0) {
+        <div class="dp-history-state dp-history-state--error">{{ historyError }}</div>
+      } @else if (historyRows.length === 0) {
+        <div class="dp-history-state dp-history-state--muted">No history records for this program.</div>
+      } @else {
+        <div class="dp-history-table-wrap">
+          <table class="dp-history-table">
+            <thead>
+              <tr>
+                <th>Percentage</th>
+                <th>Effective school year</th>
+                <th>Updated by</th>
+                <th>Date modified</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (h of historyRows; track h.id) {
+                <tr>
+                  <td>
+                    <span class="dp-badge dp-badge--percent">{{ formatPercent(h.downpaymentPercent) }}</span>
+                  </td>
+                  <td>
+                    <span class="dp-badge dp-badge--year">{{ h.effectiveSchoolYear || '—' }}</span>
+                  </td>
+                  <td class="dp-history-user">{{ historyUpdatedBy(h) }}</td>
+                  <td class="dp-history-date">{{ formatHistoryDate(h.updatedAt || h.createdAt) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <div class="dp-history-actions">
+        <button type="button" class="dp-history-close-btn" (click)="onCloseView()">Close</button>
+      </div>
+    </div>
+  </div>
+}

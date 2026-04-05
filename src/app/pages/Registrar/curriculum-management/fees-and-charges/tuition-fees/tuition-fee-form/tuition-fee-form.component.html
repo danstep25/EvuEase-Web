@@ -1,7 +1,7 @@
 @if (isOpen) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" (click)="onClose()">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
-      <!-- Header -->
+      
       <div class="bg-white px-6 py-4 flex items-center justify-between rounded-t-lg border-b border-gray-200">
         <h2 class="text-xl font-bold text-gray-900">{{ title }}</h2>
         <button
@@ -22,7 +22,7 @@
           </div>
         }
 
-        <!-- First Row: School Year ID, Batch, Semester -->
+        
         <div class="grid grid-cols-3 gap-4 mb-4">
           <div>
             <label for="syId" class="block text-sm font-semibold text-gray-900 mb-2">
@@ -108,7 +108,7 @@
           </div>
         </div>
 
-        <!-- Second Row: Course Code, Component, Units -->
+        
         <div class="grid grid-cols-3 gap-4 mb-4">
           <div>
             <label for="courseCode" class="block text-sm font-semibold text-gray-900 mb-2">
@@ -208,7 +208,7 @@
           </div>
         </div>
 
-        <!-- Third Row: Course Title (Full Width) -->
+        
         <div class="mb-4">
           <label for="courseTitle" class="block text-sm font-semibold text-gray-900 mb-2">
             Course Title <span class="text-red-500">*</span>
@@ -232,7 +232,7 @@
           }
         </div>
 
-        <!-- Fourth Row: Cash Amount -->
+        
         <div class="mb-4">
           <label for="cash" class="block text-sm font-semibold text-gray-900 mb-2">
             Cash Amount <span class="text-red-500">*</span>
@@ -257,7 +257,7 @@
           }
         </div>
 
-        <!-- Fifth Row: Low Monthly Payment (Full Width) -->
+        
         <div class="mb-6">
           <label for="lowMonthlyPayment" class="block text-sm font-semibold text-gray-900 mb-2">
             Low Monthly Payment <span class="text-red-500">*</span>
@@ -282,7 +282,7 @@
           }
         </div>
 
-        <!-- Action Buttons -->
+        
         <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
           <button
             type="button"

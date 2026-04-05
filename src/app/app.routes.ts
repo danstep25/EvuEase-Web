@@ -36,6 +36,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       {
+        path: 'faculty-center',
+        loadComponent: () => import('./pages/Registrar/FacultyCenter/faculty-center.component').then(m => m.FacultyCenterComponent)
+      },
+      {
         path: 'program-management',
         loadComponent: () => import('./pages/Registrar/program-management/program-management.component').then(m => m.RegistrarProgramManagementComponent)
       },
@@ -48,8 +52,32 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/Registrar/curriculum-management/curriculum-management.component').then(m => m.CurriculumManagementComponent)
       },
       {
+        path: 'students/new',
+        loadComponent: () =>
+          import('./pages/Registrar/students/add-student').then(m => m.AddStudentComponent)
+      },
+      {
+        path: 'students/:id/edit',
+        loadComponent: () =>
+          import('./pages/Registrar/students/add-student').then(m => m.AddStudentComponent)
+      },
+      {
+        path: 'students/:id/academic-records',
+        loadComponent: () =>
+          import('./pages/Registrar/students/academic-records').then(m => m.AcademicRecordsComponent)
+      },
+      {
+        path: 'students/:id',
+        loadComponent: () =>
+          import('./pages/Registrar/students/student-detail').then(m => m.StudentDetailComponent)
+      },
+      {
         path: 'students',
         loadComponent: () => import('./pages/Registrar/students/students.component').then(m => m.StudentsComponent)
+      },
+      {
+        path: 'archive',
+        loadComponent: () => import('./pages/Registrar/archive/archive.component').then(m => m.ArchiveComponent)
       },
       {
         path: '',

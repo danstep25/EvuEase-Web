@@ -12,7 +12,7 @@
           </div>
         }
 
-        <!-- Top Section: Program and Curriculum Version -->
+        
         <div class="grid grid-cols-2 gap-4 mb-4">
           <div>
             <label for="programId" class="block text-sm font-semibold text-gray-900 mb-2">
@@ -71,7 +71,7 @@
           </div>
         </div>
 
-        <!-- Second Section: Course Code and Units -->
+        
         <div class="grid grid-cols-2 gap-4 mb-4">
           <div>
             <label for="courseCode" class="block text-sm font-semibold text-gray-900 mb-2">
@@ -114,7 +114,7 @@
           </div>
         </div>
 
-        <!-- Course Title -->
+        
         <div class="mb-4">
           <label for="courseTitle" class="block text-sm font-semibold text-gray-900 mb-2">
             Course Title <span class="text-red-500">*</span>
@@ -138,19 +138,19 @@
           }
         </div>
 
-        <!-- Component -->
+        
         <div class="mb-4">
           <label for="courseComponent" class="block text-sm font-semibold text-gray-900 mb-2">
             Component <span class="text-red-500">*</span>
           </label>
           
-          <!-- Custom dropdown with chips inside -->
+          
           <div class="relative"
             [class.border-red-500]="formControls.courseComponent?.invalid && formControls.courseComponent?.touched">
             <div class="w-full min-h-[42px] px-3 py-2 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-white flex flex-wrap items-center gap-2"
               [class.border-red-500]="formControls.courseComponent?.invalid && formControls.courseComponent?.touched">
               
-              <!-- Chips display inside the field -->
+              
               @for (component of selectedComponents; track component) {
                 <div class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
                   <span>{{ component }}</span>
@@ -167,7 +167,7 @@
                 </div>
               }
               
-              <!-- Dropdown select -->
+              
               <select
                 id="componentSelect"
                 (change)="onComponentSelect($any($event.target).value); $any($event.target).value = ''"
@@ -186,7 +186,7 @@
                 }
               </select>
               
-              <!-- Dropdown arrow icon -->
+              
               <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                 <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -195,7 +195,7 @@
             </div>
           </div>
 
-          <!-- Validation messages -->
+          
           @if (formControls.courseComponent?.invalid && formControls.courseComponent?.touched) {
             <p class="mt-1 text-sm text-red-600">
               @if (formControls.courseComponent?.errors?.['required']) {
@@ -207,7 +207,7 @@
           }
         </div>
 
-        <!-- Year and Semester -->
+        
         <div class="grid grid-cols-2 gap-4 mb-4">
           <div>
             <label for="courseYearLevel" class="block text-sm font-semibold text-gray-900 mb-2">
@@ -262,7 +262,7 @@
           </div>
         </div>
 
-        <!-- Pre-requisites -->
+        
         <div class="mb-4">
           <label for="prerequisites" class="block text-sm font-semibold text-gray-900 mb-2">
             Pre-requisite
@@ -287,7 +287,7 @@
           </div>
         </div>
 
-        <!-- Description -->
+        
         <div class="mb-6">
           <label for="description" class="block text-sm font-semibold text-gray-900 mb-2">
             Description

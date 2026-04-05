@@ -9,6 +9,12 @@ export interface Student {
   yearLevel: string;
   type: string;
   status: string;
+  address?: string | null;
+  contactNumber?: string | null;
+  email?: string | null;
+  gender?: string | null;
+  
+  birthdate?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -19,6 +25,44 @@ export interface StudentFilters {
   type?: string | null;
   status?: string | null;
   searchTerm?: string | null;
+}
+
+
+export interface CreateStudentRequest {
+  studentNumber: string;
+  firstName: string;
+  lastName: string;
+  middleName?: string | null;
+  programCode: string;
+  programTitle: string;
+  yearLevel: string;
+  studentType: string;
+  enrollmentStatus: string;
+  address?: string;
+  contactNumber?: string;
+  email?: string;
+  gender?: string;
+  
+  birthdate?: string;
+}
+
+
+export interface UpdateStudentRequest {
+  id: number;
+  studentNumber: string;
+  firstName: string;
+  lastName: string;
+  middleName?: string | null;
+  programCode: string;
+  programTitle: string;
+  yearLevel: string;
+  studentType: string;
+  enrollmentStatus: string;
+  address?: string | null;
+  contactNumber?: string | null;
+  email?: string | null;
+  gender?: string | null;
+  birthdate?: string | null;
 }
 
 

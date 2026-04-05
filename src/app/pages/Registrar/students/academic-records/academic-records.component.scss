@@ -1,0 +1,621 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.academic-records-page {
+  box-sizing: border-box;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #2563eb;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    color: #1d4ed8;
+  }
+}
+
+.state-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.state-card--error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.state-card__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #4b5563;
+  font-size: 0.9375rem;
+}
+
+.state-card__spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #9333ea;
+}
+
+.records-head {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+}
+
+.records-head__text {
+  min-width: 0;
+}
+
+.records-head__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.02em;
+}
+
+.records-head__subtitle {
+  font-size: 0.9375rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.records-head__note {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0.5rem 0 0;
+  line-height: 1.45;
+}
+
+.records-banner {
+  margin: 0 0 1rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+}
+
+.records-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1rem;
+  background: #fff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+
+  &:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
+  }
+}
+
+.btn-outline__icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: #4b5563;
+}
+
+.records-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.semester-pair-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: start;
+
+  @media (max-width: 960px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.semester-slot--empty {
+  min-height: 3rem;
+  border-radius: 10px;
+  border: 1px dashed #e5e7eb;
+  background: #fafafa;
+}
+
+.records-empty {
+  margin: 0;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.9375rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.semester-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  min-width: 0;
+}
+
+.semester-pair-row .semester-card {
+  width: 100%;
+}
+
+.semester-card__banner {
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-align: center;
+  color: #fff;
+  background: #0f172a;
+  letter-spacing: 0.03em;
+  line-height: 1.25;
+}
+
+.semester-card__table-wrap {
+  overflow-x: auto;
+  
+  min-width: 0;
+}
+
+.grades-table {
+  width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  border: 1px solid #d1d5db;
+}
+
+.grades-table thead th:nth-child(1) {
+  width: 11%;
+}
+
+.grades-table thead th:nth-child(2) {
+  width: 42%;
+}
+
+.grades-table thead th:nth-child(3) {
+  width: 9%;
+}
+
+.grades-table thead th:nth-child(4) {
+  width: 11%;
+}
+
+.grades-table thead th:nth-child(5) {
+  width: 27%;
+}
+
+.grades-table thead th {
+  padding: 0.45rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #374151;
+  background: #f3f4f6;
+  border-bottom: 1px solid #d1d5db;
+  border-right: 1px solid #e5e7eb;
+  text-align: left;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+.grades-table thead th:nth-child(n + 3) {
+  text-align: center;
+}
+
+.grades-table tbody td {
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  border-right: 1px solid #f3f4f6;
+  color: #111827;
+  vertical-align: middle;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+.grades-table__desc {
+  min-width: 0;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+.grades-table__num {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.grades-table__line {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.grades-table__line--subject {
+  justify-content: flex-start;
+}
+
+.grades-table__desc-text {
+  min-width: 0;
+}
+
+.grades-table__retake-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.grades-table__retake-icon--subject {
+  color: #ea580c;
+}
+
+.grades-table__retake-icon--grade {
+  color: #2563eb;
+}
+
+.grades-table__retake-grade-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0.15rem;
+  border: none;
+  background: transparent;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  line-height: 0;
+  transition:
+    background 0.15s ease,
+    transform 0.12s ease;
+
+  &:hover {
+    background: rgba(37, 99, 235, 0.12);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.grades-table__row--retake td:first-child {
+  box-shadow: inset 3px 0 0 rgba(234, 88, 12, 0.55);
+}
+
+.grades-table__remarks {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.grades-table__remarks-stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  max-width: 100%;
+  width: 100%;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+}
+
+.grades-table__remarks-primary {
+  display: block;
+  line-height: 1.2;
+}
+
+.grades-table__remarks-sub {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+}
+
+.grades-table__remarks-stack.remarks--passed {
+  color: #15803d;
+
+  .grades-table__remarks-sub {
+    color: #15803d;
+  }
+}
+
+.grades-table__remarks-stack.remarks--failed {
+  color: #b91c1c;
+
+  .grades-table__remarks-sub {
+    color: #b91c1c;
+  }
+}
+
+.grades-table__remarks-stack.remarks--incomplete {
+  color: #b45309;
+
+  .grades-table__remarks-sub {
+    color: #b45309;
+  }
+}
+
+.grades-table__remarks-stack.remarks--pending {
+  color: #6b7280;
+  font-weight: 600;
+  letter-spacing: normal;
+
+  .grades-table__remarks-sub {
+    color: #6b7280;
+    font-weight: 600;
+  }
+}
+
+.grades-table__remarks-stack.remarks--neutral {
+  color: #374151;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+
+  .grades-table__remarks-sub {
+    color: #64748b;
+    font-weight: 600;
+  }
+}
+
+.grades-table__remarks-stack.remarks--passed .grades-table__remarks-primary,
+.grades-table__remarks-stack.remarks--failed .grades-table__remarks-primary,
+.grades-table__remarks-stack.remarks--incomplete .grades-table__remarks-primary {
+  text-transform: uppercase;
+}
+
+.grades-table__remarks-stack.remarks--passed .grades-table__remarks-sub,
+.grades-table__remarks-stack.remarks--failed .grades-table__remarks-sub,
+.grades-table__remarks-stack.remarks--incomplete .grades-table__remarks-sub {
+  text-transform: uppercase;
+}
+
+.grades-table__code {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.grades-table__footer-row {
+  background: #f9fafb;
+}
+
+.grades-table__footer-row td {
+  border-top: 1px solid #d1d5db;
+  border-bottom: none;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.grades-table__footer-label {
+  text-align: right;
+  padding-right: 1rem;
+  font-size: 0.875rem;
+}
+
+.grades-table__footer-units {
+  font-size: 1rem;
+}
+
+.grades-table__footer-rest {
+  border-left: none;
+}
+
+.course-history-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.course-history-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.course-history-modal__panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 32rem;
+  max-height: min(85vh, 520px);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.course-history-modal__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1rem 0.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.course-history-modal__title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+
+.course-history-modal__close {
+  flex-shrink: 0;
+  display: inline-flex;
+  padding: 0.35rem;
+  margin: -0.35rem -0.35rem 0 0;
+  border: none;
+  background: transparent;
+  border-radius: 0.375rem;
+  color: #6b7280;
+  cursor: pointer;
+
+  &:hover {
+    color: #111827;
+    background: #f3f4f6;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+}
+
+.course-history-modal__close-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.course-history-modal__hint {
+  margin: 0;
+  padding: 0.5rem 1rem 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
+.course-history-modal__table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 1rem;
+}
+
+.course-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  border: 1px solid #e5e7eb;
+}
+
+.course-history-table thead th {
+  padding: 0.5rem 0.45rem;
+  text-align: left;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #4b5563;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.course-history-table tbody td {
+  padding: 0.55rem 0.45rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #111827;
+  vertical-align: middle;
+}
+
+.course-history-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.course-history-table__num {
+  text-align: center;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.course-history-table__remarks {
+  text-align: center;
+}
+
+.course-history-modal__footer {
+  padding: 0.75rem 1rem 1rem;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.course-history-modal__done {
+  padding: 0.45rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  background: #2563eb;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+
+  &:hover {
+    background: #1d4ed8;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
+  }
+}

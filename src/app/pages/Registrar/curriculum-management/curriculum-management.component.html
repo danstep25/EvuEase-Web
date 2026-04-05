@@ -4,7 +4,7 @@
     <p class="page-subtitle">{{ pageSubtitle }}</p>
   </header>
 
-  <!-- Tabs -->
+  
   <div class="tabs-container mb-6">
     <div class="flex border-b border-gray-200">
       <button
@@ -37,12 +37,12 @@
     </div>
   </div>
 
-  <!-- Curricula Tab Content -->
+  
   @if (activeTab === CurriculumTab.Curricula) {
-    <!-- Search and Add Curriculum Bar -->
+    
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
       <div class="flex items-center justify-between gap-4">
-        <!-- Search Input -->
+        
         <div class="flex-1 relative">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,7 +59,7 @@
           </form>
         </div>
 
-        <!-- Add Curriculum Button -->
+        
         <button
           (click)="onAddCurricula()"
           class="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors duration-200 shadow-sm"
@@ -72,12 +72,12 @@
       </div>
     </div>
 
-    <!-- Curricula Table -->
+    
     <div class="content-area">
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
         <table class="w-full border-collapse">
-          <!-- Table Header -->
+          
           <thead>
             <tr class="border-b-2 border-gray-200">
               <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">CURRICULUM ID</th>
@@ -90,7 +90,7 @@
             </tr>
           </thead>
 
-          <!-- Table Body -->
+          
           <tbody>
             @if (isLoading) {
               <tr>
@@ -113,39 +113,39 @@
             } @else {
               @for (curriculum of curricula; track curriculum.id) {
                 <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                  <!-- Curriculum ID -->
+                  
                   <td class="py-4 px-4 text-gray-900 font-medium">
                     {{ curriculum.curriculumCode || 'N/A' }}
                   </td>
 
-                  <!-- Version -->
+                  
                   <td class="py-4 px-4 text-gray-700">
                     {{ curriculum.version || 'N/A' }}
                   </td>
 
-                  <!-- Program -->
+                  
                   <td class="py-4 px-4 text-gray-700">
                     {{ curriculum.programCode || 'N/A' }}
                   </td>
 
-                  <!-- School Year -->
+                  
                   <td class="py-4 px-4 text-gray-700">
                     {{ curriculum.syYear || 'N/A' }}
                   </td>
 
-                  <!-- Effective Date -->
+                  
                   <td class="py-4 px-4 text-gray-700">
                     {{ formatDate(curriculum.effectiveDate) || 'N/A' }}
                   </td>
 
-                  <!-- Status Badge -->
+                  
                   <td class="py-4 px-4">
                     <span [class]="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + getStatusBadgeClass(curriculum.curriculumStatus)">
                       {{ getStatusText(curriculum) }}
                     </span>
                   </td>
 
-                  <!-- Actions -->
+                  
                   <td class="py-4 px-4">
                     <div class="flex items-center gap-3">
                       <button
@@ -176,7 +176,7 @@
         </div>
       </div>
 
-      <!-- Pagination -->
+      
       @if (totalPages > 1) {
         <div class="mt-6 flex items-center justify-between">
           <div class="text-sm text-gray-700">
@@ -203,18 +203,18 @@
     </div>
   }
 
-  <!-- Courses Tab Content -->
+  
   @if (activeTab === CurriculumTab.Courses) {
-    <!-- View Mode Section -->
+    
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
       <div class="flex items-center justify-between">
-        <!-- Title and Subtitle on the left -->
+        
         <div>
           <h3 class="text-lg font-semibold text-gray-900 mb-1">View Mode</h3>
           <p class="text-sm text-gray-600">Choose how you want to view courses.</p>
         </div>
         
-        <!-- View Mode Buttons on the right -->
+        
         <div class="flex gap-3">
           <button
             (click)="onViewModeChange(CourseViewMode.List)"
@@ -279,9 +279,9 @@
     }
   }
 
-  <!-- Fees Tab Content -->
+  
   @if (activeTab === CurriculumTab.Fees) {
-    <!-- Sub-tabs for Fees & Charges -->
+    
     <div class="tabs-container mb-6">
       <div class="flex border-b border-gray-200">
         <button
@@ -315,41 +315,39 @@
           (click)="onFeeTabChange(FeeTab.Downpayment)"
           [class]="'tab-button ' + (activeFeeTab === FeeTab.Downpayment ? 'active' : '')"
         >
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="7.5" cy="7.5" r="2.5" stroke-width="2" />
+            <circle cx="16.5" cy="16.5" r="2.5" stroke-width="2" />
+            <path stroke-linecap="round" stroke-width="2" d="M5 19L19 5" />
           </svg>
-          % Downpayment %
+          Downpayment %
         </button>
       </div>
     </div>
 
-    <!-- Tuition Fees Sub-tab Content -->
+    
     @if (activeFeeTab === FeeTab.TuitionFees) {
       <app-tuition-fees></app-tuition-fees>
     }
 
-    <!-- Other School Fees Sub-tab Content -->
+    
     @if (activeFeeTab === FeeTab.OtherSchoolFees) {
       <app-other-school-fees></app-other-school-fees>
     }
 
-    <!-- Miscellaneous Fees Sub-tab Content -->
+    
     @if (activeFeeTab === FeeTab.MiscellaneousFees) {
       <app-miscellaneous-fees></app-miscellaneous-fees>
     }
 
-    <!-- Downpayment Sub-tab Content -->
+    
     @if (activeFeeTab === FeeTab.Downpayment) {
-      <div class="content-area">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center text-gray-500">
-          <p>Downpayment management coming soon...</p>
-        </div>
-      </div>
+      <app-downpayments />
     }
   }
 </div>
 
-<!-- Curriculum Form Modal -->
+
 <app-curricula-form
   [curricula]="selectedCurricula"
   [isOpen]="showCurriculaForm"
@@ -357,15 +355,16 @@
   (save)="onSaveCurricula($event)"
 ></app-curricula-form>
 
-<!-- Course Form Modal -->
+
 <app-course-form
   [course]="selectedCourse"
+  [createPrefill]="courseCreatePrefill"
   [isOpen]="showCourseForm"
   (close)="onCloseCourseForm()"
   (save)="onSaveCourse($event)"
 ></app-course-form>
 
-<!-- Delete Confirmation Modal -->
+
 <app-confirmation-modal
   [isOpen]="showDeleteConfirmation"
   [config]="deleteConfirmationConfig"

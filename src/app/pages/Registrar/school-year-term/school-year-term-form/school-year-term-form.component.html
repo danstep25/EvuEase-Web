@@ -1,23 +1,23 @@
 @if (isOpen) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" (click)="onClose()">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
-      <!-- Modal Header -->
+      
       <div class="px-6 py-4 border-b border-gray-200">
         <h2 class="text-xl font-bold text-blue-900">{{ title }}</h2>
       </div>
 
-      <!-- Modal Body -->
+      
       <form [formGroup]="syTermForm" (ngSubmit)="onSubmit()" class="px-6 py-4">
-        <!-- Error Message -->
+        
         @if (errorMessage) {
           <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
             {{ errorMessage }}
           </div>
         }
 
-        <!-- Two Column Layout for First Row -->
+        
         <div class="grid grid-cols-2 gap-4 mb-4">
-          <!-- SY Code (Auto-generated) -->
+          
           <div>
             <label for="syCode" class="block text-sm font-semibold text-gray-900 mb-2">
               SYID (Auto-generated) <span class="text-red-500">*</span>
@@ -43,7 +43,7 @@
             }
           </div>
 
-          <!-- School Year -->
+          
           <div>
             <label for="syYear" class="block text-sm font-semibold text-gray-900 mb-2">
               School Year <span class="text-red-500">*</span>
@@ -68,9 +68,9 @@
           </div>
         </div>
 
-        <!-- Two Column Layout for Second Row -->
+        
         <div class="grid grid-cols-2 gap-4 mb-4">
-          <!-- Semester -->
+          
           <div>
             <label for="sySemester" class="block text-sm font-semibold text-gray-900 mb-2">
               Semester <span class="text-red-500">*</span>
@@ -97,7 +97,7 @@
             }
           </div>
 
-          <!-- Status -->
+          
           <div>
             <label for="syStatus" class="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-2">
               Status <span class="text-red-500">*</span>
@@ -127,9 +127,9 @@
           </div>
         </div>
 
-        <!-- Two Column Layout for Dates Row -->
+        
         <div class="grid grid-cols-2 gap-4 mb-4">
-          <!-- Start Date -->
+          
           <div>
             <label for="syStartDate" class="block text-sm font-semibold text-gray-900 mb-2">
               Start Date <span class="text-red-500">*</span>
@@ -154,7 +154,7 @@
             }
           </div>
 
-          <!-- End Date -->
+          
           <div>
             <label for="syEndDate" class="block text-sm font-semibold text-gray-900 mb-2">
               End Date <span class="text-red-500">*</span>
@@ -180,13 +180,13 @@
           </div>
         </div>
 
-        <!-- Enrollment Period Section -->
+        
         <div class="mb-4">
           <label class="block text-sm font-semibold text-gray-900 mb-3">
             Enrollment Period
           </label>
           <div class="grid grid-cols-2 gap-4">
-            <!-- Enrollment From -->
+            
             <div>
               <label for="syEnrollmentStart" class="block text-sm font-semibold text-gray-900 mb-2">
                 From <span class="text-red-500">*</span>
@@ -211,7 +211,7 @@
               }
             </div>
 
-            <!-- Enrollment To -->
+            
             <div>
               <label for="syEnrollmentEnd" class="block text-sm font-semibold text-gray-900 mb-2">
                 To <span class="text-red-500">*</span>
@@ -238,7 +238,7 @@
           </div>
         </div>
 
-        <!-- Modal Footer -->
+        
         <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
           <button
             type="button"

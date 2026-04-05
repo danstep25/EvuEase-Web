@@ -26,14 +26,12 @@
     overflow-x: hidden;
   }
 
-  // Ensure proper rendering across browsers
   input, button, textarea, select {
     font-family: inherit;
     font-size: inherit;
     line-height: inherit;
   }
 
-  // Remove default button styles
   button {
     background: none;
     border: none;
@@ -42,7 +40,6 @@
     cursor: pointer;
   }
 
-  // Remove input number spinners
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
@@ -65,16 +62,16 @@
   }
 }
 
-// Browser compatibility for flexbox
 @supports not (display: flex) {
   .flex {
     display: block;
   }
 }
 
-// Ensure proper text rendering
 * {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
+
+@import './app/shared/styles/portal-page-layout.scss';

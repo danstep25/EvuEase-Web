@@ -1,23 +1,23 @@
 @if (isOpen) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" (click)="onClose()">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4" (click)="$event.stopPropagation()">
-      <!-- Modal Header -->
+      
       <div class="px-6 py-4 border-b border-gray-200">
         <h2 class="text-xl font-bold text-blue-900">{{ title }}</h2>
       </div>
 
-      <!-- Modal Body -->
+      
       <form [formGroup]="programForm" (ngSubmit)="onSubmit()" class="px-6 py-4">
-        <!-- Error Message -->
+        
         @if (errorMessage) {
           <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
             {{ errorMessage }}
           </div>
         }
 
-        <!-- Two Column Layout for First Row -->
+        
         <div class="grid grid-cols-2 gap-4 mb-4">
-          <!-- Program Code -->
+          
           <div>
             <label for="programCode" class="block text-sm font-semibold text-gray-900 mb-2">
               Program Code <span class="text-red-500">*</span>
@@ -40,7 +40,7 @@
             }
           </div>
 
-          <!-- Years of Completion -->
+          
           <div>
             <label for="programCompletionYears" class="block text-sm font-semibold text-gray-900 mb-2">
               Years of Completion <span class="text-red-500">*</span>
@@ -66,9 +66,9 @@
           </div>
         </div>
 
-        <!-- Two Column Layout for Second Row -->
+        
         <div class="grid grid-cols-2 gap-4 mb-4">
-          <!-- Program Title -->
+          
           <div>
             <label for="programTitle" class="block text-sm font-semibold text-gray-900 mb-2">
               Program Title <span class="text-red-500">*</span>
@@ -91,7 +91,7 @@
             }
           </div>
 
-          <!-- Total Units -->
+          
           <div>
             <label for="programTotalUnits" class="block text-sm font-semibold text-gray-900 mb-2">
               Total Units <span class="text-red-500">*</span>
@@ -116,7 +116,7 @@
           </div>
         </div>
 
-        <!-- Status (Full Width) -->
+        
         <div class="mb-6">
           <label for="programStatus" class="block text-sm font-semibold text-gray-900 mb-2">
             Status <span class="text-red-500">*</span>
@@ -142,7 +142,7 @@
           }
         </div>
 
-        <!-- Modal Footer -->
+        
         <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
           <button
             type="button"

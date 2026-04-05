@@ -10,6 +10,7 @@ import { NotificationService } from '../../../shared/services/notification.servi
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import { ProgramFormComponent } from './program-form/program-form.component';
 import { ProgramService } from './program.service';
+import { LookupService } from '../../../shared/services/lookup.service';
 
 @Component({
   selector: 'app-program-management',
@@ -20,6 +21,7 @@ import { ProgramService } from './program.service';
 })
 export class ProgramManagementComponent extends BasePaginationHandler implements OnInit, OnDestroy {
   private readonly programService = inject(ProgramService);
+  private readonly lookupService = inject(LookupService);
   private readonly fb = inject(FormBuilder);
   private readonly notificationService = inject(NotificationService);
   private readonly destroy$ = new Subject<void>();
@@ -113,6 +115,7 @@ export class ProgramManagementComponent extends BasePaginationHandler implements
     if (confirm(`Are you sure you want to delete the program "${program.programTitle}"?`)) {
       this.programService.deleteProgram(program.programId.toString()).subscribe({
         next: () => {
+          this.lookupService.clearCache();
           this.notificationService.success(
             'Program Deleted',
             `Program "${program.programTitle}" has been successfully deleted.`
@@ -121,7 +124,11 @@ export class ProgramManagementComponent extends BasePaginationHandler implements
         },
         error: (error) => {
           console.error('Error deleting program:', error);
-          const errorMsg = error.error?.error?.message || error.message || 'Failed to delete program. Please try again.';
+          const errorMsg =
+            error.error?.error?.message ||
+            error.error?.message ||
+            error.message ||
+            'Failed to delete program. Please try again.';
           this.notificationService.error('Delete Failed', errorMsg);
         }
       });
@@ -148,6 +155,7 @@ export class ProgramManagementComponent extends BasePaginationHandler implements
           if (this.programFormComponent) {
             this.programFormComponent.setSubmitting(false);
           }
+          this.lookupService.clearCache();
           this.notificationService.success(
             'Program Updated',
             `Program "${updateData.programTitle}" has been successfully updated.`
@@ -171,6 +179,7 @@ export class ProgramManagementComponent extends BasePaginationHandler implements
           if (this.programFormComponent) {
             this.programFormComponent.setSubmitting(false);
           }
+          this.lookupService.clearCache();
           this.notificationService.success(
             'Program Created',
             `Program "${(programData as CreateProgramRequest).programTitle}" has been successfully created.`

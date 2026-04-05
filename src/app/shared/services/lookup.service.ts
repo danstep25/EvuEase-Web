@@ -47,19 +47,23 @@ export class LookupService extends HttpBaseService {
     return this.get<LookupItem[]>(API_URL.lookup.getLookup(lookupType));
   }
 
-  /**
-   * Get programs for dropdown (cached)
-   * Returns LookupResponse[] from backend and maps to Program[] format
-   */
+  
   getProgramsForDropdown(): Observable<Program[]> {
     if (!this.programsCache$) {
       this.programsCache$ = this.get<LookupResponse[]>(API_URL.lookup.programs).pipe(
         map((lookups: LookupResponse[]) => {
+          if (!Array.isArray(lookups)) {
+            return [];
+          }
           return lookups.map(lookup => {
-            const parts = lookup.displayText?.split(' - ') || [lookup.value, ''];
+            const row = lookup as LookupResponse & { Value?: string; DisplayText?: string; Id?: number };
+            const value = (row.value ?? row.Value ?? '').toString();
+            const displayText = row.displayText ?? row.DisplayText;
+            const id = row.id ?? row.Id ?? 0;
+            const parts = displayText?.split(' - ') || [value, ''];
             return {
-              programId: lookup.id,
-              programCode: lookup.value,
+              programId: id,
+              programCode: value,
               programTitle: parts.length > 1 ? parts[1] : '',
               programCompletionYears: 0,
               programTotalUnits: null,
@@ -178,6 +182,23 @@ export class LookupService extends HttpBaseService {
     );
   }
 
+  getCoursesLookupForDropdown(): Observable<LookupResponse[]> {
+    return this.get<LookupResponse[]>(API_URL.lookup.courses).pipe(
+      map((lookups) => {
+        if (!lookups || !Array.isArray(lookups)) {
+          return [];
+        }
+        return lookups.map((lookup) => {
+          const row = lookup as LookupResponse & { Value?: string; DisplayText?: string; Id?: number };
+          const value = (row.value ?? row.Value ?? '').toString();
+          const displayText = (row.displayText ?? row.DisplayText ?? value).toString();
+          const id = row.id ?? row.Id ?? 0;
+          return { id, value, displayText };
+        });
+      })
+    );
+  }
+
   getCoursesBySemesterForDropdown(semester: string): Observable<LookupResponse[]> {
     if (!semester || semester.trim() === '') {
       return of([]);
@@ -186,6 +207,7 @@ export class LookupService extends HttpBaseService {
     return this.get<LookupResponse[]>(url);
   }
 
+  
   clearCache(): void {
     this.programsCache$ = undefined;
     this.syTermsCache$ = undefined;

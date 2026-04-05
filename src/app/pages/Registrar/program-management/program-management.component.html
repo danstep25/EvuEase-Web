@@ -4,10 +4,10 @@
     <p class="page-subtitle">{{ pageSubtitle }}</p>
   </header>
 
-  <!-- Search and Add Program Bar -->
+  
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
     <div class="flex items-center justify-between gap-4">
-      <!-- Search Input -->
+      
       <div class="flex-1 relative">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,7 +24,7 @@
         </form>
       </div>
 
-      <!-- Add Program Button -->
+      
       <button
         (click)="onAddProgram()"
         class="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors duration-200 shadow-sm"
@@ -37,12 +37,12 @@
     </div>
   </div>
 
-  <!-- Programs Table -->
+  
   <div class="content-area">
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div class="overflow-x-auto">
       <table class="w-full border-collapse">
-        <!-- Table Header -->
+        
         <thead>
           <tr class="border-b-2 border-gray-200">
             <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">PROGRAM CODE</th>
@@ -54,7 +54,7 @@
           </tr>
         </thead>
 
-        <!-- Table Body -->
+        
         <tbody>
           @if (isLoading) {
             <tr>
@@ -77,34 +77,34 @@
           } @else {
             @for (program of programs; track program.programId) {
               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                <!-- Program Code -->
+                
                 <td class="py-4 px-4 text-gray-900 font-medium">
                   {{ program.programCode || 'N/A' }}
                 </td>
 
-                <!-- Program Title -->
+                
                 <td class="py-4 px-4 text-gray-700">
                   {{ program.programTitle || 'N/A' }}
                 </td>
 
-                <!-- Years -->
+                
                 <td class="py-4 px-4 text-gray-700">
                   {{ program.programCompletionYears || 'N/A' }}
                 </td>
 
-                <!-- Total Units -->
+                
                 <td class="py-4 px-4 text-gray-700">
                   {{ program.programTotalUnits || 'N/A' }}
                 </td>
 
-                <!-- Status Badge -->
+                
                 <td class="py-4 px-4">
                   <span [class]="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + getStatusBadgeClass(program.programStatus)">
                     {{ getStatusText(program) }}
                   </span>
                 </td>
 
-                <!-- Actions -->
+                
                 <td class="py-4 px-4">
                   <div class="flex items-center gap-3">
                     <button
@@ -135,7 +135,7 @@
       </div>
     </div>
 
-    <!-- Pagination -->
+    
     @if (totalPages > 1) {
       <div class="mt-6 flex items-center justify-between">
         <div class="text-sm text-gray-700">
@@ -162,7 +162,7 @@
   </div>
 </div>
 
-<!-- Program Form Modal -->
+
 <app-program-form
   [program]="selectedProgram"
   [isOpen]="showProgramForm"
@@ -170,7 +170,7 @@
   (save)="onSaveProgram($event)"
 ></app-program-form>
 
-<!-- Delete Confirmation Modal -->
+
 <app-confirmation-modal
   [isOpen]="showDeleteConfirmation"
   [config]="deleteConfirmationConfig"

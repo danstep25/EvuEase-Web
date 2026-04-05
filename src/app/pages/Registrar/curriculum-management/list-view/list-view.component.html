@@ -1,8 +1,8 @@
-<!-- List View: Search, Add Course, and Filters -->
+
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-  <!-- Search and Add Course Bar -->
+  
   <div class="flex items-center justify-between gap-4 mb-4">
-    <!-- Search Input -->
+    
     <div class="flex-1 relative">
       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -18,7 +18,7 @@
       />
     </div>
 
-    <!-- Add Course Button -->
+    
     <button
       (click)="onAddCourseClick()"
       class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 shadow-sm"
@@ -30,12 +30,12 @@
     </button>
   </div>
 
-  <!-- Separator Line -->
+  
   <hr class="border-gray-200 mb-4" />
 
-  <!-- Filter Options -->
+  
   <div class="grid grid-cols-4 gap-4">
-    <!-- Filter by Program -->
+    
     <div>
       <label class="block text-sm font-semibold text-gray-700 mb-2">Filter by Program</label>
       <select
@@ -50,7 +50,7 @@
       </select>
     </div>
 
-    <!-- Filter by Pre-requisite(s) -->
+    
     <div>
       <label class="block text-sm font-semibold text-gray-700 mb-2">Filter by Pre-requisite(s)</label>
       <select
@@ -65,7 +65,7 @@
       </select>
     </div>
 
-    <!-- Filter by Year -->
+    
     <div>
       <label class="block text-sm font-semibold text-gray-700 mb-2">Filter by Year</label>
       <select
@@ -82,7 +82,7 @@
       </select>
     </div>
 
-    <!-- Filter by Semester -->
+    
     <div>
       <label class="block text-sm font-semibold text-gray-700 mb-2">Filter by Semester</label>
       <select
@@ -99,12 +99,12 @@
   </div>
 </div>
 
-<!-- Courses Table -->
+
 <div class="content-area">
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
     <div class="overflow-x-auto">
       <table class="w-full border-collapse">
-        <!-- Table Header -->
+        
         <thead>
           <tr class="border-b-2 border-gray-200 bg-gray-50">
             <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">CURRICULUM</th>
@@ -120,7 +120,7 @@
           </tr>
         </thead>
 
-        <!-- Table Body -->
+        
         <tbody>
           @if (isLoadingCourses) {
             <tr>
@@ -182,7 +182,7 @@
     </div>
   </div>
 
-  <!-- Pagination -->
+  
   @if (totalPages > 1) {
     <div class="mt-6 flex items-center justify-between">
       <div class="text-sm text-gray-700">

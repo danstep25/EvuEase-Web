@@ -12,6 +12,7 @@ import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import { SchoolYearTermFormComponent } from './school-year-term-form/school-year-term-form.component';
 import { SchoolYearTermService } from './school-year-term.service';
 import { SORT_DEFAULTS } from '../../../shared/constants/sort.constant';
+import { LookupService } from '../../../shared/services/lookup.service';
 
 @Component({
   selector: 'app-school-year-term',
@@ -22,6 +23,7 @@ import { SORT_DEFAULTS } from '../../../shared/constants/sort.constant';
 })
 export class SchoolYearTermComponent extends BasePaginationHandler implements OnInit, OnDestroy {
   private readonly syTermService = inject(SchoolYearTermService);
+  private readonly lookupService = inject(LookupService);
   private readonly fb = inject(FormBuilder);
   private readonly notificationService = inject(NotificationService);
   private readonly destroy$ = new Subject<void>();
@@ -145,6 +147,7 @@ export class SchoolYearTermComponent extends BasePaginationHandler implements On
     const syTerm = this.syTermToDelete;
     this.syTermService.deleteSyTerm(syTerm.syId.toString()).subscribe({
       next: () => {
+        this.lookupService.clearCache();
         this.notificationService.success(
           'School Year Term Deleted',
           `School Year Term "${syTerm.syCode}" has been successfully deleted.`
@@ -187,6 +190,7 @@ export class SchoolYearTermComponent extends BasePaginationHandler implements On
           if (this.syTermFormComponent) {
             this.syTermFormComponent.setSubmitting(false);
           }
+          this.lookupService.clearCache();
           this.notificationService.success(
             'School Year Term Updated',
             `School Year Term "${syTermData.syCode}" has been successfully updated.`
@@ -210,6 +214,7 @@ export class SchoolYearTermComponent extends BasePaginationHandler implements On
           if (this.syTermFormComponent) {
             this.syTermFormComponent.setSubmitting(false);
           }
+          this.lookupService.clearCache();
           this.notificationService.success(
             'School Year Term Created',
             `School Year Term "${syTermData.syCode}" has been successfully created.`

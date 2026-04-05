@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Student } from '../../../core/models/student.model';
+import { map } from 'rxjs/operators';
+import { CreateStudentRequest, Student, UpdateStudentRequest } from '../../../core/models/student.model';
+import { StudentEnrollmentOverview } from '../../../core/models/student-enrollments.model';
+import { mapStudentEnrollmentOverview } from './student-enrollments.mapper';
 import { PaginatedResponse } from '../../../core/models/api-response.model';
 import { HttpBaseService, PaginationParams } from '../../../shared/services/http-base.service';
 import { API_URL } from '../../../shared/constants/api.url.constant';
@@ -37,6 +40,24 @@ export class StudentsService extends HttpBaseService {
       : undefined;
 
     return this.getPaginated<Student>(API_URL.student.getAll, queryParams, 'result');
+  }
+
+  createStudent(request: CreateStudentRequest): Observable<Student> {
+    return this.post<Student>(API_URL.student.create, request);
+  }
+
+  getStudentById(id: string): Observable<Student> {
+    return this.get<Student>(API_URL.student.getById(id));
+  }
+
+  
+  getStudentEnrollmentOverview(id: string): Observable<StudentEnrollmentOverview> {
+    return this.get<unknown>(API_URL.student.enrollments(id)).pipe(map(raw => mapStudentEnrollmentOverview(raw)));
+  }
+
+  updateStudent(id: string, request: UpdateStudentRequest): Observable<Student> {
+    const body: UpdateStudentRequest = { ...request, id: Number(id) };
+    return this.put<Student>(API_URL.student.update(id), body);
   }
 }
 

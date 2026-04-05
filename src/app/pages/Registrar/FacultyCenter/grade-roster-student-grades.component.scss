@@ -1,0 +1,32 @@
+.grsg__table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.grsg-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.grsg-badge--passed {
+  background-color: rgb(209 250 229);
+  color: rgb(6 95 70);
+}
+
+.grsg-badge--failed {
+  background-color: rgb(254 226 226);
+  color: rgb(153 27 27);
+}
+
+.grsg-badge--incomplete {
+  background-color: rgb(254 249 195);
+  color: rgb(133 77 14);
+}
+
+.grsg-badge--neutral {
+  background-color: rgb(243 244 246);
+  color: rgb(75 85 99);
+}

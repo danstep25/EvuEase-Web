@@ -1,21 +1,21 @@
 @if (isOpen) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" (click)="onClose()">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4" (click)="$event.stopPropagation()">
-      <!-- Modal Header -->
+      
       <div class="px-6 py-4 border-b border-gray-200">
         <h2 class="text-xl font-bold text-blue-900">{{ title }}</h2>
       </div>
 
-      <!-- Modal Body -->
+      
       <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="px-6 py-4">
-        <!-- Error Message -->
+        
         @if (errorMessage) {
           <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
             {{ errorMessage }}
           </div>
         }
 
-        <!-- Full Name -->
+        
         <div class="mb-4">
           <label for="fullName" class="block text-sm font-semibold text-gray-900 mb-2">
             Full Name <span class="text-red-500">*</span>
@@ -32,7 +32,7 @@
           }
         </div>
 
-        <!-- Email/Username -->
+        
         <div class="mb-4">
           <label for="email" class="block text-sm font-semibold text-gray-900 mb-2">
             Email/Username <span class="text-red-500">*</span>
@@ -58,7 +58,7 @@
           }
         </div>
 
-        <!-- Password (only for new users) -->
+        
         @if (!isEditMode) {
           <div class="mb-4">
             <label for="password" class="block text-sm font-semibold text-gray-900 mb-2">
@@ -83,7 +83,7 @@
           </div>
         }
 
-        <!-- Role -->
+        
         <div class="mb-4">
           <label for="role" class="block text-sm font-semibold text-gray-900 mb-2">
             Role <span class="text-red-500">*</span>
@@ -103,7 +103,7 @@
           }
         </div>
 
-        <!-- Status -->
+        
         <div class="mb-6">
           <label for="status" class="block text-sm font-semibold text-gray-900 mb-2">
             Status <span class="text-red-500">*</span>
@@ -123,7 +123,7 @@
           }
         </div>
 
-        <!-- Modal Footer -->
+        
         <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
           <button
             type="submit"

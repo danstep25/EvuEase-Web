@@ -35,6 +35,16 @@ export class HttpBaseService {
     return new HttpHeaders(headers);
   }
 
+  
+  protected getAuthHeaders(): HttpHeaders {
+    const headers: { [key: string]: string } = {};
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return new HttpHeaders(headers);
+  }
+
   protected buildQueryParams(params?: PaginationParams): HttpParams {
     let httpParams = new HttpParams();
     

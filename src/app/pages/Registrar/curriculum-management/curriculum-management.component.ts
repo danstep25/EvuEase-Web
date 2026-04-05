@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Curricula, CreateCurriculaRequest, UpdateCurriculaRequest } from '../../../core/models/curricula.model';
 import { PaginatedResponse } from '../../../core/models/api-response.model';
@@ -17,6 +18,7 @@ import { CurriculumManagementService } from './curriculum-management.service';
 import { TuitionFeesComponent } from './fees-and-charges/tuition-fees/tuition-fees.component';
 import { OtherSchoolFeesComponent } from './fees-and-charges/other-school-fees/other-school-fees.component';
 import { MiscellaneousFeesComponent } from './fees-and-charges/miscellaneous-fees/miscellaneous-fees.component';
+import { DownpaymentsComponent } from './fees-and-charges/downpayment/downpayments.component';
 import { CourseService } from './course.service';
 import { Course, CreateCourseRequest, UpdateCourseRequest } from '../../../core/models/course.model';
 import { Program } from '../../../core/models/program.model';
@@ -28,11 +30,16 @@ import { YearLevel } from './enums/year-level.enum';
 import { Semester } from './enums/semester.enum';
 import { CurriculumStatus } from './enums/curriculum-status.enum';
 import { FeeTab } from './fees-and-charges/enums/fee-tab.enum';
+import {
+  ClassListPdfCoursePrefillItem,
+  ClassListPdfCoursePrefillPayload
+} from '../../../shared/models/class-list-pdf-course-prefill.model';
+import { CLASS_LIST_PDF_COURSE_PREFILL_STORAGE_KEY } from '../../../shared/constants/class-list-pdf-prefill.constant';
 
 @Component({
   selector: 'app-curriculum-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, CurriculaFormComponent, CourseFormComponent, ConfirmationModalComponent, ListViewComponent, CurriculumTableViewComponent, TuitionFeesComponent, OtherSchoolFeesComponent, MiscellaneousFeesComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, CurriculaFormComponent, CourseFormComponent, ConfirmationModalComponent, ListViewComponent, CurriculumTableViewComponent, TuitionFeesComponent, OtherSchoolFeesComponent, MiscellaneousFeesComponent, DownpaymentsComponent],
   templateUrl: './curriculum-management.component.html',
   styleUrl: './curriculum-management.component.scss'
 })
@@ -42,6 +49,8 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
   private readonly lookupService = inject(LookupService);
   private readonly fb = inject(FormBuilder);
   private readonly notificationService = inject(NotificationService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
 
   pageTitle = 'Curriculum Management';
@@ -66,6 +75,8 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
   selectedCurricula: Curricula | null = null;
   showCourseForm = false;
   selectedCourse: Course | null = null;
+  
+  courseCreatePrefill: Partial<CreateCourseRequest> | null = null;
   showDeleteConfirmation = false;
   curriculaToDelete: Curricula | null = null;
   courseToDelete: Course | null = null;
@@ -111,6 +122,8 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
     } else if (this.activeTab === CurriculumTab.Courses) {
       this.loadPrograms();
     }
+
+    this.processClassListPdfPrefillFromQuery();
   }
 
   loadPrograms(): void {
@@ -301,6 +314,88 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  
+  private processClassListPdfPrefillFromQuery(): void {
+    if (this.route.snapshot.queryParamMap.get('fromClassListPdf') !== '1') {
+      return;
+    }
+    const raw = sessionStorage.getItem(CLASS_LIST_PDF_COURSE_PREFILL_STORAGE_KEY);
+    sessionStorage.removeItem(CLASS_LIST_PDF_COURSE_PREFILL_STORAGE_KEY);
+    void this.router.navigate([], { relativeTo: this.route, queryParams: { fromClassListPdf: null }, replaceUrl: true });
+    if (!raw) {
+      return;
+    }
+    let payload: ClassListPdfCoursePrefillPayload;
+    try {
+      payload = JSON.parse(raw) as ClassListPdfCoursePrefillPayload;
+    } catch {
+      return;
+    }
+    const first = payload.prefills?.[0];
+    if (!first) {
+      return;
+    }
+    if ((payload.prefills?.length ?? 0) > 1) {
+      this.notificationService.warning(
+        'Multiple courses from PDF',
+        `${payload.prefills!.length} course codes need to be added. The form is prefilled for the first; add the others the same way.`
+      );
+    }
+    this.activeTab = CurriculumTab.Courses;
+    this.lookupService.getProgramsForDropdown().pipe(takeUntil(this.destroy$)).subscribe({
+      next: programs => {
+        this.programs = programs;
+        const prog = programs.find(p => p.programCode?.toUpperCase() === first.programCode?.toUpperCase());
+        if (!prog) {
+          this.notificationService.warning(
+            'Program not found',
+            `No program "${first.programCode}" matches the PDF. Select program and curriculum, then finish the course.`
+          );
+        }
+        this.selectedCourse = null;
+        this.courseCreatePrefill = this.buildCreatePrefillFromClassListItem(first, prog?.programId ?? null);
+        this.showCourseForm = true;
+        this.loadCourses();
+      }
+    });
+  }
+
+  private buildCreatePrefillFromClassListItem(
+    item: ClassListPdfCoursePrefillItem,
+    programId: number | null
+  ): Partial<CreateCourseRequest> {
+    return {
+      courseCode: item.courseCode,
+      courseTitle: item.courseTitle,
+      courseTotalUnits: item.courseTotalUnits,
+      programId: programId && programId > 0 ? programId : undefined,
+      courseYearLevel: this.mapPdfYearLevelRawToYearLevel(item.yearLevelRaw),
+      courseSemester: this.mapPdfAcademicTermToSemester(item.academicTerm),
+      courseComponent: 'Lecture',
+      description: ''
+    };
+  }
+
+  
+  private mapPdfYearLevelRawToYearLevel(raw: string): YearLevel {
+    const m = /^(\d)/.exec(raw?.trim() ?? '');
+    const n = m ? parseInt(m[1], 10) : 1;
+    const clamped = Math.min(5, Math.max(1, n));
+    const levels = [YearLevel.Year1, YearLevel.Year2, YearLevel.Year3, YearLevel.Year4, YearLevel.Year5];
+    return levels[clamped - 1];
+  }
+
+  private mapPdfAcademicTermToSemester(term: string): Semester {
+    const t = term.toLowerCase();
+    if (/\b2\s*nd\b|\bsecond\b/i.test(t)) {
+      return Semester.Second;
+    }
+    if (/\bsummer\b/i.test(t)) {
+      return Semester.Summer;
+    }
+    return Semester.First;
   }
 
   onTabChange(tab: CurriculumTab): void {
@@ -503,11 +598,13 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
 
   onAddCourse(): void {
     this.selectedCourse = null;
+    this.courseCreatePrefill = null;
     this.showCourseForm = true;
   }
 
   onEditCourse(course: Course): void {
     this.selectedCourse = course;
+    this.courseCreatePrefill = null;
     this.showCourseForm = true;
   }
 
@@ -525,6 +622,7 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
   onCloseCourseForm(): void {
     this.showCourseForm = false;
     this.selectedCourse = null;
+    this.courseCreatePrefill = null;
   }
 
   onSaveCourse(courseData: CreateCourseRequest | UpdateCourseRequest): void {

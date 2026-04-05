@@ -1,3 +1,68 @@
 :host {
   @apply block w-full h-full;
 }
+
+.global-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.global-loader__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.25);
+  backdrop-filter: blur(2px);
+}
+
+.global-loader__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.12),
+    0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  color: rgb(51 65 85);
+}
+
+.global-loader__spinner {
+  width: 2.25rem;
+  height: 2.25rem;
+  animation: global-loader-spin 0.9s linear infinite;
+}
+
+.global-loader__track {
+  opacity: 0.2;
+}
+
+.global-loader__arc {
+  opacity: 0.9;
+}
+
+.global-loader__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+@keyframes global-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .global-loader__spinner {
+    animation: none;
+    opacity: 0.85;
+  }
+}

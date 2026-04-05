@@ -1,7 +1,7 @@
-<!-- Search and Add Tuition Fee Bar -->
+
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
   <div class="flex items-center justify-between gap-4">
-    <!-- Search Input -->
+    
     <div class="flex-1 relative">
       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -18,7 +18,7 @@
       </form>
     </div>
 
-    <!-- Add Tuition Fee Button -->
+    
     <button
       (click)="onAddTuitionFee()"
       class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 shadow-sm"
@@ -31,11 +31,11 @@
   </div>
 </div>
 
-<!-- Tuition Fees Table -->
+
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
     <div class="overflow-x-auto">
       <table class="w-full border-collapse">
-        <!-- Table Header -->
+        
         <thead>
           <tr class="border-b-2 border-gray-200">
             <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">SYID</th>
@@ -51,7 +51,7 @@
           </tr>
         </thead>
 
-        <!-- Table Body -->
+        
         <tbody>
           @if (isLoading) {
             <tr>
@@ -74,52 +74,52 @@
           } @else {
             @for (tuitionFee of tuitionFees; track tuitionFee.id) {
               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                <!-- SYID -->
+                
                 <td class="py-4 px-4 text-gray-900 font-medium">
                   {{ tuitionFee.syId || 'N/A' }}
                 </td>
 
-                <!-- BATCH -->
+                
                 <td class="py-4 px-4 text-gray-700">
                   {{ tuitionFee.batch || 'N/A' }}
                 </td>
 
-                <!-- SEMESTER -->
+                
                 <td class="py-4 px-4 text-gray-700">
                   {{ tuitionFee.semester || 'N/A' }}
                 </td>
 
-                <!-- COURSE CODE -->
+                
                 <td class="py-4 px-4 text-gray-900 font-medium">
                   {{ tuitionFee.courseCode || 'N/A' }}
                 </td>
 
-                <!-- COURSE TITLE -->
+                
                 <td class="py-4 px-4 text-gray-700">
                   {{ tuitionFee.courseTitle || 'N/A' }}
                 </td>
 
-                <!-- COMPONENT -->
+                
                 <td class="py-4 px-4 text-gray-700">
                   {{ tuitionFee.component || 'N/A' }}
                 </td>
 
-                <!-- UNITS -->
+                
                 <td class="py-4 px-4 text-gray-700">
                   {{ tuitionFee.units || 'N/A' }}
                 </td>
 
-                <!-- CASH -->
+                
                 <td class="py-4 px-4 text-gray-700">
                   {{ formatCurrency(tuitionFee.cash) }}
                 </td>
 
-                <!-- LOW MONTHLY PAYMENT -->
+                
                 <td class="py-4 px-4 text-gray-700">
                   {{ formatCurrency(tuitionFee.lowMonthlyPayment) }}
                 </td>
 
-                <!-- ACTIONS -->
+                
                 <td class="py-4 px-4">
                   <div class="flex items-center gap-3">
                     <button
@@ -150,7 +150,7 @@
     </div>
   </div>
 
-<!-- Pagination -->
+
 @if (totalPages > 1) {
   <div class="mt-6 flex items-center justify-between">
     <div class="text-sm text-gray-700">
@@ -175,7 +175,7 @@
   </div>
 }
 
-<!-- Tuition Fee Form Modal -->
+
 <app-tuition-fee-form
   [tuitionFee]="selectedTuitionFee"
   [isOpen]="showTuitionFeeForm"
@@ -183,7 +183,7 @@
   (save)="onSaveTuitionFee($event)"
 ></app-tuition-fee-form>
 
-<!-- Delete Confirmation Modal -->
+
 <app-confirmation-modal
   [isOpen]="showDeleteConfirmation"
   [config]="deleteConfirmationConfig"

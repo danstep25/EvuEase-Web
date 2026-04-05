@@ -27,6 +27,8 @@ export const API_URL = {
     curricula: '/Lookup/curricula',
     curriculumVersions: '/Lookup/curriculum-versions',
     courses: '/Lookup/courses',
+    
+    gradeRosterClasses: '/Lookup/grade-roster-classes',
     getLookup: (lookupType: string) => `/Lookup/${lookupType}`
   },
   program: {
@@ -65,6 +67,7 @@ export const API_URL = {
     base: '/Student',
     getAll: '/Student',
     getById: (id: string) => `/Student/${id}`,
+    enrollments: (id: string) => `/Student/${id}/enrollments`,
     create: '/Student/new',
     update: (id: string) => `/Student/${id}`,
     delete: (id: string) => `/Student/${id}`
@@ -92,5 +95,47 @@ export const API_URL = {
     create: '/MiscellaneousFees/new',
     update: (id: string) => `/MiscellaneousFees/${id}`,
     delete: (id: string) => `/MiscellaneousFees/${id}`
+  },
+  downpayment: {
+    base: '/Downpayment',
+    getAll: '/Downpayment',
+    getById: (id: string) => `/Downpayment/${id}`,
+    history: '/Downpayment/history',
+    create: '/Downpayment/new',
+    update: (id: string) => `/Downpayment/${id}`,
+    delete: (id: string) => `/Downpayment/${id}`
+  },
+  classAssignment: {
+    gradingSchemeBasis: '/ClassAssignment/grading-scheme-basis'
+  },
+  classRoster: {
+    base: '/ClassRoster',
+    byId: (id: number | string) => `/ClassRoster/${id}`,
+    students: (classId: number | string) => `/ClassRoster/${classId}/students`,
+    
+    classEnrollment: (classId: number | string, enrollmentId: number | string) =>
+      `/ClassRoster/${classId}/students/${enrollmentId}`,
+    studentsUpload: (classId: number | string) => `/ClassRoster/${classId}/students/upload`,
+    importPdf: '/ClassRoster/import-pdf',
+    previewClassListPdf: '/ClassRoster/preview-class-list-pdf',
+    enrollmentGrade: (enrollmentId: number | string) => `/ClassRoster/enrollments/${enrollmentId}/grade`
+  },
+  gradeRoster: {
+    base: '/GradeRoster'
+  },
+  
+  archive: {
+    programs: '/Archive/programs',
+    students: '/Archive/students',
+    schoolYears: '/Archive/school-years',
+    curricula: '/Archive/curricula',
+    restoreProgram: (id: number | string) => `/Archive/programs/${id}/restore`,
+    permanentProgram: (id: number | string) => `/Archive/programs/${id}/permanent`,
+    restoreStudent: (id: number | string) => `/Archive/students/${id}/restore`,
+    permanentStudent: (id: number | string) => `/Archive/students/${id}/permanent`,
+    restoreSchoolYear: (id: number | string) => `/Archive/school-years/${id}/restore`,
+    permanentSchoolYear: (id: number | string) => `/Archive/school-years/${id}/permanent`,
+    restoreCurriculum: (id: number | string) => `/Archive/curricula/${id}/restore`,
+    permanentCurriculum: (id: number | string) => `/Archive/curricula/${id}/permanent`
   }
 };

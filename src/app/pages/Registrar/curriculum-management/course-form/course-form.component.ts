@@ -22,6 +22,8 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   @Input() course: Course | null = null;
+  
+  @Input() createPrefill: Partial<CreateCourseRequest> | null = null;
   @Input() isOpen = false;
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<CreateCourseRequest | UpdateCourseRequest>();
@@ -235,36 +237,52 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private initializeForm(): void {
-    const totalUnits = this.course?.courseTotalUnits || 0;
+    const c = this.course;
+    const pf = !c && this.createPrefill ? this.createPrefill : null;
+
+    const totalUnits = c?.courseTotalUnits ?? pf?.courseTotalUnits ?? 0;
 
     let initialCurriculumCode = null;
-    if (this.course?.curriculumCode) {
-      initialCurriculumCode = this.course.curriculumCode;
+    if (c?.curriculumCode) {
+      initialCurriculumCode = c.curriculumCode;
+    } else if (pf?.curriculumCode) {
+      initialCurriculumCode = pf.curriculumCode;
     }
 
     let initialComponents: string[] = [];
-    if (this.course?.courseComponent) {
-      initialComponents = this.course.courseComponent.split(',').map(c => c.trim()).filter(c => c);
+    if (c?.courseComponent) {
+      initialComponents = c.courseComponent.split(',').map(x => x.trim()).filter(x => x);
+    } else if (pf?.courseComponent?.trim()) {
+      initialComponents = pf.courseComponent.split(',').map(x => x.trim()).filter(x => x);
     }
     this.selectedComponents = [...initialComponents];
 
     let initialPrerequisite = null;
-    if (this.course?.prerequisites) {
-      const prereq = this.course.prerequisites.trim();
+    if (c?.prerequisites) {
+      const prereq = c.prerequisites.trim();
       initialPrerequisite = prereq || null;
+    } else if (pf?.prerequisites?.trim()) {
+      initialPrerequisite = pf.prerequisites.trim() || null;
     }
+
+    const initialProgramId = c?.programId ?? pf?.programId ?? null;
+    const initialCourseCode = c?.courseCode ?? pf?.courseCode ?? '';
+    const initialTitle = c?.courseTitle ?? pf?.courseTitle ?? '';
+    const initialYear = c?.courseYearLevel ?? pf?.courseYearLevel ?? YearLevel.Year1;
+    const initialSem = c?.courseSemester ?? pf?.courseSemester ?? Semester.First;
+    const initialDesc = c?.description ?? pf?.description ?? '';
 
     this.courseForm = this.fb.group({
       curriculumCode: [initialCurriculumCode, [Validators.required]],
-      programId: [this.course?.programId || null, [Validators.required]],
-      courseCode: [this.course?.courseCode || '', [Validators.required, Validators.maxLength(20)]],
-      courseTitle: [this.course?.courseTitle || '', [Validators.required, Validators.maxLength(50)]],
+      programId: [initialProgramId && initialProgramId > 0 ? initialProgramId : null, [Validators.required]],
+      courseCode: [initialCourseCode, [Validators.required, Validators.maxLength(20)]],
+      courseTitle: [initialTitle, [Validators.required, Validators.maxLength(50)]],
       courseComponent: [initialComponents, [this.validateComponentRequired.bind(this), this.validateNoDuplicates.bind(this)]],
       courseTotalUnits: [totalUnits, [Validators.required, Validators.min(0)]],
-      courseYearLevel: [this.course?.courseYearLevel || YearLevel.Year1, [Validators.required]],
-      courseSemester: [this.course?.courseSemester || Semester.First, [Validators.required]],
+      courseYearLevel: [initialYear, [Validators.required]],
+      courseSemester: [initialSem, [Validators.required]],
       prerequisites: [initialPrerequisite],
-      description: [this.course?.description || '']
+      description: [initialDesc]
     });
 
     const programIdControl = this.courseForm.get('programId');
@@ -311,10 +329,10 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
       });
     }
 
-    const initialProgramId = this.courseForm.get('programId')?.value;
-    if (initialProgramId && initialProgramId > 0 && this.programs.length > 0) {
+    const programIdForCurriculumLoad = this.courseForm.get('programId')?.value;
+    if (programIdForCurriculumLoad && programIdForCurriculumLoad > 0 && this.programs.length > 0) {
       setTimeout(() => {
-        this.loadCurriculumVersions(initialProgramId);
+        this.loadCurriculumVersions(programIdForCurriculumLoad);
       }, 0);
     }
 

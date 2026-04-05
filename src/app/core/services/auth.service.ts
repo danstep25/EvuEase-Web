@@ -29,7 +29,7 @@ export class AuthService {
           this.storeAuthData(response.data);
           const userId = this.extractUserIdFromToken(response.data.token);
           this.currentUserSubject.next({
-            id: userId || 0, // Use 0 as fallback if ID not found in token
+            id: userId || 0, 
             email: response.data.email,
             name: response.data.name,
             role: response.data.role
