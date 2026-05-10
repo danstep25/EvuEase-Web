@@ -38,12 +38,12 @@ export interface CreateStudentRequest {
   yearLevel: string;
   studentType: string;
   enrollmentStatus: string;
-  address?: string;
-  contactNumber?: string;
-  email?: string;
-  gender?: string;
+  address?: string | null;
+  contactNumber?: string | null;
+  email?: string | null;
+  gender?: string | null;
   
-  birthdate?: string;
+  birthdate?: string | null;
 }
 
 

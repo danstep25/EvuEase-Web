@@ -22,6 +22,8 @@ export class GradeRosterStudentGradesComponent {
   programFilter = '';
   yearLevelFilter = '';
   remarksFilter = '';
+  currentPage = 1;
+  readonly pageSize = 10;
 
   readonly remarksOptions = [
     { value: '', label: 'All Remarks' },
@@ -76,6 +78,53 @@ export class GradeRosterStudentGradesComponent {
       list = list.filter(s => rosterRemarkCategoryForFilter(s) === want);
     }
     return list;
+  }
+
+  get totalPages(): number {
+    const pages = Math.ceil(this.filteredStudents.length / this.pageSize);
+    return Math.max(1, pages);
+  }
+
+  get pageNumbers(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  get paginatedFilteredStudents(): ClassRosterStudentDto[] {
+    const page = this.safeCurrentPage;
+    const start = (page - 1) * this.pageSize;
+    return this.filteredStudents.slice(start, start + this.pageSize);
+  }
+
+  get visibleStartIndex(): number {
+    if (this.filteredStudents.length === 0) {
+      return 0;
+    }
+    return (this.safeCurrentPage - 1) * this.pageSize + 1;
+  }
+
+  get visibleEndIndex(): number {
+    return Math.min(this.safeCurrentPage * this.pageSize, this.filteredStudents.length);
+  }
+
+  private get safeCurrentPage(): number {
+    if (this.currentPage < 1) {
+      this.currentPage = 1;
+    }
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+    return this.currentPage;
+  }
+
+  onFiltersChanged(): void {
+    this.currentPage = 1;
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) {
+      return;
+    }
+    this.currentPage = page;
   }
 
   remarkBadgeClass(remark: string | null | undefined): string {

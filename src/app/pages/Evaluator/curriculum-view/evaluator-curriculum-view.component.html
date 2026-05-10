@@ -1,0 +1,284 @@
+<div class="evaluator-page curriculum-view">
+  <header class="evaluator-page__header">
+    <h1 class="evaluator-page__title">{{ pageTitle }}</h1>
+    <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
+  </header>
+
+  <div class="curriculum-tabs-bar">
+    <nav class="curriculum-tabs-nav" aria-label="Curriculum sections">
+      <button
+        type="button"
+        class="curriculum-tab"
+        [class.curriculum-tab--active]="activeTab === 'curricula'"
+        (click)="selectTab('curricula')"
+      >
+        <svg class="curriculum-tab__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+          />
+        </svg>
+        <span class="curriculum-tab__label">Curricula</span>
+      </button>
+      <button
+        type="button"
+        class="curriculum-tab"
+        [class.curriculum-tab--active]="activeTab === 'courses'"
+        (click)="selectTab('courses')"
+      >
+        <svg class="curriculum-tab__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+          />
+        </svg>
+        <span class="curriculum-tab__label">Courses</span>
+      </button>
+      <button
+        type="button"
+        class="curriculum-tab"
+        [class.curriculum-tab--active]="activeTab === 'fees'"
+        (click)="selectTab('fees')"
+      >
+        <svg class="curriculum-tab__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <span class="curriculum-tab__label">Fees & Charges</span>
+      </button>
+    </nav>
+  </div>
+
+  @if (activeTab === 'courses') {
+    <div class="evaluator-surface evaluator-surface--padded courses-view-mode">
+      <div class="courses-view-mode__row">
+        <div>
+          <h3 class="courses-view-mode__title">View mode</h3>
+          <p class="courses-view-mode__hint">Choose how you want to view courses.</p>
+        </div>
+        <div class="courses-view-mode__toggles">
+          <button
+            type="button"
+            class="courses-view-mode__toggle"
+            [class.courses-view-mode__toggle--active]="viewMode === CourseViewMode.List"
+            (click)="onViewModeChange(CourseViewMode.List)"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+            List view
+          </button>
+          <button
+            type="button"
+            class="courses-view-mode__toggle"
+            [class.courses-view-mode__toggle--active]="viewMode === CourseViewMode.Table"
+            (click)="onViewModeChange(CourseViewMode.Table)"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            Curriculum table view
+          </button>
+        </div>
+      </div>
+    </div>
+
+    @if (viewMode === CourseViewMode.List) {
+      <app-list-view
+        [readOnly]="true"
+        [courses]="courses"
+        [programs]="programs"
+        [isLoadingCourses]="isLoadingCourses"
+        [courseSearchTerm]="courseSearchTerm"
+        [selectedProgramFilter]="selectedProgramFilter"
+        [selectedPrerequisiteFilter]="selectedPrerequisiteFilter"
+        [selectedYearFilter]="selectedYearFilter"
+        [selectedSemesterFilter]="selectedSemesterFilter"
+        [currentPageInput]="courseListPageIndex"
+        [totalPagesInput]="courseListTotalPages"
+        [pageSizeInput]="courseListPageSize"
+        [totalRecordsInput]="courseListTotalRecords"
+        (searchTermChange)="onListViewSearchTermChange($event)"
+        (programFilterChange)="onListViewProgramFilterChange($event)"
+        (prerequisiteFilterChange)="onListViewPrerequisiteFilterChange($event)"
+        (yearFilterChange)="onListViewYearFilterChange($event)"
+        (semesterFilterChange)="onListViewSemesterFilterChange($event)"
+        (pageChange)="onListViewPageChange($event)"
+      ></app-list-view>
+    }
+
+    @if (viewMode === CourseViewMode.Table) {
+      <app-curriculum-table-view
+        [courses]="courses"
+        [programs]="programs"
+        [curricula]="curriculaForTable"
+        [isLoadingCourses]="isLoadingCourses"
+        [isLoadingCurricula]="isLoadingCurricula"
+        [selectedProgramFilter]="selectedProgramFilter"
+        [selectedCurriculumFilter]="selectedCurriculumFilter"
+        (programFilterChange)="onTableViewProgramFilterChange($event)"
+        (curriculumFilterChange)="onTableViewCurriculumFilterChange($event)"
+      ></app-curriculum-table-view>
+    }
+  } @else if (activeTab === 'fees') {
+    <div class="tabs-container mb-6">
+      <div class="flex border-b border-gray-200">
+        <button
+          type="button"
+          (click)="onFeeTabChange(FeeTab.TuitionFees)"
+          [class]="'tab-button ' + (activeFeeTab === FeeTab.TuitionFees ? 'active' : '')"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          Tuition Fees
+        </button>
+        <button
+          type="button"
+          (click)="onFeeTabChange(FeeTab.OtherSchoolFees)"
+          [class]="'tab-button ' + (activeFeeTab === FeeTab.OtherSchoolFees ? 'active' : '')"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+            />
+          </svg>
+          Other School Fees
+        </button>
+        <button
+          type="button"
+          (click)="onFeeTabChange(FeeTab.MiscellaneousFees)"
+          [class]="'tab-button ' + (activeFeeTab === FeeTab.MiscellaneousFees ? 'active' : '')"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
+          </svg>
+          Miscellaneous Fees
+        </button>
+        <button
+          type="button"
+          (click)="onFeeTabChange(FeeTab.Downpayment)"
+          [class]="'tab-button ' + (activeFeeTab === FeeTab.Downpayment ? 'active' : '')"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="7.5" cy="7.5" r="2.5" stroke-width="2" />
+            <circle cx="16.5" cy="16.5" r="2.5" stroke-width="2" />
+            <path stroke-linecap="round" stroke-width="2" d="M5 19L19 5" />
+          </svg>
+          Downpayment %
+        </button>
+      </div>
+    </div>
+
+    @if (activeFeeTab === FeeTab.TuitionFees) {
+      <app-tuition-fees [readOnly]="true" />
+    }
+    @if (activeFeeTab === FeeTab.OtherSchoolFees) {
+      <app-other-school-fees [readOnly]="true" />
+    }
+    @if (activeFeeTab === FeeTab.MiscellaneousFees) {
+      <app-miscellaneous-fees [readOnly]="true" />
+    }
+    @if (activeFeeTab === FeeTab.Downpayment) {
+      <app-downpayments [readOnly]="true" />
+    }
+  } @else {
+    <div class="evaluator-surface evaluator-surface--search">
+      <div class="search-field">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+        <input
+          type="search"
+          class="search-input"
+          [placeholder]="searchPlaceholder()"
+          [formControl]="searchControl"
+          autocomplete="off"
+        />
+      </div>
+    </div>
+
+    <div class="evaluator-surface evaluator-surface--table table-card">
+      @if (isLoading) {
+        <div class="table-state">Loading…</div>
+      } @else if (activeTab === 'curricula' && curricula.length === 0) {
+        <div class="table-state">No curricula match your search.</div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Curriculum ID</th>
+                <th>Version</th>
+                <th>Program</th>
+                <th>School year</th>
+                <th>Effective date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of curricula; track row.id) {
+                <tr>
+                  <td class="cell-strong">{{ row.curriculumCode }}</td>
+                  <td>{{ row.version }}</td>
+                  <td>{{ row.programCode }}</td>
+                  <td>{{ row.syYear }}</td>
+                  <td>{{ formatDate(row.effectiveDate) }}</td>
+                  <td>
+                    <span
+                      class="pill"
+                      [class.pill-active]="isActiveStatus(row.curriculumStatus)"
+                      [class.pill-inactive]="!isActiveStatus(row.curriculumStatus)"
+                    >
+                      {{ statusLabel(row.curriculumStatus) }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (!isLoading && totalPages > 1) {
+        <div class="table-footer">
+          <span class="footer-meta"> Page {{ pageIndex }} of {{ totalPages }} · {{ totalRecords }} total </span>
+          <div class="footer-actions">
+            <button type="button" class="pager-btn" [disabled]="pageIndex <= 1" (click)="prevPage()">Previous</button>
+            <button type="button" class="pager-btn" [disabled]="pageIndex >= totalPages" (click)="nextPage()">
+              Next
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <button type="button" class="evaluator-help-fab" title="Help" aria-label="Help">?</button>
+</div>

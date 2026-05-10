@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
@@ -18,6 +18,8 @@ import { DownpaymentFormComponent } from './downpayment-form/downpayment-form.co
   styleUrl: './downpayments.component.scss'
 })
 export class DownpaymentsComponent extends BasePaginationHandler implements OnInit, OnDestroy {
+  @Input() readOnly = false;
+
   private readonly service = inject(DownpaymentService);
   private readonly fb = inject(FormBuilder);
   private readonly notificationService = inject(NotificationService);

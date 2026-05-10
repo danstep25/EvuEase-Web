@@ -109,6 +109,14 @@
   background: #fafafa;
 }
 
+.dp-table tbody tr.dp-table__row--odd {
+  background: #f9fafb;
+}
+
+.dp-table tbody tr.dp-table__row--odd:hover {
+  background: #f3f4f6;
+}
+
 .dp-table__code {
   font-weight: 700;
   white-space: nowrap;

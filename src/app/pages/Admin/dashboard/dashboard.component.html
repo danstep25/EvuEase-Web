@@ -36,8 +36,8 @@
         </svg>
       </div>
       <div class="stat-content">
-        <p class="stat-label">System Logs (Today)</p>
-        <p class="stat-value">{{ systemLogsToday }}</p>
+        <p class="stat-label">Total log entries</p>
+        <p class="stat-value">{{ totalLogEntries }}</p>
       </div>
     </div>
   </div>
@@ -64,17 +64,30 @@
     <section class="activity-section">
       <h2 class="section-title">Recent System Activity</h2>
       <div class="activity-list">
-        @for (activity of recentActivity; track activity.date) {
+        @if (recentActivity.length === 0) {
           <div class="activity-item">
             <div class="activity-main">
-              <p class="activity-action">{{ activity.action }}</p>
-              <p class="activity-description">{{ activity.user }}: {{ activity.description }}</p>
+              <p class="activity-action">No recent activity yet</p>
+              <p class="activity-description">System logs will appear here when available.</p>
             </div>
             <div class="activity-meta">
-              <p class="activity-date">{{ activity.date }}</p>
-              <p class="activity-ip">{{ activity.ip }}</p>
+              <p class="activity-date">—</p>
+              <p class="activity-ip"></p>
             </div>
           </div>
+        } @else {
+          @for (activity of recentActivity; track activity.date + activity.action + activity.user) {
+            <div class="activity-item">
+              <div class="activity-main">
+                <p class="activity-action">{{ activity.action }}</p>
+                <p class="activity-description">{{ activity.user }}: {{ activity.description }}</p>
+              </div>
+              <div class="activity-meta">
+                <p class="activity-date">{{ activity.date }}</p>
+                <p class="activity-ip">{{ activity.ip }}</p>
+              </div>
+            </div>
+          }
         }
       </div>
     </section>

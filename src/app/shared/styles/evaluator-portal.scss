@@ -1,0 +1,112 @@
+/**
+ * EvuEase — Evaluator portal shared chrome.
+ * Aligns with Registrar dashboard surfaces (navy #132a57, neutral borders).
+ */
+
+.evaluator-page {
+  padding: 1.25rem;
+  width: 100%;
+  box-sizing: border-box;
+  color: #111827;
+  min-height: 100%;
+}
+
+.evaluator-page__header {
+  margin-bottom: 1rem;
+}
+
+.evaluator-page__title {
+  margin: 0;
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #132a57;
+  letter-spacing: -0.02em;
+}
+
+.evaluator-page__subtitle {
+  margin: 0.3rem 0 0;
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+.evaluator-surface {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
+}
+
+.evaluator-surface--padded {
+  padding: 0.9rem 1rem 1rem;
+}
+
+.evaluator-surface--search {
+  padding: 0.85rem 1rem;
+}
+
+.evaluator-surface--table {
+  padding: 0;
+  overflow: hidden;
+}
+
+.evaluator-surface__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #132a57;
+}
+
+.evaluator-placeholder-lead {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #6b7280;
+  line-height: 1.55;
+}
+
+.evaluator-page .stat-card {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.evaluator-page .stat-value {
+  color: #132a57;
+}
+
+.evaluator-help-fab {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #4b5563;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(19, 42, 87, 0.1);
+  z-index: 20;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    background: #f9fafb;
+    color: #132a57;
+    border-color: #d1d5db;
+  }
+}
+
+@media (max-width: 640px) {
+  .evaluator-page {
+    padding: 1rem;
+  }
+
+  .evaluator-help-fab {
+    right: 1rem;
+    bottom: 1rem;
+  }
+}

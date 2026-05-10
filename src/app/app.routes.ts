@@ -36,6 +36,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./pages/Registrar/dashboard/dashboard.component').then(m => m.RegistrarDashboardComponent)
+      },
+      {
         path: 'faculty-center',
         loadComponent: () => import('./pages/Registrar/FacultyCenter/faculty-center.component').then(m => m.FacultyCenterComponent)
       },
@@ -81,7 +86,64 @@ export const routes: Routes = [
       },
       {
         path: '',
-        redirectTo: 'program-management',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+      }
+    ]
+  },
+  {
+    path: 'evaluator',
+    loadComponent: () => import('./pages/Evaluator/base/base.component').then(m => m.EvaluatorBaseComponent),
+    canActivate: [authGuard],
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./pages/Evaluator/dashboard/dashboard.component').then(m => m.EvaluatorDashboardComponent)
+      },
+      {
+        path: 'curriculum',
+        loadComponent: () =>
+          import('./pages/Evaluator/curriculum-view/evaluator-curriculum-view.component').then(
+            m => m.EvaluatorCurriculumViewComponent
+          ),
+        data: { title: 'Curriculum' }
+      },
+      {
+        path: 'student-records',
+        loadComponent: () =>
+          import('./pages/Evaluator/feature-placeholder/feature-placeholder.component').then(
+            m => m.EvaluatorFeaturePlaceholderComponent
+          ),
+        data: { title: 'Student Records' }
+      },
+      {
+        path: 'subject-evaluation',
+        loadComponent: () =>
+          import('./pages/Evaluator/feature-placeholder/feature-placeholder.component').then(
+            m => m.EvaluatorFeaturePlaceholderComponent
+          ),
+        data: { title: 'Subject Evaluation' }
+      },
+      {
+        path: 'credit-subjects',
+        loadComponent: () =>
+          import('./pages/Evaluator/feature-placeholder/feature-placeholder.component').then(
+            m => m.EvaluatorFeaturePlaceholderComponent
+          ),
+        data: { title: 'Credit Subjects' }
+      },
+      {
+        path: 'analytics',
+        loadComponent: () =>
+          import('./pages/Evaluator/feature-placeholder/feature-placeholder.component').then(
+            m => m.EvaluatorFeaturePlaceholderComponent
+          ),
+        data: { title: 'Analytics' }
+      },
+      {
+        path: '',
+        redirectTo: 'dashboard',
         pathMatch: 'full'
       }
     ]

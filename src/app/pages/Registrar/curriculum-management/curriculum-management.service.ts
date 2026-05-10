@@ -11,6 +11,8 @@ export interface CurriculaPaginationParams extends PaginationParams {
   SortDirection?: string;
   SortKey?: string;
   searchTerm?: string;
+  /** Server-side filter (e.g. Active) */
+  status?: string;
 }
 
 @Injectable({
@@ -18,13 +20,16 @@ export interface CurriculaPaginationParams extends PaginationParams {
 })
 export class CurriculumManagementService extends HttpBaseService {
   getCurricula(params?: CurriculaPaginationParams): Observable<PaginatedResponse<Curricula>> {
-    const queryParams = params ? {
-      PageIndex: params.PageIndex || 1,
-      PageSize: params.PageSize || 10,
-      SortDirection: params.SortDirection || 'desc',
-      SortKey: params.SortKey || '',
-      SearchTerm: params.searchTerm || ''
-    } : undefined;
+    const queryParams = params
+      ? {
+          PageIndex: params.PageIndex || 1,
+          PageSize: params.PageSize || 10,
+          SortDirection: params.SortDirection || 'desc',
+          SortKey: params.SortKey || '',
+          SearchTerm: params.searchTerm || '',
+          ...(params.status ? { Status: params.status } : {})
+        }
+      : undefined;
     return this.getPaginated<Curricula>(API_URL.curricula.getAll, queryParams, 'result');
   }
 

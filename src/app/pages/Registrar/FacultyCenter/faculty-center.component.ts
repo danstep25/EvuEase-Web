@@ -11,6 +11,7 @@ import {
   RosterPdfStudentNotInRegistryDto,
   ClassRosterPdfImportSummaryDto,
   ClassListPdfPreviewDto,
+  ClassListPdfPreviewStudentDto,
   GradeRosterClassLookupDto
 } from './faculty-center.service';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -172,6 +173,12 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
 
   
   pdfImportByPagePanelDismissed = false;
+
+  showPdfStudentSelectionModal = false;
+  pdfStudentSearchQuery = '';
+  pendingPdfImportFile: File | null = null;
+  pendingPdfPreview: ClassListPdfPreviewDto | null = null;
+  selectedPdfRowKeys = new Set<string>();
 
   showAddStudentModal = false;
 
@@ -872,28 +879,146 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
             this.showMissingCourseModuleModal = true;
             return EMPTY;
           }
-          return this.facultyCenterService.importClassRosterPdf(file);
+          this.openPdfStudentSelectionModal(file, preview);
+          return EMPTY;
         }),
         finalize(() => {
           this.isImportingClassRosterPdf = false;
         })
       )
       .subscribe({
+        next: () => {},
+        error: (err: { userMessage?: string; message?: string }) => {
+          const msg = err?.userMessage || err?.message || 'Could not process the PDF.';
+          this.notificationService.error('PDF check failed', msg);
+        }
+      });
+  }
+
+  get pdfPreviewStudentsFlattened(): Array<ClassListPdfPreviewStudentDto & { pageNumber: number; courseCode: string }> {
+    const pages = this.pendingPdfPreview?.pages ?? [];
+    const out: Array<ClassListPdfPreviewStudentDto & { pageNumber: number; courseCode: string }> = [];
+    for (const p of pages) {
+      if (p.skippedReason) {
+        continue;
+      }
+      for (const s of p.students ?? []) {
+        out.push({
+          ...s,
+          pageNumber: p.pageNumber,
+          courseCode: p.courseCode ?? ''
+        });
+      }
+    }
+    return out;
+  }
+
+  get filteredPdfPreviewStudents(): Array<ClassListPdfPreviewStudentDto & { pageNumber: number; courseCode: string }> {
+    const q = this.pdfStudentSearchQuery.trim().toLowerCase();
+    if (!q) {
+      return this.pdfPreviewStudentsFlattened;
+    }
+    return this.pdfPreviewStudentsFlattened.filter(s =>
+      [s.studentNumber, s.displayName, s.programCode, s.yearLevel, s.courseCode, String(s.pageNumber)]
+        .join(' ')
+        .toLowerCase()
+        .includes(q)
+    );
+  }
+
+  get selectedPdfStudentCount(): number {
+    return this.selectedPdfRowKeys.size;
+  }
+
+  private openPdfStudentSelectionModal(file: File, preview: ClassListPdfPreviewDto): void {
+    this.pendingPdfImportFile = file;
+    this.pendingPdfPreview = preview;
+    this.pdfStudentSearchQuery = '';
+    this.selectedPdfRowKeys = new Set(this.pdfPreviewStudentsFlattened.map(s => s.rowKey));
+    this.showPdfStudentSelectionModal = true;
+  }
+
+  closePdfStudentSelectionModal(): void {
+    this.showPdfStudentSelectionModal = false;
+    this.pendingPdfImportFile = null;
+    this.pendingPdfPreview = null;
+    this.pdfStudentSearchQuery = '';
+    this.selectedPdfRowKeys = new Set<string>();
+  }
+
+  isPdfStudentRowSelected(rowKey: string): boolean {
+    return this.selectedPdfRowKeys.has(rowKey);
+  }
+
+  onTogglePdfStudentRow(rowKey: string, checked: boolean): void {
+    const next = new Set(this.selectedPdfRowKeys);
+    if (checked) {
+      next.add(rowKey);
+    } else {
+      next.delete(rowKey);
+    }
+    this.selectedPdfRowKeys = next;
+  }
+
+  onToggleAllFilteredPdfStudents(checked: boolean): void {
+    const next = new Set(this.selectedPdfRowKeys);
+    for (const row of this.filteredPdfPreviewStudents) {
+      if (checked) {
+        next.add(row.rowKey);
+      } else {
+        next.delete(row.rowKey);
+      }
+    }
+    this.selectedPdfRowKeys = next;
+  }
+
+  get allFilteredPdfStudentsSelected(): boolean {
+    const rows = this.filteredPdfPreviewStudents;
+    if (rows.length === 0) {
+      return false;
+    }
+    return rows.every(r => this.selectedPdfRowKeys.has(r.rowKey));
+  }
+
+  onConfirmPdfStudentSelectionImport(): void {
+    const file = this.pendingPdfImportFile;
+    if (!file) {
+      return;
+    }
+    if (this.selectedPdfRowKeys.size === 0) {
+      this.notificationService.warning('Nothing selected', 'Select at least one student to import.');
+      return;
+    }
+
+    this.showPdfStudentSelectionModal = false;
+    this.isImportingClassRosterPdf = true;
+    this.facultyCenterService
+      .importClassRosterPdf(file, [...this.selectedPdfRowKeys])
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isImportingClassRosterPdf = false;
+          this.pendingPdfImportFile = null;
+          this.pendingPdfPreview = null;
+          this.pdfStudentSearchQuery = '';
+          this.selectedPdfRowKeys = new Set<string>();
+        })
+      )
+      .subscribe({
         next: summary => {
-          if (!summary) {
-            return;
-          }
           this.lastPdfImportSummary = summary;
           this.loadClassRoster();
           const pages = summary.pages ?? [];
           const imported = pages.filter(p => !p.skippedReason);
           const skipped = pages.filter(p => p.skippedReason);
           const totalStudents = imported.reduce((a, p) => a + (p.importedCount ?? 0), 0);
+          const autoCreatedStudents = imported.reduce((a, p) => a + (p.autoCreatedCount ?? 0), 0);
           const created = imported.filter(p => p.classCreatedFromPdf).length;
           const missing = this.rosterPdfNotFoundFlattened.length;
           const parts = [
             `${imported.length} section(s) updated`,
             `${totalStudents} student seat(s) imported`,
+            autoCreatedStudents > 0 ? `${autoCreatedStudents} student record(s) auto-created` : null,
             created > 0 ? `${created} new class(es) created from the PDF` : null,
             skipped.length > 0 ? `${skipped.length} page(s) skipped` : null,
             missing > 0 ? `${missing} not in student registry (see below)` : null
@@ -904,8 +1029,8 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
           }
         },
         error: (err: { userMessage?: string; message?: string }) => {
-          const msg = err?.userMessage || err?.message || 'Could not process the PDF.';
-          this.notificationService.error('PDF check failed', msg);
+          const msg = err?.userMessage || err?.message || 'Could not import the selected students.';
+          this.notificationService.error('PDF import failed', msg);
         }
       });
   }

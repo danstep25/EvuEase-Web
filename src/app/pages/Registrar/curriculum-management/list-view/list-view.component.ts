@@ -15,6 +15,8 @@ import { BasePaginationHandler } from '../../../../shared/handlers/base-paginati
   styleUrl: './list-view.component.scss'
 })
 export class ListViewComponent extends BasePaginationHandler implements OnInit, OnChanges {
+  /** When true, hides add course and row actions (e.g. Evaluator read-only curriculum). */
+  @Input() readOnly = false;
   @Input() courses: Course[] = [];
   @Input() programs: Program[] = [];
   @Input() isLoadingCourses: boolean = false;

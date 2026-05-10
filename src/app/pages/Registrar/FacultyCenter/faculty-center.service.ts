@@ -91,6 +91,7 @@ export interface RosterPdfStudentNotInRegistryDto {
 
 export interface ClassRosterBatchUploadDto {
   importedCount: number;
+  autoCreatedCount: number;
   notFoundInRegistry: RosterPdfStudentNotInRegistryDto[];
   warnings: string[];
 }
@@ -105,6 +106,7 @@ export interface ClassRosterPdfImportPageResultDto {
   facultyClassId: number;
   classCreatedFromPdf: boolean;
   importedCount: number;
+  autoCreatedCount: number;
   notFoundInRegistry: RosterPdfStudentNotInRegistryDto[];
   warnings: string[];
   skippedReason: string | null;
@@ -127,6 +129,15 @@ export interface ClassListPdfPreviewPageDto {
   yearLevel: string | null;
   academicTerm: string | null;
   courseExistsInModule: boolean;
+  students: ClassListPdfPreviewStudentDto[];
+}
+
+export interface ClassListPdfPreviewStudentDto {
+  rowKey: string;
+  studentNumber: string;
+  displayName: string;
+  programCode: string;
+  yearLevel: string;
 }
 
 export interface ClassListPdfPreviewDto {
@@ -288,9 +299,12 @@ export class FacultyCenterService extends HttpBaseService {
   }
 
   
-  importClassRosterPdf(file: File): Observable<ClassRosterPdfImportSummaryDto> {
+  importClassRosterPdf(file: File, includedRowKeys?: string[]): Observable<ClassRosterPdfImportSummaryDto> {
     const formData = new FormData();
     formData.append('file', file, file.name);
+    for (const key of includedRowKeys ?? []) {
+      formData.append('includedRowKeys', key);
+    }
     return this.http
       .post<BaseResponse<unknown>>(`${this.baseUrl}${API_URL.classRoster.importPdf}`, formData, {
         headers: this.getAuthHeaders()
@@ -508,6 +522,7 @@ export class FacultyCenterService extends HttpBaseService {
       : [];
     return {
       importedCount: Number(o['importedCount'] ?? o['ImportedCount'] ?? 0),
+      autoCreatedCount: Number(o['autoCreatedCount'] ?? o['AutoCreatedCount'] ?? 0),
       notFoundInRegistry,
       warnings
     };
@@ -571,8 +586,23 @@ export class FacultyCenterService extends HttpBaseService {
         const s = txt('academicTerm', 'AcademicTerm');
         return s.length > 0 ? s : null;
       })(),
-      courseExistsInModule: Boolean(p['courseExistsInModule'] ?? p['CourseExistsInModule'])
+      courseExistsInModule: Boolean(p['courseExistsInModule'] ?? p['CourseExistsInModule']),
+      students: this.mapClassListPdfPreviewStudents(p)
     };
+  }
+
+  private mapClassListPdfPreviewStudents(p: Record<string, unknown>): ClassListPdfPreviewStudentDto[] {
+    const raw = p['students'] ?? p['Students'];
+    if (!Array.isArray(raw)) {
+      return [];
+    }
+    return (raw as Record<string, unknown>[]).map(s => ({
+      rowKey: String(s['rowKey'] ?? s['RowKey'] ?? ''),
+      studentNumber: String(s['studentNumber'] ?? s['StudentNumber'] ?? ''),
+      displayName: String(s['displayName'] ?? s['DisplayName'] ?? ''),
+      programCode: String(s['programCode'] ?? s['ProgramCode'] ?? ''),
+      yearLevel: String(s['yearLevel'] ?? s['YearLevel'] ?? '')
+    }));
   }
 
   private mapPdfImportSummaryDto(raw: unknown): ClassRosterPdfImportSummaryDto {
@@ -614,6 +644,7 @@ export class FacultyCenterService extends HttpBaseService {
       facultyClassId: Number(p['facultyClassId'] ?? p['FacultyClassId'] ?? 0),
       classCreatedFromPdf: Boolean(p['classCreatedFromPdf'] ?? p['ClassCreatedFromPdf']),
       importedCount: Number(p['importedCount'] ?? p['ImportedCount'] ?? 0),
+      autoCreatedCount: Number(p['autoCreatedCount'] ?? p['AutoCreatedCount'] ?? 0),
       notFoundInRegistry,
       warnings,
       skippedReason: skip != null && String(skip).length > 0 ? String(skip) : null

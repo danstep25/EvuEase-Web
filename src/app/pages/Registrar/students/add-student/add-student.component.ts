@@ -96,11 +96,11 @@ export class AddStudentComponent implements OnInit, OnDestroy {
     firstName: ['', [trimmedRequired, Validators.maxLength(100)]],
     lastName: ['', [trimmedRequired, Validators.maxLength(100)]],
     middleName: ['', Validators.maxLength(100)],
-    gender: ['Male', Validators.required],
-    birthdate: ['', [Validators.required, birthdateNotInFuture]],
-    address: ['', [trimmedRequired, Validators.maxLength(500)]],
-    contactNumber: ['', [trimmedRequired, phoneDigitsLength(7, 15)]],
-    email: ['', [trimmedRequired, Validators.email, Validators.maxLength(200)]],
+    gender: [''],
+    birthdate: ['', [birthdateNotInFuture]],
+    address: ['', [Validators.maxLength(500)]],
+    contactNumber: ['', [phoneDigitsLength(7, 15)]],
+    email: ['', [Validators.email, Validators.maxLength(200)]],
     currentYearLevel: ['First Year', Validators.required],
     academicStatus: ['Active', Validators.required],
     isTransferee: [false]
@@ -233,7 +233,7 @@ export class AddStudentComponent implements OnInit, OnDestroy {
     const rawBirth = s.birthdate;
     const birthdate =
       typeof rawBirth === 'string' && rawBirth.length >= 10 ? rawBirth.slice(0, 10) : rawBirth || '';
-    const gender = s.gender === 'Female' ? 'Female' : 'Male';
+    const gender = s.gender === 'Female' || s.gender === 'Male' ? s.gender : '';
     const isTransferee = (s.type || '').toLowerCase() === 'transferee';
 
     this.form.patchValue(
@@ -371,7 +371,7 @@ export class AddStudentComponent implements OnInit, OnDestroy {
         address: v.address.trim() || null,
         contactNumber: v.contactNumber.trim() || null,
         email: v.email.trim() || null,
-        gender: v.gender,
+        gender: v.gender || null,
         birthdate: v.birthdate || null
       };
 
@@ -405,11 +405,11 @@ export class AddStudentComponent implements OnInit, OnDestroy {
       yearLevel: v.currentYearLevel,
       studentType,
       enrollmentStatus: v.academicStatus,
-      address: v.address.trim(),
-      contactNumber: v.contactNumber.trim(),
-      email: v.email.trim(),
-      gender: v.gender,
-      birthdate: v.birthdate
+      address: v.address.trim() || null,
+      contactNumber: v.contactNumber.trim() || null,
+      email: v.email.trim() || null,
+      gender: v.gender || null,
+      birthdate: v.birthdate || null
     };
 
     this.isSubmitting = true;

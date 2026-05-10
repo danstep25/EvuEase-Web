@@ -7,12 +7,14 @@
       <input type="search" formControlName="search" class="dp-toolbar__input" placeholder="Search downpayment..." />
     </form>
   </div>
-  <button type="button" class="dp-toolbar__add" (click)="onAdd()">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-    </svg>
-    <span>Add New Downpayment</span>
-  </button>
+  @if (!readOnly) {
+    <button type="button" class="dp-toolbar__add" (click)="onAdd()">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      <span>Add New Downpayment</span>
+    </button>
+  }
 </div>
 
 <div class="dp-table-card">
@@ -26,24 +28,26 @@
           <th>Downpayment %</th>
           <th>Effective school year</th>
           <th>Last updated</th>
-          <th>Actions</th>
+          @if (!readOnly) {
+            <th>Actions</th>
+          }
         </tr>
       </thead>
       <tbody>
         @if (isLoading) {
           <tr>
-            <td colspan="7" class="dp-table__state">
+            <td [attr.colspan]="readOnly ? 6 : 7" class="dp-table__state">
               <span class="dp-spinner" aria-hidden="true"></span>
               Loading…
             </td>
           </tr>
         } @else if (rows.length === 0) {
           <tr>
-            <td colspan="7" class="dp-table__state dp-table__state--muted">No downpayment rules found.</td>
+            <td [attr.colspan]="readOnly ? 6 : 7" class="dp-table__state dp-table__state--muted">No downpayment rules found.</td>
           </tr>
         } @else {
           @for (row of rows; track row.id) {
-            <tr>
+            <tr [class.dp-table__row--odd]="$odd">
               <td class="dp-table__code">{{ row.programCode || '—' }}</td>
               <td class="dp-table__title">{{ row.programTitle || '—' }}</td>
               <td>{{ row.batch || '—' }}</td>
@@ -54,36 +58,38 @@
                 <span class="dp-badge dp-badge--year">{{ row.effectiveSchoolYear || '—' }}</span>
               </td>
               <td class="dp-table__date">{{ formatLastUpdated(row.updatedAt || row.createdAt) }}</td>
-              <td>
-                <div class="dp-actions">
-                  <button type="button" class="dp-icon-btn" title="View" (click)="onView(row)">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                  </button>
-                  <button type="button" class="dp-icon-btn" title="Edit" (click)="onEdit(row)">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </td>
+              @if (!readOnly) {
+                <td>
+                  <div class="dp-actions">
+                    <button type="button" class="dp-icon-btn" title="View" (click)="onView(row)">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    </button>
+                    <button type="button" class="dp-icon-btn" title="Edit" (click)="onEdit(row)">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              }
             </tr>
           }
         }

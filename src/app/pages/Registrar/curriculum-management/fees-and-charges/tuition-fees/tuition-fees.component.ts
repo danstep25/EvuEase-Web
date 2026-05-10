@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
@@ -19,6 +19,9 @@ import { ConfirmationModalComponent, ConfirmationModalConfig } from '../../../..
   styleUrl: './tuition-fees.component.scss'
 })
 export class TuitionFeesComponent extends BasePaginationHandler implements OnInit, OnDestroy {
+  /** Evaluator portal: hide mutations and actions. */
+  @Input() readOnly = false;
+
   private readonly tuitionFeesService = inject(TuitionFeesService);
   private readonly fb = inject(FormBuilder);
   private readonly notificationService = inject(NotificationService);

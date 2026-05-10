@@ -79,6 +79,51 @@ export const REGISTRAR_NAV_MENU: NavItem[] = [
   }
 ];
 
+export const EVALUATOR_NAV_MENU: NavItem[] = [
+  {
+    label: 'Dashboard',
+    route: 'dashboard',
+    icon: 'home',
+    module: 'dashboard',
+    roles: ['Evaluator']
+  },
+  {
+    label: 'Curriculum',
+    route: 'curriculum',
+    icon: 'briefcase',
+    module: 'curriculum',
+    roles: ['Evaluator']
+  },
+  {
+    label: 'Student Records',
+    route: 'student-records',
+    icon: 'clipboard',
+    module: 'students',
+    roles: ['Evaluator']
+  },
+  {
+    label: 'Subject Evaluation',
+    route: 'subject-evaluation',
+    icon: 'people',
+    module: 'evaluation',
+    roles: ['Evaluator']
+  },
+  {
+    label: 'Credit Subjects',
+    route: 'credit-subjects',
+    icon: 'people',
+    module: 'credit-subjects',
+    roles: ['Evaluator']
+  },
+  {
+    label: 'Analytics',
+    route: 'analytics',
+    icon: 'bar-chart',
+    module: 'analytics',
+    roles: ['Evaluator']
+  }
+];
+
 
 
 

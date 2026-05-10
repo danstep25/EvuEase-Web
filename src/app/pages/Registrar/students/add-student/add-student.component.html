@@ -217,7 +217,7 @@
           </div>
 
           <div>
-            <label for="gender" class="field-label">Gender <span class="text-red-500">*</span></label>
+            <label for="gender" class="field-label">Gender</label>
             <div class="select-wrap">
               <select
                 id="gender"
@@ -227,6 +227,7 @@
                 [attr.aria-invalid]="showFieldError(formControls.gender) ? true : null"
                 [attr.aria-describedby]="showFieldError(formControls.gender) ? 'gender-error' : null"
               >
+                <option value="">Select Gender</option>
                 @for (g of genders; track g.value) {
                   <option [ngValue]="g.value">{{ g.label }}</option>
                 }
@@ -238,7 +239,7 @@
           </div>
 
           <div class="span-2 max-w-md">
-            <label for="birthdate" class="field-label">Birthdate <span class="text-red-500">*</span></label>
+            <label for="birthdate" class="field-label">Birthdate</label>
             <input
               id="birthdate"
               type="date"
@@ -260,7 +261,7 @@
         <h2 class="section-heading">Contact Information</h2>
         <div class="grid-2">
           <div>
-            <label for="address" class="field-label">Address <span class="text-red-500">*</span></label>
+            <label for="address" class="field-label">Address</label>
             <input
               id="address"
               type="text"
@@ -277,7 +278,7 @@
             }
           </div>
           <div>
-            <label for="contactNumber" class="field-label">Contact Number <span class="text-red-500">*</span></label>
+            <label for="contactNumber" class="field-label">Contact Number</label>
             <input
               id="contactNumber"
               type="tel"
@@ -294,7 +295,7 @@
             }
           </div>
           <div>
-            <label for="email" class="field-label">Email Address <span class="text-red-500">*</span></label>
+            <label for="email" class="field-label">Email Address</label>
             <input
               id="email"
               type="email"

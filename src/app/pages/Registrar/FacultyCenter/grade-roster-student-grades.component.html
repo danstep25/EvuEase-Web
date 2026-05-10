@@ -36,6 +36,7 @@
           id="grsgSearch"
           type="search"
           [(ngModel)]="searchQuery"
+          (ngModelChange)="onFiltersChanged()"
           placeholder="Search by student ID or name..."
           class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
           autocomplete="off"
@@ -48,6 +49,7 @@
           <select
             id="grsgProgram"
             [(ngModel)]="programFilter"
+            (ngModelChange)="onFiltersChanged()"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           >
             <option value="">All Programs</option>
@@ -61,6 +63,7 @@
           <select
             id="grsgYear"
             [(ngModel)]="yearLevelFilter"
+            (ngModelChange)="onFiltersChanged()"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           >
             <option value="">All Year Levels</option>
@@ -74,6 +77,7 @@
           <select
             id="grsgRemarks"
             [(ngModel)]="remarksFilter"
+            (ngModelChange)="onFiltersChanged()"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           >
             @for (opt of remarksOptions; track opt.value) {
@@ -104,7 +108,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (row of filteredStudents; track row.id) {
+          @for (row of paginatedFilteredStudents; track row.id) {
             <tr class="border-b border-gray-100 hover:bg-gray-50/80">
               <td class="py-3 px-4 text-sm text-gray-900 tabular-nums whitespace-nowrap">{{ row.studentId }}</td>
               <td class="py-3 px-4 text-sm text-gray-900">{{ row.displayName }}</td>
@@ -147,10 +151,49 @@
     </div>
 
     <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/50">
-      <p class="text-xs text-gray-600">
-        Showing <span class="font-medium text-gray-900">{{ filteredStudents.length }}</span> of
-        <span class="font-medium text-gray-900">{{ students.length }}</span> students
-      </p>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <p class="text-xs text-gray-600">
+          Showing
+          <span class="font-medium text-gray-900">{{ visibleStartIndex }}-{{ visibleEndIndex }}</span>
+          of
+          <span class="font-medium text-gray-900">{{ filteredStudents.length }}</span> filtered
+          (<span class="font-medium text-gray-900">{{ students.length }}</span> total)
+        </p>
+        <div class="flex items-center gap-1.5">
+          <button
+            type="button"
+            class="px-2.5 py-1.5 text-xs rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+            [disabled]="currentPage <= 1"
+            (click)="goToPage(currentPage - 1)"
+          >
+            Prev
+          </button>
+          @for (p of pageNumbers; track p) {
+            <button
+              type="button"
+              class="px-2.5 py-1.5 text-xs rounded-md border"
+              [class.bg-blue-600]="p === currentPage"
+              [class.text-white]="p === currentPage"
+              [class.border-blue-600]="p === currentPage"
+              [class.bg-white]="p !== currentPage"
+              [class.text-gray-700]="p !== currentPage"
+              [class.border-gray-300]="p !== currentPage"
+              [class.hover:bg-gray-100]="p !== currentPage"
+              (click)="goToPage(p)"
+            >
+              {{ p }}
+            </button>
+          }
+          <button
+            type="button"
+            class="px-2.5 py-1.5 text-xs rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+            [disabled]="currentPage >= totalPages"
+            (click)="goToPage(currentPage + 1)"
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   }
 </div>
