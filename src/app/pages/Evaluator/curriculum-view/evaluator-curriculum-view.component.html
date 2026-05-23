@@ -156,6 +156,7 @@
                         <button
                           type="button"
                           class="curriculum-view__status-action curriculum-view__status-action--inactive"
+                          [disabled]="togglingCurriculumId === row.id"
                           (click)="toggleCurriculumVersionStatus(row)"
                         >
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
@@ -168,6 +169,7 @@
                         <button
                           type="button"
                           class="curriculum-view__status-action curriculum-view__status-action--active"
+                          [disabled]="togglingCurriculumId === row.id"
                           (click)="toggleCurriculumVersionStatus(row)"
                         >
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
@@ -191,7 +193,9 @@
         }
       </div>
     } @else {
-      @if (filteredProgramCards.length === 0) {
+      @if (isLoadingCurricula) {
+        <div class="curriculum-view__empty curriculum-view__empty--programs">Loading programs...</div>
+      } @else if (filteredProgramCards.length === 0) {
         <div class="curriculum-view__empty curriculum-view__empty--programs">No programs match your search.</div>
       } @else {
         <div class="curriculum-view__program-grid" role="list">
@@ -334,7 +338,9 @@
         </div>
 
         <div class="curriculum-view__table-card">
-          @if (filteredCourses.length === 0) {
+          @if (isLoadingCourses) {
+            <div class="curriculum-view__empty">Loading courses...</div>
+          } @else if (filteredCourses.length === 0) {
             <div class="curriculum-view__empty">No courses match your filters.</div>
           } @else {
             <div class="curriculum-view__table-scroll">
@@ -410,38 +416,39 @@
           </div>
         </div>
 
-        @if (hasTableViewCurriculumSelected && tableViewCourses.length === 0) {
+        @if (hasTableViewCurriculumSelected && isLoadingTableViewCourses) {
+          <div class="curriculum-view__panel curriculum-view__table-placeholder">
+            <p class="curriculum-view__table-placeholder-text">Loading curriculum courses...</p>
+          </div>
+        } @else if (hasTableViewCurriculumSelected && tableViewCourses.length === 0) {
           <div class="curriculum-view__panel curriculum-view__table-placeholder">
             <p class="curriculum-view__table-placeholder-text">No courses found for the selected curriculum.</p>
           </div>
         } @else if (hasTableViewCurriculumSelected) {
           <div class="curriculum-view__panel curriculum-view__curriculum-summary">
             <h2 class="curriculum-view__curriculum-summary-title">{{ getTableViewProgramTitle() }}</h2>
-            <div class="curriculum-view__curriculum-summary-grid">
-              <div class="curriculum-view__curriculum-summary-item">
+            <div class="curriculum-view__curriculum-summary-meta">
+              <p class="curriculum-view__curriculum-summary-line">
                 <span class="curriculum-view__curriculum-summary-label">Program Code:</span>
                 <span class="curriculum-view__curriculum-summary-value">{{ tableViewResolvedProgramCode }}</span>
-              </div>
-              <div class="curriculum-view__curriculum-summary-item">
+              </p>
+              <p class="curriculum-view__curriculum-summary-line">
                 <span class="curriculum-view__curriculum-summary-label">Curriculum Version:</span>
-                <span class="curriculum-view__curriculum-summary-value">
-                  {{ tableViewSelectedCurriculum?.curriculumId }} - {{ tableViewSelectedCurriculum?.version }}
-                </span>
-              </div>
-              <div class="curriculum-view__curriculum-summary-item">
+                <span class="curriculum-view__curriculum-summary-value">{{ tableViewCurriculumVersionDisplay() }}</span>
+              </p>
+              <p class="curriculum-view__curriculum-summary-line">
                 <span class="curriculum-view__curriculum-summary-label">Total Units:</span>
-                <span class="curriculum-view__curriculum-summary-value">{{ getTableViewFooterTotalUnits() }}</span>
-              </div>
-              <div class="curriculum-view__curriculum-summary-item">
+                <span class="curriculum-view__curriculum-summary-value">{{ getTableViewHeaderTotalUnits() }}</span>
+                <span class="curriculum-view__curriculum-summary-sep" aria-hidden="true">|</span>
                 <span class="curriculum-view__curriculum-summary-label">Duration:</span>
                 <span class="curriculum-view__curriculum-summary-value">{{ getTableViewCompletionYears() }} Years</span>
-              </div>
+              </p>
             </div>
           </div>
 
           @for (year of getTableViewSortedYears(); track year) {
             <section class="curriculum-view__year-block">
-              <h3 class="curriculum-view__year-heading">{{ getTableViewYearHeading(year) }}</h3>
+              <h3 class="curriculum-view__year-bar">{{ getTableViewYearHeading(year) }}</h3>
               <div class="curriculum-view__semester-grid">
                 @for (semester of tableViewSemesters; track semester) {
                   @let semesterCourses = getTableViewSemesterCourses(year, semester);
@@ -451,25 +458,27 @@
                       <table class="curriculum-view__curriculum-table">
                         <thead>
                           <tr>
-                            <th scope="col">Course code</th>
-                            <th scope="col">Subject description</th>
-                            <th scope="col">Component</th>
-                            <th scope="col">Pre-requisite(s)</th>
-                            <th scope="col">Units</th>
+                            <th scope="col" class="curriculum-view__matrix-th-code">Course code</th>
+                            <th scope="col" class="curriculum-view__matrix-th-desc">Subject description</th>
+                            <th scope="col" class="curriculum-view__matrix-th-component">Component</th>
+                            <th scope="col" class="curriculum-view__matrix-th-prereq">Pre-requisite(s)</th>
+                            <th scope="col" class="curriculum-view__matrix-th-units">Units</th>
                           </tr>
                         </thead>
                         <tbody>
                           @for (course of semesterCourses; track course.id) {
                             <tr>
                               <td class="curriculum-view__matrix-code">{{ course.courseCode }}</td>
-                              <td>{{ course.courseTitle }}</td>
-                              <td>{{ course.component }}</td>
-                              <td>{{ course.prerequisite }}</td>
+                              <td class="curriculum-view__matrix-desc">{{ course.courseTitle }}</td>
+                              <td class="curriculum-view__matrix-component">{{ course.component || '—' }}</td>
+                              <td class="curriculum-view__matrix-prereq">
+                                <em>{{ tableViewPrerequisiteDisplay(course.prerequisite) }}</em>
+                              </td>
                               <td class="curriculum-view__matrix-units">{{ course.units }}</td>
                             </tr>
                           }
                           <tr class="curriculum-view__matrix-total-row">
-                            <td colspan="4">Total Units</td>
+                            <td colspan="4"><strong>Total Units</strong></td>
                             <td class="curriculum-view__matrix-units">{{ getTableViewSemesterUnits(semesterCourses) }}</td>
                           </tr>
                         </tbody>
@@ -656,7 +665,13 @@
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="10" class="curriculum-view__empty">No tuition fees found</td>
+                    <td colspan="10" class="curriculum-view__empty">
+                      @if (isLoadingFees) {
+                        Loading tuition fees...
+                      } @else {
+                        No tuition fees found
+                      }
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -747,7 +762,13 @@
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="7" class="curriculum-view__empty">No school fees found</td>
+                    <td colspan="7" class="curriculum-view__empty">
+                      @if (isLoadingFees) {
+                        Loading school fees...
+                      } @else {
+                        No school fees found
+                      }
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -838,7 +859,13 @@
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="7" class="curriculum-view__empty">No miscellaneous fees found</td>
+                    <td colspan="7" class="curriculum-view__empty">
+                      @if (isLoadingFees) {
+                        Loading miscellaneous fees...
+                      } @else {
+                        No miscellaneous fees found
+                      }
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -864,7 +891,7 @@
               autocomplete="off"
             />
           </div>
-          <button type="button" class="curriculum-view__fees-add-btn curriculum-view__fees-add-btn--readonly" tabindex="-1" aria-hidden="true">
+          <button type="button" class="curriculum-view__fees-add-btn" (click)="openAddDownpayment()">
             + Add New Downpayment
           </button>
         </div>
@@ -923,28 +950,18 @@
                             />
                           </svg>
                         </button>
-                        <button
-                          type="button"
-                          class="curriculum-view__fee-action curriculum-view__fee-action--edit"
-                          title="Edit downpayment"
-                          tabindex="-1"
-                          aria-hidden="true"
-                        >
-                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
-                        </button>
                       </div>
                     </td>
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="7" class="curriculum-view__empty">No downpayment records found</td>
+                    <td colspan="7" class="curriculum-view__empty">
+                      @if (isLoadingFees) {
+                        Loading downpayment records...
+                      } @else {
+                        No downpayment records found
+                      }
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -955,12 +972,17 @@
     </div>
   }
 
-  <app-evaluator-miscellaneous-fee-add [isOpen]="showAddMiscellaneousFee" (close)="closeAddMiscellaneousFee()" />
+  <app-evaluator-miscellaneous-fee-add
+    [isOpen]="showAddMiscellaneousFee"
+    (close)="closeAddMiscellaneousFee()"
+    (saved)="onMiscellaneousFeeSaved()"
+  />
 
   <app-evaluator-miscellaneous-fee-edit
     [isOpen]="showEditMiscellaneousFee"
     [miscellaneousFee]="editingMiscellaneousFee"
     (close)="closeEditMiscellaneousFee()"
+    (saved)="onMiscellaneousFeeSaved()"
   />
 
   <app-evaluator-miscellaneous-fee-delete
@@ -970,12 +992,17 @@
     (confirm)="confirmDeleteMiscellaneousFee()"
   />
 
-  <app-evaluator-other-school-fee-add [isOpen]="showAddOtherSchoolFee" (close)="closeAddOtherSchoolFee()" />
+  <app-evaluator-other-school-fee-add
+    [isOpen]="showAddOtherSchoolFee"
+    (close)="closeAddOtherSchoolFee()"
+    (saved)="onOtherSchoolFeeSaved()"
+  />
 
   <app-evaluator-other-school-fee-edit
     [isOpen]="showEditOtherSchoolFee"
     [schoolFee]="editingOtherSchoolFee"
     (close)="closeEditOtherSchoolFee()"
+    (saved)="onOtherSchoolFeeSaved()"
   />
 
   <app-evaluator-other-school-fee-delete
@@ -985,12 +1012,17 @@
     (confirm)="confirmDeleteOtherSchoolFee()"
   />
 
-  <app-evaluator-tuition-fee-add [isOpen]="showAddTuitionFee" (close)="closeAddTuitionFee()" />
+  <app-evaluator-tuition-fee-add
+    [isOpen]="showAddTuitionFee"
+    (close)="closeAddTuitionFee()"
+    (saved)="onTuitionFeeSaved()"
+  />
 
   <app-evaluator-tuition-fee-edit
     [isOpen]="showEditTuitionFee"
     [tuitionFee]="editingTuitionFee"
     (close)="closeEditTuitionFee()"
+    (saved)="onTuitionFeeSaved()"
   />
 
   <app-evaluator-tuition-fee-delete
@@ -1004,6 +1036,14 @@
     [isOpen]="showViewDownpayment"
     [downpayment]="viewingDownpayment"
     (close)="closeViewDownpayment()"
+  />
+
+  <app-downpayment-form
+    [isOpen]="showDownpaymentForm"
+    [downpayment]="editingDownpayment"
+    [takenDownpaymentProgramCodes]="takenDownpaymentProgramCodes"
+    (close)="closeDownpaymentForm()"
+    (save)="onDownpaymentSave($event)"
   />
 
   <button type="button" class="evaluator-help-fab curriculum-view__help-fab" title="Help" aria-label="Help">?</button>

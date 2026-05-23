@@ -53,7 +53,7 @@
             <p class="se-add-subject__empty">No subjects found</p>
           } @else {
             <ul class="se-add-subject__result-list">
-              @for (item of searchResults; track trackCatalogItem($index, item)) {
+              @for (item of searchResults; track trackItem($index, item)) {
                 <li class="se-add-subject__result-item">
                   <div class="se-add-subject__result-main">
                     <div class="se-add-subject__result-title-row">

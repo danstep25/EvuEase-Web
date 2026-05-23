@@ -19,7 +19,7 @@ import { ConfirmationModalComponent, ConfirmationModalConfig } from '../../../..
   styleUrl: './tuition-fees.component.scss'
 })
 export class TuitionFeesComponent extends BasePaginationHandler implements OnInit, OnDestroy {
-  /** Evaluator portal: hide mutations and actions. */
+  
   @Input() readOnly = false;
 
   private readonly tuitionFeesService = inject(TuitionFeesService);

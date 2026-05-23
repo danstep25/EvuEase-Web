@@ -1,4 +1,4 @@
-/* Evaluator Curriculum View — spacing aligned with credit-subjects / student-permanent-records. */
+
 .curriculum-view.evaluator-page {
   padding: 3.125rem 2rem 1.25rem;
   max-width: none;
@@ -20,7 +20,6 @@
   color: #0d214f;
 }
 
-/* Tabs — white card, active = blue label + icon + thick bottom border */
 .curriculum-view__tabs-bar {
   background: #fff;
   border: 1px solid #e8ecf1;
@@ -97,7 +96,6 @@
   text-overflow: ellipsis;
 }
 
-/* Search bar — full-width white field per Figma */
 .curriculum-view__search-card {
   margin-bottom: 1.5rem;
   padding: 0;
@@ -149,7 +147,6 @@
   }
 }
 
-/* Table card */
 .curriculum-view__table-card {
   background: #fff;
   border: 1px solid #e8ecf1;
@@ -233,7 +230,6 @@
   box-shadow: 0 1px 3px rgba(13, 32, 79, 0.08);
 }
 
-/* Curricula tab — program card grid (Figma) */
 .curriculum-view__program-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -338,7 +334,6 @@
   }
 }
 
-/* Curricula tab — program detail card (Figma) */
 .curriculum-view__detail-card {
   background: #fff;
   border: 1px solid #e8ecf1;
@@ -519,7 +514,6 @@
   }
 }
 
-/* —— Courses tab —— */
 .curriculum-view__courses-stack {
   display: flex;
   flex-direction: column;
@@ -621,8 +615,50 @@
 }
 
 .curriculum-view__panel--filters,
-.curriculum-view__panel--table-selectors {
+.curriculum-view__panel--table-selectors,
+.curriculum-view__curriculum-summary {
   padding: 1.25rem 1.5rem 1.35rem;
+}
+
+.curriculum-view__curriculum-summary-title {
+  margin: 0 0 0.65rem;
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #0d214f;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.curriculum-view__curriculum-summary-meta {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+.curriculum-view__curriculum-summary-line {
+  margin: 0 0 0.25rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.curriculum-view__curriculum-summary-label {
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.curriculum-view__curriculum-summary-value {
+  margin-left: 0.25rem;
+  font-weight: 400;
+  color: #6b7280;
+}
+
+.curriculum-view__curriculum-summary-sep {
+  margin: 0 0.5rem;
+  color: #9ca3af;
+  font-weight: 400;
 }
 
 .curriculum-view__selectors-grid {
@@ -692,7 +728,6 @@
   }
 }
 
-/* Courses table */
 .curriculum-view__table--courses {
   min-width: 72rem;
 
@@ -842,7 +877,6 @@
   }
 }
 
-/* Help FAB — dark circle, light “?” per mock */
 .curriculum-view__help-fab.evaluator-help-fab {
   background: #111827;
   color: #fff;
@@ -893,3 +927,4 @@
     padding-right: 1.125rem;
   }
 }
+

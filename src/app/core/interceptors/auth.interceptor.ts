@@ -5,27 +5,33 @@ import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { API_URL } from '../../shared/constants/api.url.constant';
 
+function isAnonymousAuthRequest(url: string): boolean {
+  const lower = url.toLowerCase();
+  return (
+    lower.includes(API_URL.auth.login.toLowerCase()) ||
+    lower.includes('/auth/login') ||
+    lower.includes('/auth/register')
+  );
+}
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  const isLoginRequest = req.url.includes(API_URL.auth.login) || req.url.includes('/auth/login');
-  
-  if (!isLoginRequest) {
-    const token = authService.getToken();
-    
-    if (token && authService.isAuthenticated()) {
-      req = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-    }
+  const skipAuth = isAnonymousAuthRequest(req.url);
+  const token = authService.getToken();
+
+  if (!skipAuth && token) {
+    req = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`
+      }
+    });
   }
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && !isLoginRequest) {
+      if (error.status === 401 && !skipAuth) {
         authService.logout();
         router.navigate(['/']);
       }

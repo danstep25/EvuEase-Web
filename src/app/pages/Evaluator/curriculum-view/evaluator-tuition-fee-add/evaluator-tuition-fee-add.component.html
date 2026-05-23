@@ -28,6 +28,7 @@
             </label>
             <div class="curriculum-view__tuition-edit-select-wrap">
               <select id="eval-tuition-add-syid" class="curriculum-view__tuition-edit-select" formControlName="syId">
+                <option value="">Select school year</option>
                 @for (opt of schoolYearOptions; track opt.value) {
                   <option [value]="opt.value">{{ opt.label }}</option>
                 }
@@ -56,6 +57,7 @@
             </label>
             <div class="curriculum-view__tuition-edit-select-wrap">
               <select id="eval-tuition-add-semester" class="curriculum-view__tuition-edit-select" formControlName="semester">
+                <option value="">Select semester</option>
                 @for (sem of semesterOptions; track sem) {
                   <option [value]="sem">{{ sem }}</option>
                 }
@@ -67,13 +69,19 @@
             <label class="curriculum-view__tuition-edit-label" for="eval-tuition-add-code">
               Course Code <span class="curriculum-view__tuition-edit-required">*</span>
             </label>
-            <input
-              id="eval-tuition-add-code"
-              type="text"
-              class="curriculum-view__tuition-edit-input"
-              formControlName="courseCode"
-              autocomplete="off"
-            />
+            <div class="curriculum-view__tuition-edit-select-wrap">
+              <select
+                id="eval-tuition-add-code"
+                class="curriculum-view__tuition-edit-select"
+                formControlName="courseCode"
+                [disabled]="isLoadingCourses || courseOptions.length === 0"
+              >
+                <option value="">Select course</option>
+                @for (course of courseOptions; track course.value) {
+                  <option [value]="course.value">{{ course.label }}</option>
+                }
+              </select>
+            </div>
           </div>
         </div>
 
@@ -155,7 +163,11 @@
           <button type="button" class="curriculum-view__tuition-edit-btn curriculum-view__tuition-edit-btn--cancel" (click)="onClose()">
             Cancel
           </button>
-          <button type="submit" class="curriculum-view__tuition-edit-btn curriculum-view__tuition-edit-btn--submit">
+          <button
+            type="submit"
+            class="curriculum-view__tuition-edit-btn curriculum-view__tuition-edit-btn--submit"
+            [disabled]="isSubmitting"
+          >
             Add Tuition Fee
           </button>
         </footer>

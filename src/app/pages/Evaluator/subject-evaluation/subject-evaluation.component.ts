@@ -1,47 +1,31 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  SearchableSelectComponent,
-  SearchableSelectOption
-} from '../../../shared/components/searchable-select/searchable-select.component';
+import { SearchableSelectComponent } from '../../../shared/components/searchable-select/searchable-select.component';
+import { SearchableSelectOption } from '../../../shared/components/searchable-select/searchable-select-option.model';
 import { EvaluatorAcademicRecordsViewComponent } from '../evaluator-academic-records-view/evaluator-academic-records-view.component';
 import { SubjectEvaluationAddSubjectDialogComponent } from '../subject-evaluation-add-subject-dialog/subject-evaluation-add-subject-dialog.component';
 import { SubjectEvaluationConfirmAddSubjectDialogComponent } from '../subject-evaluation-confirm-add-subject-dialog/subject-evaluation-confirm-add-subject-dialog.component';
 import { SubjectEvaluationChargeSlipPreviewComponent } from '../subject-evaluation-charge-slip-preview/subject-evaluation-charge-slip-preview.component';
-import {
-  getChargeSlipPreview,
-  type ChargeSlipPreview
-} from '../../../../mock-data/evaluator/subject-evaluation-charge-slip.mock';
-import { getAcademicRecordsStudentOptions } from '../../../../mock-data/evaluator/student-academic-records.mock';
-import {
-  getSubjectEvaluationFinishedSubjects,
-  type SubjectEvaluationFinishedSubjectRow
-} from '../../../../mock-data/evaluator/subject-evaluation-finished-subjects.mock';
+import { StudentPermanentRecordsService } from '../student-permanent-records/student-permanent-records.service';
+import { SubjectEvaluationService } from './subject-evaluation.service';
 import {
   buildUnitsSummary,
   computeSuggestedUnitsSelected,
   getCurrentTermSuggestedCourses,
-  getDefaultSuggestedSelectionIds,
-  getSubjectSelectionState,
-  subjectSelectionExceedsLimit,
-  type SubjectSelectionSuggestedRow,
-  type SubjectSelectionViewMode
-} from '../../../../mock-data/evaluator/subject-evaluation-subject-selection.mock';
-import {
-  SUBJECT_EVALUATION_PROGRAM_FILTER_OPTIONS,
-  SUBJECT_EVALUATION_STUDENTS_MOCK,
-  SUBJECT_EVALUATION_UPCOMING_TERM,
-  SUBJECT_EVALUATION_YEAR_LEVEL_FILTER_OPTIONS,
-  filterSubjectEvaluationStudents,
-  findSubjectEvaluationStudent,
-  getSubjectEvaluationSelectorStudents,
-  toSubjectEvaluationStudentOption,
-  toSubjectEvaluationStudentSummary,
-  type SubjectEvaluationProgramFilter,
-  type SubjectEvaluationStudentSummary,
-  type SubjectEvaluationYearLevelFilter
-} from '../../../../mock-data/evaluator/subject-evaluation.mock';
+  pickDefaultSelectionIds,
+  subjectSelectionExceedsLimit
+} from './subject-evaluation.mapper';
+import type {
+  ChargeSlipPreview,
+  SubjectEvaluationFilterOption,
+  SubjectEvaluationFinishedSubjectRow,
+  SubjectEvaluationStudentSummary,
+  SubjectEvaluationUpcomingTerm,
+  SubjectSelectionSuggestedRow,
+  SubjectSelectionViewMode
+} from './subject-evaluation.models';
+import type { AddSubjectCatalogItem } from './subject-evaluation.models';
 
 type SubjectEvaluationStep = 1 | 2 | 3 | 4;
 
@@ -60,17 +44,14 @@ type SubjectEvaluationStep = 1 | 2 | 3 | 4;
   templateUrl: './subject-evaluation.component.html',
   styleUrl: './subject-evaluation.component.scss'
 })
-export class SubjectEvaluationComponent {
+export class SubjectEvaluationComponent implements OnInit {
+  private readonly subjectEvaluationService = inject(SubjectEvaluationService);
+  private readonly studentRecordsService = inject(StudentPermanentRecordsService);
+
   readonly workflowTitle = 'Subject Evaluation';
   readonly academicRecordsTitle = 'Student Permanent Records';
   readonly workflowSubtitle = 'Assign student load for the upcoming term';
   readonly academicRecordsSubtitle = 'View student academic history and grades';
-
-  showFullAcademicRecords = false;
-
-  readonly upcomingTerm = SUBJECT_EVALUATION_UPCOMING_TERM;
-  readonly programFilterOptions = SUBJECT_EVALUATION_PROGRAM_FILTER_OPTIONS;
-  readonly yearLevelFilterOptions = SUBJECT_EVALUATION_YEAR_LEVEL_FILTER_OPTIONS;
 
   readonly steps: readonly { step: SubjectEvaluationStep; label: string }[] = [
     { step: 1, label: 'Student Info' },
@@ -79,43 +60,69 @@ export class SubjectEvaluationComponent {
     { step: 4, label: 'Charge Slip Preview' }
   ];
 
+  isLoadingInitial = true;
+  isLoadingStudent = false;
+  isLoadingChargeSlip = false;
+
+  upcomingTerm: SubjectEvaluationUpcomingTerm | null = null;
+  programFilterOptions: readonly SubjectEvaluationFilterOption[] = [{ value: 'all', label: 'All Programs' }];
+  yearLevelFilterOptions: readonly SubjectEvaluationFilterOption[] = [{ value: 'all', label: 'All Year Levels' }];
+
+  showFullAcademicRecords = false;
   currentStep: SubjectEvaluationStep = 1;
 
-  programFilter: SubjectEvaluationProgramFilter = 'all';
-  yearLevelFilter: SubjectEvaluationYearLevelFilter = 'all';
+  programFilter = 'all';
+  yearLevelFilter = 'all';
   selectedStudentId: string | null = null;
+
+  selectedStudentSummary: SubjectEvaluationStudentSummary | null = null;
+  finishedSubjects: readonly SubjectEvaluationFinishedSubjectRow[] = [];
+  subjectSelectionState = {
+    limits: { regularUnitsForNextTerm: 0, unitLimit: 23 },
+    currentYearTerm: '1Y1',
+    allTermCourses: [] as readonly SubjectSelectionSuggestedRow[]
+  };
+
   subjectSelectionViewMode: SubjectSelectionViewMode = 'all';
   showAddSubjectDialog = false;
   showConfirmAddSubjectDialog = false;
   confirmAddSubjectCourseCode = '';
   suggestedSelectedIds = new Set<string>();
   suggestedManuallyUncheckedIds = new Set<string>();
+  chargeSlipPreview: ChargeSlipPreview | null = null;
+
+  academicRecordsStudentOptions: SearchableSelectOption[] = [];
+
   private confirmAddSubjectPendingRow: SubjectSelectionSuggestedRow | null = null;
   private suggestedSelectionStudentId: string | null = null;
+  private extraSuggestedRows: SubjectSelectionSuggestedRow[] = [];
+
+  ngOnInit(): void {
+    this.subjectEvaluationService.loadInitialData().subscribe({
+      next: (data) => {
+        this.upcomingTerm = data.upcomingTerm;
+        this.programFilterOptions = data.programFilterOptions;
+        this.yearLevelFilterOptions = data.yearLevelFilterOptions;
+        this.isLoadingInitial = false;
+      },
+      error: () => {
+        this.isLoadingInitial = false;
+      }
+    });
+
+    this.studentRecordsService.getStudentOptions().subscribe({
+      next: (options) => {
+        this.academicRecordsStudentOptions = options;
+      }
+    });
+  }
 
   get studentOptions(): SearchableSelectOption[] {
-    return filterSubjectEvaluationStudents(
-      getSubjectEvaluationSelectorStudents(),
-      this.programFilter,
-      this.yearLevelFilter
-    ).map((student) => toSubjectEvaluationStudentOption(student));
-  }
-
-  get selectedStudentSummary(): SubjectEvaluationStudentSummary | null {
-    const student = findSubjectEvaluationStudent(this.selectedStudentId);
-    return student ? toSubjectEvaluationStudentSummary(student) : null;
-  }
-
-  get finishedSubjectsForStudent(): readonly SubjectEvaluationFinishedSubjectRow[] {
-    return getSubjectEvaluationFinishedSubjects(this.selectedStudentId);
+    return this.subjectEvaluationService.getStudentOptions(this.programFilter, this.yearLevelFilter);
   }
 
   get hasFinishedSubjects(): boolean {
-    return this.finishedSubjectsForStudent.length > 0;
-  }
-
-  isPrerequisiteItalic(prerequisite: string): boolean {
-    return prerequisite.trim().toLowerCase() !== 'none';
+    return this.finishedSubjects.length > 0;
   }
 
   get canProceedFromStep1(): boolean {
@@ -130,26 +137,23 @@ export class SubjectEvaluationComponent {
     return this.showFullAcademicRecords ? this.academicRecordsSubtitle : this.workflowSubtitle;
   }
 
-  get academicRecordsStudentOptions(): SearchableSelectOption[] {
-    return getAcademicRecordsStudentOptions();
-  }
-
   get showStudentSummaryOnWorkflow(): boolean {
     return !this.showFullAcademicRecords && this.currentStep >= 2 && this.selectedStudentSummary != null;
   }
 
-  get subjectSelectionState() {
-    return getSubjectSelectionState(this.selectedStudentId);
+  get allSuggestedCourses(): readonly SubjectSelectionSuggestedRow[] {
+    const base = this.subjectSelectionState.allTermCourses;
+    const extra = this.extraSuggestedRows.filter(
+      (e) => !base.some((b) => b.id === e.id)
+    );
+    return [...base, ...extra];
   }
 
   get subjectSelectionUnitsSummary() {
     const { regularUnitsForNextTerm, unitLimit } = this.subjectSelectionState.limits;
     return buildUnitsSummary(
       regularUnitsForNextTerm,
-      computeSuggestedUnitsSelected(
-        this.subjectSelectionState.allTermCourses,
-        this.suggestedSelectedIds
-      ),
+      computeSuggestedUnitsSelected(this.allSuggestedCourses, this.suggestedSelectedIds),
       unitLimit
     );
   }
@@ -159,9 +163,13 @@ export class SubjectEvaluationComponent {
   }
 
   get suggestedSubjectsForView(): readonly SubjectSelectionSuggestedRow[] {
-    return this.subjectSelectionViewMode === 'current'
-      ? getCurrentTermSuggestedCourses(this.subjectSelectionState)
-      : this.subjectSelectionState.allTermCourses;
+    const pool = this.subjectSelectionViewMode === 'current'
+      ? getCurrentTermSuggestedCourses({
+          ...this.subjectSelectionState,
+          allTermCourses: this.allSuggestedCourses
+        })
+      : this.allSuggestedCourses;
+    return pool;
   }
 
   get hasSuggestedSubjectsForView(): boolean {
@@ -169,11 +177,15 @@ export class SubjectEvaluationComponent {
   }
 
   get canProceedFromStep3(): boolean {
-    return !this.subjectSelectionExceedsLimit;
+    return !this.subjectSelectionExceedsLimit && this.suggestedSelectedIds.size > 0;
   }
 
-  get chargeSlipPreview(): ChargeSlipPreview | null {
-    return getChargeSlipPreview(this.selectedStudentId);
+  get upcomingTermLabel(): string {
+    return this.upcomingTerm?.schoolYearTerm ?? '—';
+  }
+
+  isPrerequisiteItalic(prerequisite: string): boolean {
+    return prerequisite.trim().toLowerCase() !== 'none';
   }
 
   isStepActive(step: SubjectEvaluationStep): boolean {
@@ -189,25 +201,58 @@ export class SubjectEvaluationComponent {
   }
 
   onProgramFilterChange(value: string): void {
-    this.programFilter = value as SubjectEvaluationProgramFilter;
+    this.programFilter = value;
     this.syncSelectedStudent();
   }
 
   onYearLevelFilterChange(value: string): void {
-    this.yearLevelFilter = value as SubjectEvaluationYearLevelFilter;
+    this.yearLevelFilter = value;
     this.syncSelectedStudent();
+  }
+
+  onSelectedStudentChange(studentId: string | null): void {
+    this.selectedStudentId = studentId;
+    this.selectedStudentSummary = null;
+    this.finishedSubjects = [];
+    this.chargeSlipPreview = null;
+    this.resetSuggestedSelections();
+    this.extraSuggestedRows = [];
+
+    if (!studentId) {
+      return;
+    }
+
+    this.isLoadingStudent = true;
+    this.subjectEvaluationService.loadStudentWorkflow(studentId).subscribe({
+      next: (workflow) => {
+        this.isLoadingStudent = false;
+        if (!workflow) {
+          return;
+        }
+        this.selectedStudentSummary = workflow.summary;
+        this.finishedSubjects = workflow.finishedSubjects;
+        this.subjectSelectionState = workflow.subjectSelection;
+      },
+      error: () => {
+        this.isLoadingStudent = false;
+      }
+    });
   }
 
   onCancel(): void {
     this.programFilter = 'all';
     this.yearLevelFilter = 'all';
     this.selectedStudentId = null;
+    this.selectedStudentSummary = null;
+    this.finishedSubjects = [];
+    this.chargeSlipPreview = null;
     this.currentStep = 1;
     this.showFullAcademicRecords = false;
     this.subjectSelectionViewMode = 'all';
     this.showAddSubjectDialog = false;
     this.closeConfirmAddSubjectDialog();
     this.resetSuggestedSelections();
+    this.extraSuggestedRows = [];
   }
 
   onBack(): void {
@@ -225,6 +270,7 @@ export class SubjectEvaluationComponent {
     if (this.currentStep === 4) {
       this.currentStep = 3;
       this.subjectSelectionViewMode = 'all';
+      this.chargeSlipPreview = null;
     }
   }
 
@@ -246,12 +292,29 @@ export class SubjectEvaluationComponent {
       if (!this.canProceedFromStep3) {
         return;
       }
-      this.currentStep = 4;
+      this.loadChargeSlipAndAdvance();
     }
   }
 
   onPrintChargeSlip(): void {
-    window.print();
+    if (!this.chargeSlipPreview) {
+      return;
+    }
+
+    const root = document.documentElement;
+    root.classList.add('se-print-charge-slip');
+    document.body.classList.add('se-print-charge-slip');
+
+    const cleanup = (): void => {
+      root.classList.remove('se-print-charge-slip');
+      document.body.classList.remove('se-print-charge-slip');
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => window.print());
+    });
   }
 
   setSubjectSelectionViewMode(mode: SubjectSelectionViewMode): void {
@@ -298,6 +361,73 @@ export class SubjectEvaluationComponent {
     this.closeConfirmAddSubjectDialog();
   }
 
+  onOpenAddSubjectDialog(): void {
+    this.showAddSubjectDialog = true;
+  }
+
+  onCloseAddSubjectDialog(): void {
+    this.showAddSubjectDialog = false;
+  }
+
+  onSubjectAddedFromDialog(item: AddSubjectCatalogItem): void {
+    const yearTerm = this.subjectSelectionState.currentYearTerm;
+    const row: SubjectSelectionSuggestedRow = {
+      id: `${item.courseCode}-${yearTerm}-added`,
+      courseCode: item.courseCode,
+      subjectDescription: item.subjectDescription,
+      prerequisite: item.prerequisite,
+      units: item.units,
+      component: 'Lecture',
+      yearTerm
+    };
+    if (!this.allSuggestedCourses.some((c) => c.courseCode === row.courseCode)) {
+      this.extraSuggestedRows = [...this.extraSuggestedRows, row];
+    }
+    this.selectSuggestedSubject(row.id);
+    this.showAddSubjectDialog = false;
+  }
+
+  get excludeCourseCodesForAddDialog(): string[] {
+    return this.allSuggestedCourses.map((c) => c.courseCode);
+  }
+
+  onViewFullAcademicRecords(): void {
+    if (!this.selectedStudentId) {
+      return;
+    }
+    this.showFullAcademicRecords = true;
+  }
+
+  onCloseFullAcademicRecords(): void {
+    this.showFullAcademicRecords = false;
+  }
+
+  private loadChargeSlipAndAdvance(): void {
+    if (!this.selectedStudentId) {
+      return;
+    }
+    this.isLoadingChargeSlip = true;
+    const selectedIds = [...this.suggestedSelectedIds];
+    this.subjectEvaluationService
+      .loadChargeSlipPreview(
+        this.selectedStudentId,
+        this.allSuggestedCourses,
+        selectedIds,
+        this.subjectSelectionState.currentYearTerm
+      )
+      .subscribe({
+        next: (preview) => {
+          this.chargeSlipPreview = preview;
+          this.isLoadingChargeSlip = false;
+          this.currentStep = 4;
+        },
+        error: () => {
+          this.chargeSlipPreview = null;
+          this.isLoadingChargeSlip = false;
+        }
+      });
+  }
+
   private selectSuggestedSubject(id: string): void {
     const next = new Set(this.suggestedSelectedIds);
     next.add(id);
@@ -321,7 +451,7 @@ export class SubjectEvaluationComponent {
       return;
     }
     this.suggestedSelectionStudentId = this.selectedStudentId;
-    this.suggestedSelectedIds = new Set(getDefaultSuggestedSelectionIds(this.selectedStudentId));
+    this.suggestedSelectedIds = new Set(pickDefaultSelectionIds(this.subjectSelectionState));
   }
 
   private resetSuggestedSelections(): void {
@@ -331,32 +461,14 @@ export class SubjectEvaluationComponent {
     this.closeConfirmAddSubjectDialog();
   }
 
-  onOpenAddSubjectDialog(): void {
-    this.showAddSubjectDialog = true;
-  }
-
-  onCloseAddSubjectDialog(): void {
-    this.showAddSubjectDialog = false;
-  }
-
-  onViewFullAcademicRecords(): void {
-    if (!this.selectedStudentId) {
-      return;
-    }
-    this.showFullAcademicRecords = true;
-  }
-
-  onCloseFullAcademicRecords(): void {
-    this.showFullAcademicRecords = false;
-  }
-
   private syncSelectedStudent(): void {
     if (!this.selectedStudentId) {
       return;
     }
     const stillVisible = this.studentOptions.some((o) => o.id === this.selectedStudentId);
     if (!stillVisible) {
-      this.selectedStudentId = null;
+      this.onSelectedStudentChange(null);
     }
   }
 }
+

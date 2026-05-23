@@ -143,9 +143,7 @@ export const routes: Routes = [
       {
         path: 'analytics',
         loadComponent: () =>
-          import('./pages/Evaluator/feature-placeholder/feature-placeholder.component').then(
-            m => m.EvaluatorFeaturePlaceholderComponent
-          ),
+          import('./pages/Evaluator/analytics/analytics.component').then((m) => m.AnalyticsComponent),
         data: { title: 'Analytics' }
       },
       {

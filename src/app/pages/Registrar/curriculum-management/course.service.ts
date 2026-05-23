@@ -2,10 +2,10 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Course, CreateCourseRequest, UpdateCourseRequest } from '../../../core/models/course.model';
 import { PaginatedResponse } from '../../../core/models/api-response.model';
-import { HttpBaseService, PaginationParams } from '../../../shared/services/http-base.service';
+import { HttpBaseService } from '../../../shared/services/http-base.service';
 import { API_URL } from '../../../shared/constants/api.url.constant';
 
-export interface CoursePaginationParams extends PaginationParams {
+export interface CoursePaginationParams {
   PageIndex?: number;
   PageSize?: number;
   SortDirection?: string;
@@ -15,6 +15,7 @@ export interface CoursePaginationParams extends PaginationParams {
   curriculumCode?: string;
   yearLevel?: string;
   semester?: string;
+  hasPrerequisites?: boolean;
 }
 
 @Injectable({
@@ -45,6 +46,9 @@ export class CourseService extends HttpBaseService {
       }
       if (params.semester) {
         queryParams.Semester = params.semester;
+      }
+      if (params.hasPrerequisites !== undefined && params.hasPrerequisites !== null) {
+        queryParams.HasPrerequisites = params.hasPrerequisites;
       }
     }
     

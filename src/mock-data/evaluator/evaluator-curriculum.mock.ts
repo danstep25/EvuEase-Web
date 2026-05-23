@@ -5,7 +5,6 @@ export interface EvaluatorCourseFilterOption {
   label: string;
 }
 
-/** Mock-only program codes for Evaluator Curriculum → Courses filter. */
 export const EVALUATOR_COURSE_PROGRAM_CODES = ['BSIT', 'BSCS', 'ACT', 'BSBA', 'BSHM'] as const;
 
 export type EvaluatorCourseProgramCode = (typeof EVALUATOR_COURSE_PROGRAM_CODES)[number];
@@ -15,7 +14,6 @@ export const EVALUATOR_COURSE_PROGRAM_FILTER_OPTIONS: EvaluatorCourseFilterOptio
   ...EVALUATOR_COURSE_PROGRAM_CODES.map((code) => ({ value: code, label: code }))
 ];
 
-/** Mock-only pre-requisite filter values for Evaluator Curriculum → Courses. */
 export const EVALUATOR_COURSE_PREREQ_FILTER = {
   all: '',
   withPre: 'with-pre',
@@ -31,13 +29,11 @@ export const EVALUATOR_COURSE_PREREQ_FILTER_OPTIONS: EvaluatorCourseFilterOption
   { value: EVALUATOR_COURSE_PREREQ_FILTER.noPre, label: 'No Pre-requisite(s)' }
 ];
 
-/** Whether a mock course row has at least one pre-requisite (not None / empty). */
 export function evaluatorCourseHasPrerequisite(prerequisite: string): boolean {
   const normalized = prerequisite.trim().toLowerCase();
   return normalized !== '' && normalized !== 'none' && normalized !== 'n/a';
 }
 
-/** Mock program metadata for Curriculum Table View summary. */
 export const EVALUATOR_PROGRAM_TABLE_META: Record<
   EvaluatorCourseProgramCode,
   { programTitle: string; completionYears: number }
@@ -105,14 +101,12 @@ export interface EvaluatorCurriculumRow {
   status: EvaluatorCurriculumStatus;
 }
 
-/** Program summary card on Evaluator Curriculum → Curricula tab (mock only). */
 export interface EvaluatorCurriculumProgramCard {
   readonly programCode: string;
   readonly versionCount: number;
   readonly activeCount: number;
 }
 
-/** Figma Curricula tab — program grid cards. */
 export const EVALUATOR_CURRICULUM_PROGRAM_CARDS: readonly EvaluatorCurriculumProgramCard[] = [
   { programCode: 'BSCS', versionCount: 3, activeCount: 2 },
   { programCode: 'BSHM', versionCount: 2, activeCount: 2 },
@@ -124,7 +118,6 @@ export function getEvaluatorCurriculaForProgram(programCode: string): EvaluatorC
   return EVALUATOR_CURRICULA_MOCK.filter((row) => row.program === programCode);
 }
 
-/** Full course row for Evaluator Curriculum → Courses (list + table views). */
 export interface EvaluatorCourseDetailRow {
   id: string;
   curriculum: string;
@@ -531,3 +524,4 @@ export const EVALUATOR_FEES_MOCK: EvaluatorFeeRow[] = [
   { feeName: 'Miscellaneous', amount: '₱ 2,100.00', schoolYear: '2025–2026' },
   { feeName: 'Library Fee', amount: '₱ 800.00', schoolYear: '2025–2026' }
 ];
+

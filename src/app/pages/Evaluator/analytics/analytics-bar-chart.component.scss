@@ -1,0 +1,213 @@
+.analytics-grid-chart {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr;
+  grid-template-rows: 1fr auto auto;
+  column-gap: 0.5rem;
+  row-gap: 0.35rem;
+  min-height: 240px;
+}
+
+.analytics-grid-chart__y-axis {
+  grid-row: 1;
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 200px;
+  padding-bottom: 0;
+}
+
+.analytics-grid-chart__y-label {
+  font-size: 0.6875rem;
+  color: #9ca3af;
+  text-align: right;
+  line-height: 1;
+}
+
+.analytics-grid-chart__plot {
+  grid-row: 1;
+  grid-column: 2;
+  position: relative;
+  height: 200px;
+}
+
+.analytics-grid-chart__grid-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.analytics-grid-chart__grid-line {
+  stroke: #e5e7eb;
+  stroke-width: 0.35;
+  vector-effect: non-scaling-stroke;
+
+  &--h {
+    stroke-dasharray: 4 4;
+  }
+
+  &--v {
+    stroke-dasharray: 4 4;
+  }
+}
+
+.analytics-grid-chart__axis {
+  stroke: #d1d5db;
+  stroke-width: 0.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.analytics-grid-chart__columns {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  z-index: 1;
+}
+
+.analytics-grid-chart__column {
+  flex: 1;
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  cursor: default;
+}
+
+.analytics-grid-chart__highlight {
+  position: absolute;
+  inset: 0 0.15rem;
+  border-radius: 4px;
+  background: transparent;
+  transition: background 0.12s ease;
+  pointer-events: none;
+}
+
+.analytics-grid-chart__column--active .analytics-grid-chart__highlight {
+  background: rgba(229, 231, 235, 0.65);
+}
+
+.analytics-grid-chart__bar-wrap {
+  position: relative;
+  z-index: 2;
+  width: 42%;
+  max-width: 2.75rem;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.analytics-grid-chart__bar {
+  width: 100%;
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.2s ease;
+}
+
+.analytics-grid-chart--purple .analytics-grid-chart__bar {
+  background: #7c3aed;
+}
+
+.analytics-grid-chart--purple .analytics-grid-chart__tooltip-value {
+  color: #7c3aed;
+}
+
+.analytics-grid-chart--purple .analytics-grid-chart__legend-swatch {
+  background: #7c3aed;
+}
+
+.analytics-grid-chart--blue .analytics-grid-chart__bar {
+  background: #3b82f6;
+}
+
+.analytics-grid-chart--blue .analytics-grid-chart__tooltip-value {
+  color: #3b82f6;
+}
+
+.analytics-grid-chart--blue .analytics-grid-chart__legend-swatch {
+  background: #3b82f6;
+}
+
+.analytics-grid-chart--teal .analytics-grid-chart__bar {
+  background: #14b8a6;
+}
+
+.analytics-grid-chart--teal .analytics-grid-chart__tooltip-value {
+  color: #14b8a6;
+}
+
+.analytics-grid-chart--teal .analytics-grid-chart__legend-swatch {
+  background: #14b8a6;
+}
+
+.analytics-grid-chart__tooltip {
+  position: absolute;
+  left: 50%;
+  top: 28%;
+  transform: translateX(-50%);
+  z-index: 5;
+  min-width: 6.5rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.analytics-grid-chart__tooltip-title {
+  margin: 0 0 0.2rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.analytics-grid-chart__tooltip-value {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.analytics-grid-chart__x-labels {
+  grid-row: 2;
+  grid-column: 2;
+  display: flex;
+  justify-content: space-around;
+  gap: 0.25rem;
+}
+
+.analytics-grid-chart__x-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.75rem;
+  color: #4b5563;
+  text-align: center;
+  word-break: break-word;
+
+  &--small {
+    font-size: 0.6875rem;
+  }
+}
+
+.analytics-grid-chart__legend {
+  grid-row: 3;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.15rem;
+}
+
+.analytics-grid-chart__legend-swatch {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 2px;
+}

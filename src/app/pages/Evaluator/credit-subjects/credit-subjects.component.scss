@@ -1,4 +1,4 @@
-/* Match Student Permanent Records page rhythm (see student-permanent-records.component.scss). */
+
 .credit-subjects.evaluator-page {
   padding: 3.125rem 2rem 1.25rem;
   max-width: none;
@@ -15,7 +15,6 @@
   margin-top: 0.5rem;
 }
 
-/* Override global `.evaluator-surface { margin-bottom: 1rem }`; gap only between toolbar card and table. */
 .credit-subjects.evaluator-page > .evaluator-surface {
   margin-bottom: 0;
 }
@@ -205,3 +204,4 @@
     padding-right: 1.125rem;
   }
 }
+

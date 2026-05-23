@@ -11,8 +11,9 @@ export interface CurriculaPaginationParams extends PaginationParams {
   SortDirection?: string;
   SortKey?: string;
   searchTerm?: string;
-  /** Server-side filter (e.g. Active) */
+  
   status?: string;
+  programId?: number;
 }
 
 @Injectable({
@@ -27,7 +28,8 @@ export class CurriculumManagementService extends HttpBaseService {
           SortDirection: params.SortDirection || 'desc',
           SortKey: params.SortKey || '',
           SearchTerm: params.searchTerm || '',
-          ...(params.status ? { Status: params.status } : {})
+          ...(params.status ? { Status: params.status } : {}),
+          ...(params.programId != null ? { ProgramId: params.programId } : {})
         }
       : undefined;
     return this.getPaginated<Curricula>(API_URL.curricula.getAll, queryParams, 'result');
@@ -49,7 +51,4 @@ export class CurriculumManagementService extends HttpBaseService {
     return this.delete<void>(API_URL.curricula.delete(id));
   }
 }
-
-
-
 

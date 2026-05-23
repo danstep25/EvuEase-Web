@@ -13,7 +13,6 @@ export const EVALUATOR_OTHER_SCHOOL_SCHOOL_YEAR_OPTIONS: EvaluatorOtherSchoolSch
   { value: 'SY2223-1', label: 'SY2223-1 - 2022-2023 (1st Semester)' }
 ];
 
-/** Default field values for Add Other School Fee UI (mock only). */
 export const EVALUATOR_OTHER_SCHOOL_FEE_ADD_FORM_DEFAULTS = {
   syId: 'SY2526',
   batch: '2025',
@@ -107,3 +106,4 @@ export const EVALUATOR_OTHER_SCHOOL_FEES_MOCK: EvaluatorOtherSchoolFeeRow[] = [
     lowMonthlyPayment: 100
   }
 ];
+

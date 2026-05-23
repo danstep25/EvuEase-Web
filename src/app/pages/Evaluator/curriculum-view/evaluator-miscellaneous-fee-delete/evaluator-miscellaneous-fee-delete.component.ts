@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import type { EvaluatorMiscellaneousFeeRow } from '../../../../../mock-data/evaluator/evaluator-miscellaneous-fees.mock';
+import type { EvaluatorMiscellaneousFeeRow } from '../evaluator-curriculum-view.models';
 
 @Component({
   selector: 'app-evaluator-miscellaneous-fee-delete',

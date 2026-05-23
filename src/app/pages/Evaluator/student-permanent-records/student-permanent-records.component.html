@@ -4,36 +4,15 @@
     <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
   </header>
 
-  <section class="evaluator-surface student-permanent-records__card">
-    @if (loadError) {
+  @if (loadError) {
+    <section class="evaluator-surface student-permanent-records__card">
       <div class="student-permanent-records__alert" role="alert">{{ loadError }}</div>
-    }
-
-    @if (!loadError) {
-      <app-searchable-select
-        [options]="studentOptions"
-        [isLoading]="isLoadingStudents"
-        label="Select Student"
-        placeholder="Type to search or click to select..."
-        emptyText="No students match your search."
-        [(selectedId)]="selectedStudentId"
-      />
-
-      @if (selectedSummary) {
-        <div
-          class="student-permanent-records__detail"
-          role="region"
-          aria-live="polite"
-          [attr.aria-label]="'Selected student summary'"
-        >
-          <p class="student-permanent-records__detail-lead">Showing record for</p>
-          <p class="student-permanent-records__detail-primary">{{ selectedSummary.primary }}</p>
-          <p class="student-permanent-records__detail-secondary">{{ selectedSummary.secondary }}</p>
-          <p class="student-permanent-records__detail-note">
-            Academic history and grades will appear here when connected to the API.
-          </p>
-        </div>
-      }
-    }
-  </section>
+    </section>
+  } @else {
+    <app-evaluator-academic-records-view
+      [studentOptions]="studentOptions"
+      [isLoadingStudents]="isLoadingStudents"
+      [(selectedStudentId)]="selectedStudentId"
+    />
+  }
 </div>

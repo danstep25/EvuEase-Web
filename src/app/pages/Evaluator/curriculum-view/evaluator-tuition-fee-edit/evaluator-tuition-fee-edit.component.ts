@@ -1,13 +1,32 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  Output,
+  SimpleChanges,
+  inject
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
+import { UpdateTuitionFeeRequest } from '../../../../core/models/tuition-fee.model';
+import { LookupService } from '../../../../shared/services/lookup.service';
+import { CourseService } from '../../../Registrar/curriculum-management/course.service';
+import { TuitionFeesService } from '../../../Registrar/curriculum-management/fees-and-charges/tuition-fees/tuition-fees.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
+import type { EvaluatorTuitionFeeRow } from '../evaluator-curriculum-view.models';
 import {
-  EVALUATOR_TUITION_BATCH_OPTIONS,
-  EVALUATOR_TUITION_COMPONENT_OPTIONS,
-  EVALUATOR_TUITION_SCHOOL_YEAR_OPTIONS,
-  EVALUATOR_TUITION_SEMESTER_OPTIONS,
-  type EvaluatorTuitionFeeRow
-} from '../../../../../mock-data/evaluator/evaluator-tuition-fees.mock';
+  TUITION_FEE_COMPONENT_OPTIONS,
+  TUITION_FEE_SEMESTER_OPTIONS,
+  buildCreateTuitionFeeRequest,
+  buildTuitionFeeBatchYears,
+  mapCourseComponentFromApi,
+  mapSyTermsToTuitionFeeOptions,
+  type TuitionFeeSelectOption
+} from '../utils/tuition-fee-form.util';
 
 @Component({
   selector: 'app-evaluator-tuition-fee-edit',
@@ -16,15 +35,25 @@ import {
   templateUrl: './evaluator-tuition-fee-edit.component.html',
   styleUrl: './evaluator-tuition-fee-edit.component.scss'
 })
-export class EvaluatorTuitionFeeEditComponent implements OnChanges {
+export class EvaluatorTuitionFeeEditComponent implements OnChanges, OnDestroy {
+  private readonly lookupService = inject(LookupService);
+  private readonly courseService = inject(CourseService);
+  private readonly tuitionFeesService = inject(TuitionFeesService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly destroy$ = new Subject<void>();
+
   @Input() isOpen = false;
   @Input() tuitionFee: EvaluatorTuitionFeeRow | null = null;
   @Output() readonly close = new EventEmitter<void>();
+  @Output() readonly saved = new EventEmitter<void>();
 
-  readonly schoolYearOptions = EVALUATOR_TUITION_SCHOOL_YEAR_OPTIONS;
-  readonly batchOptions = EVALUATOR_TUITION_BATCH_OPTIONS;
-  readonly semesterOptions = EVALUATOR_TUITION_SEMESTER_OPTIONS;
-  readonly componentOptions = EVALUATOR_TUITION_COMPONENT_OPTIONS;
+  schoolYearOptions: TuitionFeeSelectOption[] = [];
+  readonly batchOptions = buildTuitionFeeBatchYears();
+  readonly semesterOptions = TUITION_FEE_SEMESTER_OPTIONS;
+  readonly componentOptions = TUITION_FEE_COMPONENT_OPTIONS;
+  courseOptions: TuitionFeeSelectOption[] = [];
+  isSubmitting = false;
+  isLoadingCourses = false;
 
   readonly editForm = new FormGroup({
     syId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -33,17 +62,35 @@ export class EvaluatorTuitionFeeEditComponent implements OnChanges {
     courseCode: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     courseTitle: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     component: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    units: new FormControl<number | null>(null, { validators: [Validators.required, Validators.min(1)] }),
+    units: new FormControl<number | null>(null, { validators: [Validators.required, Validators.min(0.5)] }),
     cash: new FormControl<number | null>(null, { validators: [Validators.required, Validators.min(0)] }),
     lowMonthlyPayment: new FormControl<number | null>(null, {
       validators: [Validators.required, Validators.min(0)]
     })
   });
 
+  constructor() {
+    this.editForm
+      .get('semester')
+      ?.valueChanges.pipe(distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((semester) => this.loadCoursesForSemester(semester));
+
+    this.editForm
+      .get('courseCode')
+      ?.valueChanges.pipe(distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((code) => this.loadCourseDetails(code));
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if ((changes['tuitionFee'] || changes['isOpen']) && this.isOpen && this.tuitionFee) {
+      this.loadSyTerms();
       this.patchFormFromRow(this.tuitionFee);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onBackdropClick(): void {
@@ -55,11 +102,97 @@ export class EvaluatorTuitionFeeEditComponent implements OnChanges {
   }
 
   onSubmit(): void {
-    if (this.editForm.invalid) {
+    if (this.editForm.invalid || this.isSubmitting || !this.tuitionFee) {
       this.editForm.markAllAsTouched();
       return;
     }
-    this.onClose();
+
+    this.isSubmitting = true;
+    const base = buildCreateTuitionFeeRequest(this.editForm.getRawValue());
+    const payload: UpdateTuitionFeeRequest = {
+      ...base,
+      id: this.tuitionFee.id
+    };
+
+    this.tuitionFeesService.updateTuitionFee(this.tuitionFee.id, payload).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.notificationService.success('Tuition Fee Updated', 'Tuition fee has been updated successfully.');
+        this.saved.emit();
+        this.onClose();
+      },
+      error: (error) => {
+        this.isSubmitting = false;
+        this.notificationService.error(
+          'Update Failed',
+          error.userMessage || error.message || 'Failed to update tuition fee.'
+        );
+      }
+    });
+  }
+
+  private loadSyTerms(): void {
+    this.lookupService
+      .getSyTermsForDropdown()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (terms) => {
+          this.schoolYearOptions = mapSyTermsToTuitionFeeOptions(terms);
+        },
+        error: () => {
+          this.schoolYearOptions = [];
+        }
+      });
+  }
+
+  private loadCoursesForSemester(semester: string): void {
+    if (!semester?.trim()) {
+      this.courseOptions = [];
+      return;
+    }
+
+    this.isLoadingCourses = true;
+    this.lookupService
+      .getCoursesBySemesterForDropdown(semester)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (courses) => {
+          this.courseOptions = (courses ?? []).map((course) => ({
+            value: course.value,
+            label: course.displayText ? `${course.value} - ${course.displayText}` : course.value
+          }));
+          this.isLoadingCourses = false;
+        },
+        error: () => {
+          this.courseOptions = [];
+          this.isLoadingCourses = false;
+        }
+      });
+  }
+
+  private loadCourseDetails(courseCode: string): void {
+    if (!courseCode?.trim()) {
+      return;
+    }
+
+    this.courseService
+      .getCourseById(courseCode.trim())
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (course) => {
+          this.editForm.patchValue(
+            {
+              courseTitle: course.courseTitle ?? '',
+              component: mapCourseComponentFromApi(course.courseComponent) ?? '',
+              units: course.courseTotalUnits ?? null
+            },
+            { emitEvent: false }
+          );
+        },
+        error: () => {
+          
+        }
+      });
   }
 
   private patchFormFromRow(row: EvaluatorTuitionFeeRow): void {
@@ -74,5 +207,9 @@ export class EvaluatorTuitionFeeEditComponent implements OnChanges {
       cash: row.cash,
       lowMonthlyPayment: row.lowMonthlyPayment
     });
+    if (row.semester) {
+      this.loadCoursesForSemester(row.semester);
+    }
   }
 }
+

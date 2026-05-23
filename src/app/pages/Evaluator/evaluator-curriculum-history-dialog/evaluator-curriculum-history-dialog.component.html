@@ -1,4 +1,9 @@
-@if (isOpen && viewModel) {
+@if (isOpen) {
+  @if (isLoading) {
+    <div class="echd__overlay" role="presentation">
+      <div class="echd__dialog"><p class="echd__loading">Loading history...</p></div>
+    </div>
+  } @else if (viewModel) {
   <div
     class="echd__overlay"
     role="presentation"
@@ -13,8 +18,11 @@
       (click)="$event.stopPropagation()"
     >
       <header class="echd__header">
-        <h2 id="echd-dialog-title" class="echd__title">{{ viewModel.studentLabel }}</h2>
-        <button type="button" class="echd__close-icon-btn" (click)="onClose()" aria-label="Close">
+        <div class="echd__header-text">
+          <h2 id="echd-dialog-title" class="echd__title">Curriculum History</h2>
+          <p class="echd__subtitle">{{ viewModel.studentLabel }}</p>
+        </div>
+        <button type="button" class="echd__close-icon-btn" (click)="onClose()" aria-label="Close dialog">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -46,23 +54,23 @@
                           <span class="echd__current-badge">Current</span>
                         }
                       </div>
-                      <p class="echd__card-year">{{ entry.academicYear }}</p>
+                      <p class="echd__card-year">{{ displayAcademicYear(entry) }}</p>
                     </div>
-                    <time class="echd__card-date">{{ entry.dateLabel }}</time>
+                    <time class="echd__card-date">{{ displayDate(entry) }}</time>
                   </div>
                   <div class="echd__card-body">
                     <div class="echd__detail">
                       <span class="echd__detail-label">Reason</span>
-                      <p class="echd__detail-value">{{ entry.reason }}</p>
+                      <p class="echd__detail-value">{{ entry.reason || '—' }}</p>
                     </div>
                     <div class="echd__detail">
                       <span class="echd__detail-label">Notes</span>
-                      <p class="echd__detail-value">{{ entry.notes }}</p>
+                      <p class="echd__detail-value">{{ entry.notes || '—' }}</p>
                     </div>
                   </div>
                   <footer class="echd__card-footer">
                     <span class="echd__migrated-by">
-                      Migrated by: <strong>{{ entry.migratedBy }}</strong>
+                      Migrated by: <strong>{{ entry.migratedBy || '—' }}</strong>
                     </span>
                   </footer>
                 </article>
@@ -79,4 +87,5 @@
       </footer>
     </div>
   </div>
+  }
 }

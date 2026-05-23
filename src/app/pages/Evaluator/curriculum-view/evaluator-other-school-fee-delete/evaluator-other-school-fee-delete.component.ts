@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import type { EvaluatorOtherSchoolFeeRow } from '../../../../../mock-data/evaluator/evaluator-other-school-fees.mock';
+import type { EvaluatorOtherSchoolFeeRow } from '../evaluator-curriculum-view.models';
 
 @Component({
   selector: 'app-evaluator-other-school-fee-delete',

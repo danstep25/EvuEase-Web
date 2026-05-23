@@ -18,11 +18,11 @@
     <div class="subject-evaluation__term-grid">
       <div class="subject-evaluation__term-item">
         <span class="subject-evaluation__term-label">School Year &amp; Term</span>
-        <span class="subject-evaluation__term-value">{{ upcomingTerm.schoolYearTerm }}</span>
+        <span class="subject-evaluation__term-value">{{ upcomingTerm?.schoolYearTerm ?? '—' }}</span>
       </div>
       <div class="subject-evaluation__term-item">
         <span class="subject-evaluation__term-label">Enrollment Period</span>
-        <span class="subject-evaluation__term-value">{{ upcomingTerm.enrollmentPeriod }}</span>
+        <span class="subject-evaluation__term-value">{{ upcomingTerm?.enrollmentPeriod ?? '—' }}</span>
       </div>
     </div>
   </section>
@@ -133,7 +133,8 @@
             placeholder="Type to search or click to select..."
             emptyText="No students match your search."
             [selectedId]="selectedStudentId"
-            (selectedIdChange)="selectedStudentId = $event"
+            [isLoading]="isLoadingStudent"
+            (selectedIdChange)="onSelectedStudentChange($event)"
           />
         </div>
 
@@ -209,7 +210,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @for (row of finishedSubjectsForStudent; track row.courseCode) {
+                  @for (row of finishedSubjects; track row.courseCode) {
                     <tr>
                       <td class="subject-evaluation__finished-cell-strong">{{ row.courseCode }}</td>
                       <td>{{ row.subjectDescription }}</td>
@@ -414,7 +415,13 @@
       </div>
     } @else if (currentStep === 4) {
       <div class="subject-evaluation__panel subject-evaluation__panel--charge-slip">
-        <app-subject-evaluation-charge-slip-preview [preview]="chargeSlipPreview" />
+        @if (isLoadingChargeSlip) {
+          <p class="subject-evaluation__finished-empty">Loading charge slip preview...</p>
+        } @else if (chargeSlipPreview) {
+          <app-subject-evaluation-charge-slip-preview [preview]="chargeSlipPreview" />
+        } @else {
+          <p class="subject-evaluation__finished-empty">Charge slip preview is not available for this selection.</p>
+        }
 
         <div class="subject-evaluation__actions subject-evaluation__actions--step-nav">
           <div class="subject-evaluation__actions-start">
@@ -453,7 +460,10 @@
   <app-subject-evaluation-add-subject-dialog
     [isOpen]="showAddSubjectDialog"
     [studentId]="selectedStudentId"
+    [excludeCourseCodes]="excludeCourseCodesForAddDialog"
+    [termLabel]="upcomingTermLabel"
     (closed)="onCloseAddSubjectDialog()"
+    (subjectAdded)="onSubjectAddedFromDialog($event)"
   />
 
   <app-subject-evaluation-confirm-add-subject-dialog

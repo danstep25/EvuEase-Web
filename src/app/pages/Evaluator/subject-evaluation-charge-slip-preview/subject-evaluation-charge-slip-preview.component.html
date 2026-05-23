@@ -30,126 +30,128 @@
         </div>
       </div>
 
-      <table class="se-charge-slip__table se-charge-slip__table--tuition">
-        <thead>
-          <tr>
-            <th scope="col" class="se-charge-slip__th--num">#</th>
-            <th scope="col">Tuition Fee per Subject/Course</th>
-            <th scope="col" class="se-charge-slip__th--center">UNITS</th>
-            <th scope="col" class="se-charge-slip__th--center">Component</th>
-            <th scope="col" class="se-charge-slip__th--center">Curriculum Version</th>
-            <th scope="col" class="se-charge-slip__th--center">Level/Terms</th>
-            <th scope="col" class="se-charge-slip__th--amount">CASH</th>
-            <th scope="col" class="se-charge-slip__th--amount">LOW MONTHLY PAYMENT</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of preview.tuitionRows; track trackTuitionRow($index, row)) {
+      <div class="se-charge-slip__tables">
+        <table class="se-charge-slip__table se-charge-slip__table--tuition">
+          <thead>
             <tr>
-              <td class="se-charge-slip__td--center">{{ row.rowNumber }}</td>
-              <td>{{ row.subjectDescription }}</td>
-              <td class="se-charge-slip__td--center">{{ row.units }}</td>
-              <td class="se-charge-slip__td--center">{{ row.component }}</td>
-              <td class="se-charge-slip__td--center">{{ row.curriculumVersion }}</td>
-              <td class="se-charge-slip__td--center">{{ row.levelTerm }}</td>
-              <td class="se-charge-slip__td--amount">{{ row.cash }}</td>
-              <td class="se-charge-slip__td--amount">{{ row.lowMonthlyPayment }}</td>
+              <th scope="col" class="se-charge-slip__th--num">#</th>
+              <th scope="col" class="se-charge-slip__th--subject">TUITION FEE PER SUBJECT/COURSE</th>
+              <th scope="col" class="se-charge-slip__th--center">UNITS</th>
+              <th scope="col" class="se-charge-slip__th--center">COMPONENT</th>
+              <th scope="col" class="se-charge-slip__th--center">CURRICULUM VERSION</th>
+              <th scope="col" class="se-charge-slip__th--center">LEVEL/TERMS</th>
+              <th scope="col" class="se-charge-slip__th--amount">CASH</th>
+              <th scope="col" class="se-charge-slip__th--amount">LOW MONTHLY PAYMENT</th>
             </tr>
-          }
-          <tr class="se-charge-slip__total-row">
-            <td colspan="2" class="se-charge-slip__total-label">TOTAL TUITION FEES</td>
-            <td class="se-charge-slip__td--center se-charge-slip__total-value">{{ preview.totalTuitionUnits }}</td>
-            <td colspan="3"></td>
-            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalTuitionCash }}</td>
-            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalTuitionLowMonthly }}</td>
-          </tr>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (row of preview.tuitionRows; track trackTuitionRow($index, row)) {
+              <tr>
+                <td class="se-charge-slip__td--center">{{ row.rowNumber }}</td>
+                <td>{{ row.subjectDescription }}</td>
+                <td class="se-charge-slip__td--center">{{ row.units }}</td>
+                <td class="se-charge-slip__td--center">{{ row.component }}</td>
+                <td class="se-charge-slip__td--center">{{ row.curriculumVersion }}</td>
+                <td class="se-charge-slip__td--center">{{ row.levelTerm }}</td>
+                <td class="se-charge-slip__td--amount">{{ row.cash }}</td>
+                <td class="se-charge-slip__td--amount">{{ row.lowMonthlyPayment }}</td>
+              </tr>
+            }
+            <tr class="se-charge-slip__total-row">
+              <td colspan="2" class="se-charge-slip__total-label">TOTAL TUITION FEES</td>
+              <td class="se-charge-slip__td--center se-charge-slip__total-value">{{ preview.totalTuitionUnits }}</td>
+              <td colspan="3" class="se-charge-slip__td--filler"></td>
+              <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalTuitionCash }}</td>
+              <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalTuitionLowMonthly }}</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <table class="se-charge-slip__table se-charge-slip__table--fees">
-        <thead>
-          <tr>
-            <th scope="col" class="se-charge-slip__th--label">OTHER SCHOOL FEES (OSF)</th>
-            <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
-            <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of preview.otherSchoolFees; track trackFeeRow($index, row)) {
+        <table class="se-charge-slip__table se-charge-slip__table--fees">
+          <thead>
             <tr>
-              <td>{{ row.label }}</td>
-              <td class="se-charge-slip__td--amount">{{ row.cash }}</td>
-              <td class="se-charge-slip__td--amount">{{ row.lowMonthlyPayment }}</td>
+              <th scope="col" class="se-charge-slip__th--section">OTHER SCHOOL FEES (OSF)</th>
+              <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
+              <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
             </tr>
-          }
-          <tr class="se-charge-slip__total-row">
-            <td class="se-charge-slip__total-label">TOTAL OSF</td>
-            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalOsfCash }}</td>
-            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalOsfLowMonthly }}</td>
-          </tr>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (row of preview.otherSchoolFees; track trackFeeRow($index, row)) {
+              <tr>
+                <td>{{ row.label }}</td>
+                <td class="se-charge-slip__td--amount">{{ row.cash }}</td>
+                <td class="se-charge-slip__td--amount">{{ row.lowMonthlyPayment }}</td>
+              </tr>
+            }
+            <tr class="se-charge-slip__total-row">
+              <td class="se-charge-slip__total-label">TOTAL OSF</td>
+              <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalOsfCash }}</td>
+              <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalOsfLowMonthly }}</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <table class="se-charge-slip__table se-charge-slip__table--fees">
-        <thead>
-          <tr>
-            <th scope="col" class="se-charge-slip__th--label">Common Miscellaneous Fee (MF)</th>
-            <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
-            <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of preview.miscellaneousFees; track trackFeeRow($index, row)) {
+        <table class="se-charge-slip__table se-charge-slip__table--fees">
+          <thead>
             <tr>
-              <td>{{ row.label }}</td>
-              <td class="se-charge-slip__td--amount">{{ row.cash }}</td>
-              <td class="se-charge-slip__td--amount">{{ row.lowMonthlyPayment }}</td>
+              <th scope="col" class="se-charge-slip__th--section">Common Miscellaneous Fee (MF)</th>
+              <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
+              <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
             </tr>
-          }
-          <tr class="se-charge-slip__total-row">
-            <td class="se-charge-slip__total-label">TOTAL MF</td>
-            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalMfCash }}</td>
-            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalMfLowMonthly }}</td>
-          </tr>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (row of preview.miscellaneousFees; track trackFeeRow($index, row)) {
+              <tr>
+                <td>{{ row.label }}</td>
+                <td class="se-charge-slip__td--amount">{{ row.cash }}</td>
+                <td class="se-charge-slip__td--amount">{{ row.lowMonthlyPayment }}</td>
+              </tr>
+            }
+            <tr class="se-charge-slip__total-row">
+              <td class="se-charge-slip__total-label">TOTAL MF</td>
+              <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalMfCash }}</td>
+              <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalMfLowMonthly }}</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <table class="se-charge-slip__table se-charge-slip__table--gross">
-        <tbody>
-          <tr class="se-charge-slip__total-row">
-            <td class="se-charge-slip__total-label">Gross Assessment</td>
-            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.grossAssessmentCash }}</td>
-            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.grossAssessmentLowMonthly }}</td>
-          </tr>
-        </tbody>
-      </table>
+        <table class="se-charge-slip__table se-charge-slip__table--gross">
+          <tbody>
+            <tr class="se-charge-slip__total-row">
+              <td class="se-charge-slip__total-label">Gross Assessment</td>
+              <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.grossAssessmentCash }}</td>
+              <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.grossAssessmentLowMonthly }}</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <table class="se-charge-slip__table se-charge-slip__table--payment">
-        <thead>
-          <tr>
-            <th scope="col" class="se-charge-slip__th--label">Payment Scheme</th>
-            <th scope="col" class="se-charge-slip__th--spacer"></th>
-            <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
-            <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of preview.paymentScheme; track trackPaymentRow($index, row)) {
+        <table class="se-charge-slip__table se-charge-slip__table--payment">
+          <thead>
             <tr>
-              <td>{{ row.label }}</td>
-              <td class="se-charge-slip__td--spacer"></td>
-              <td class="se-charge-slip__td--amount">{{ row.cash }}</td>
-              <td class="se-charge-slip__td--amount">{{ row.lowMonthlyPayment }}</td>
+              <th scope="col" class="se-charge-slip__th--section">Payment Scheme</th>
+              <th scope="col" class="se-charge-slip__th--spacer" aria-hidden="true"></th>
+              <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
+              <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
             </tr>
-          }
-          <tr class="se-charge-slip__total-row">
-            <td class="se-charge-slip__total-label">Total Amount</td>
-            <td class="se-charge-slip__td--spacer"></td>
-            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.paymentTotalCash }}</td>
-            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.paymentTotalLowMonthly }}</td>
-          </tr>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (row of preview.paymentScheme; track trackPaymentRow($index, row)) {
+              <tr>
+                <td>{{ row.label }}</td>
+                <td class="se-charge-slip__td--spacer" aria-hidden="true"></td>
+                <td class="se-charge-slip__td--amount">{{ row.cash }}</td>
+                <td class="se-charge-slip__td--amount">{{ row.lowMonthlyPayment }}</td>
+              </tr>
+            }
+            <tr class="se-charge-slip__total-row">
+              <td class="se-charge-slip__total-label">Total Amount</td>
+              <td class="se-charge-slip__td--spacer" aria-hidden="true"></td>
+              <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.paymentTotalCash }}</td>
+              <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.paymentTotalLowMonthly }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <div class="se-charge-slip__footer-grid">
         <div class="se-charge-slip__signature">
@@ -164,7 +166,6 @@
           </p>
         </div>
         <aside class="se-charge-slip__disclaimer" aria-label="Disclaimer">
-          <h4 class="se-charge-slip__disclaimer-title">Disclaimer</h4>
           <p class="se-charge-slip__disclaimer-text">{{ disclaimerText }}</p>
         </aside>
       </div>

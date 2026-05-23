@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Downpayment, CreateDownpaymentRequest, UpdateDownpaymentRequest } from '../../../../../core/models/downpayment.model';
 import { PaginatedResponse } from '../../../../../core/models/api-response.model';
-import { HttpBaseService, PaginationParams } from '../../../../../shared/services/http-base.service';
+import { HttpBaseService } from '../../../../../shared/services/http-base.service';
 import { API_URL } from '../../../../../shared/constants/api.url.constant';
 
 function normalizeOptString(v: unknown): string | undefined {
@@ -14,7 +14,7 @@ function normalizeOptString(v: unknown): string | undefined {
   return s === '' ? undefined : s;
 }
 
-export interface DownpaymentPaginationParams extends PaginationParams {
+export interface DownpaymentPaginationParams {
   PageIndex?: number;
   PageSize?: number;
   SortDirection?: string;

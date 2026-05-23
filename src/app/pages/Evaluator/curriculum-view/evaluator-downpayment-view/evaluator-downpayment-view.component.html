@@ -24,7 +24,9 @@
         </button>
       </header>
 
-      @if (historyRows.length === 0) {
+      @if (isLoadingHistory) {
+        <p class="curriculum-view__downpayment-view-empty">Loading history...</p>
+      } @else if (historyRows.length === 0) {
         <p class="curriculum-view__downpayment-view-empty">No history records for this program.</p>
       } @else {
         <div class="curriculum-view__downpayment-view-table-wrap">

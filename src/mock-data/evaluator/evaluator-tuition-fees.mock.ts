@@ -19,7 +19,6 @@ export const EVALUATOR_TUITION_SEMESTER_OPTIONS = ['1st', '2nd', 'Summer'] as co
 
 export const EVALUATOR_TUITION_COMPONENT_OPTIONS = ['Lecture', 'Laboratory', 'Lec/Lab'] as const;
 
-/** Default field values for Add Tuition Fee UI (mock only). */
 export const EVALUATOR_TUITION_FEE_ADD_FORM_DEFAULTS = {
   syId: 'SY2526',
   batch: '2025',
@@ -119,3 +118,4 @@ export const EVALUATOR_TUITION_FEES_MOCK: EvaluatorTuitionFeeRow[] = [
     lowMonthlyPayment: 2066
   }
 ];
+

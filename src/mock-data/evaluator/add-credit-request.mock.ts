@@ -1,8 +1,7 @@
-/** Min / max for LEC & LAB numeric steppers on course credit mapping rows. */
+
 export const EVALUATOR_CREDIT_REQUEST_MIN_UNIT = 0;
 export const EVALUATOR_CREDIT_REQUEST_MAX_UNIT = 6;
 
-/** Grade stepper increment (no min/max — free up/down). */
 export const EVALUATOR_CREDIT_REQUEST_GRADE_STEP = 0.01;
 
 export interface EquivalentStiCourseOption {
@@ -12,7 +11,6 @@ export interface EquivalentStiCourseOption {
   readonly totalUnits: number;
 }
 
-/** Dropdown options in exact Figma scroll order (all screenshot variants combined). */
 const EQUIVALENT_STI_COURSE_TITLES: readonly string[] = [
   'Introduction to Computing',
   'Computer Programming 1',
@@ -223,3 +221,4 @@ export function findEquivalentStiCourse(
   }
   return courses.find((c) => c.id === id) ?? null;
 }
+

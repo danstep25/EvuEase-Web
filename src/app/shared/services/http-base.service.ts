@@ -23,19 +23,11 @@ export class HttpBaseService {
   protected readonly baseUrl = environment.apiUrl;
 
   protected getHeaders(): HttpHeaders {
-    const headers: { [key: string]: string } = {
+    return new HttpHeaders({
       'Content-Type': 'application/json'
-    };
-
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    return new HttpHeaders(headers);
+    });
   }
 
-  
   protected getAuthHeaders(): HttpHeaders {
     const headers: { [key: string]: string } = {};
     const token = localStorage.getItem('auth_token');

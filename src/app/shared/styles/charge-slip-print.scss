@@ -1,0 +1,106 @@
+
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 0.45in 0.5in;
+  }
+
+  html.se-print-charge-slip {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body.se-print-charge-slip {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+
+    app-root {
+      display: block !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
+
+    .sidebar,
+    .evaluator-help-fab,
+    .subject-evaluation > .evaluator-page__header,
+    .subject-evaluation > .subject-evaluation__card--term,
+    .subject-evaluation__stepper,
+    .subject-evaluation__student-summary,
+    .subject-evaluation__actions,
+    .subject-evaluation__finished-empty {
+      display: none !important;
+    }
+
+    .evaluator-container,
+    .main-content,
+    .subject-evaluation.evaluator-page,
+    .subject-evaluation__card--workflow,
+    .subject-evaluation__panel--charge-slip,
+    app-subject-evaluation-charge-slip-preview,
+    .se-charge-slip {
+      display: block !important;
+      height: auto !important;
+      max-height: none !important;
+      min-height: 0 !important;
+      overflow: visible !important;
+      position: static !important;
+      width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+      background: #fff !important;
+    }
+
+    * {
+      visibility: hidden;
+    }
+
+    #se-charge-slip-print,
+    #se-charge-slip-print * {
+      visibility: visible;
+    }
+
+    #se-charge-slip-print {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      overflow: visible !important;
+    }
+
+    #se-charge-slip-print .se-charge-slip__document {
+      max-width: none !important;
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 0.65rem 0.75rem 0.55rem !important;
+      border: 1px solid #111827 !important;
+      box-shadow: none !important;
+      overflow: visible !important;
+      page-break-inside: auto;
+      break-inside: auto;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    #se-charge-slip-print .se-charge-slip__tables,
+    #se-charge-slip-print .se-charge-slip__table {
+      overflow: visible !important;
+      page-break-inside: auto;
+      break-inside: auto;
+    }
+
+    #se-charge-slip-print .se-charge-slip__table thead th {
+      background: #e5e7eb !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    #se-charge-slip-print .se-charge-slip__footer-grid {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+  }
+}
+

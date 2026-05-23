@@ -1,10 +1,10 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { type EvaluatorDownpaymentRow } from '../../../../../mock-data/evaluator/evaluator-downpayments.mock';
-import {
-  getEvaluatorDownpaymentHistoryByProgram,
-  type EvaluatorDownpaymentHistoryRow
-} from '../../../../../mock-data/evaluator/evaluator-downpayment-history.mock';
+import { catchError, of } from 'rxjs';
+import { NotificationService } from '../../../../shared/services/notification.service';
+import type { EvaluatorDownpaymentHistoryRow, EvaluatorDownpaymentRow } from '../evaluator-curriculum-view.models';
+import { mapDownpaymentHistoryRow } from '../evaluator-curriculum-view.mapper';
+import { DownpaymentService } from '../../../Registrar/curriculum-management/fees-and-charges/downpayment/downpayment.service';
 
 @Component({
   selector: 'app-evaluator-downpayment-view',
@@ -14,18 +14,23 @@ import {
   styleUrl: './evaluator-downpayment-view.component.scss'
 })
 export class EvaluatorDownpaymentViewComponent implements OnChanges {
+  private readonly downpaymentService = inject(DownpaymentService);
+  private readonly notificationService = inject(NotificationService);
+
   @Input() isOpen = false;
   @Input() downpayment: EvaluatorDownpaymentRow | null = null;
   @Output() readonly close = new EventEmitter<void>();
 
   historyRows: EvaluatorDownpaymentHistoryRow[] = [];
+  isLoadingHistory = false;
 
   ngOnChanges(changes: SimpleChanges): void {
     if ((changes['isOpen'] || changes['downpayment']) && this.isOpen && this.downpayment) {
-      this.historyRows = getEvaluatorDownpaymentHistoryByProgram(this.downpayment.programCode);
+      this.loadHistory(this.downpayment.programCode);
     }
     if (changes['isOpen'] && !this.isOpen) {
       this.historyRows = [];
+      this.isLoadingHistory = false;
     }
   }
 
@@ -48,14 +53,37 @@ export class EvaluatorDownpaymentViewComponent implements OnChanges {
     return `${value}%`;
   }
 
-  formatHistoryDate(iso: string): string {
+  formatHistoryDate(value: string): string {
     try {
-      const d = new Date(iso);
-      const datePart = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-      const timePart = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-      return `${datePart} at ${timePart}`;
+      const date = new Date(value);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
     } catch {
-      return iso;
+      return value;
     }
+  }
+
+  private loadHistory(programCode: string): void {
+    this.isLoadingHistory = true;
+    this.downpaymentService
+      .getHistoryByProgram(programCode)
+      .pipe(
+        catchError((error) => {
+          this.notificationService.error(
+            'History Failed',
+            error.userMessage || error.message || 'Could not load downpayment history.'
+          );
+          return of([]);
+        })
+      )
+      .subscribe((rows) => {
+        this.historyRows = rows.map(mapDownpaymentHistoryRow);
+        this.isLoadingHistory = false;
+      });
   }
 }

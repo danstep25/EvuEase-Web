@@ -2,13 +2,13 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs/operators';
 import { StudentPermanentRecordsService } from './student-permanent-records.service';
-import { SearchableSelectComponent } from '../../../shared/components/searchable-select/searchable-select.component';
+import { EvaluatorAcademicRecordsViewComponent } from '../evaluator-academic-records-view/evaluator-academic-records-view.component';
 import { SearchableSelectOption } from '../../../shared/components/searchable-select/searchable-select-option.model';
 
 @Component({
   selector: 'app-student-permanent-records',
   standalone: true,
-  imports: [CommonModule, SearchableSelectComponent],
+  imports: [CommonModule, EvaluatorAcademicRecordsViewComponent],
   templateUrl: './student-permanent-records.component.html',
   styleUrl: './student-permanent-records.component.scss'
 })
@@ -37,12 +37,5 @@ export class StudentPermanentRecordsComponent implements OnInit {
           this.loadError = 'Unable to load the student list. Please try again later.';
         }
       });
-  }
-
-  get selectedSummary(): SearchableSelectOption | null {
-    if (!this.selectedStudentId) {
-      return null;
-    }
-    return this.studentOptions.find((o) => o.id === this.selectedStudentId) ?? null;
   }
 }

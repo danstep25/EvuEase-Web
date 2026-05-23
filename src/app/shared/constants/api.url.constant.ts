@@ -68,6 +68,8 @@ export const API_URL = {
     getAll: '/Student',
     getById: (id: string) => `/Student/${id}`,
     enrollments: (id: string) => `/Student/${id}/enrollments`,
+    curriculumHistory: (id: string) => `/Student/${id}/curriculum-history`,
+    migrateCurriculum: (id: string) => `/Student/${id}/migrate-curriculum`,
     create: '/Student/new',
     update: (id: string) => `/Student/${id}`,
     delete: (id: string) => `/Student/${id}`
@@ -124,6 +126,9 @@ export const API_URL = {
     base: '/GradeRoster'
   },
   
+  analytics: {
+    dashboard: '/Analytics/dashboard'
+  },
   archive: {
     programs: '/Archive/programs',
     students: '/Archive/students',

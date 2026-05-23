@@ -109,7 +109,6 @@ function mergeSubjectEvaluationStudents(
   return [...byId.values()].sort((a, b) => a.studentNumber.localeCompare(b.studentNumber));
 }
 
-/** Figma Step 1 selector rows — merged last so these IDs always match the design. */
 const SUBJECT_EVALUATION_SELECTOR_DEMO_STUDENTS: readonly SubjectEvaluationStudentMock[] = [
   buildSubjectEvaluationStudent({
     studentId: '010000145957',
@@ -153,7 +152,6 @@ const SUBJECT_EVALUATION_SELECTOR_DEMO_STUDENTS: readonly SubjectEvaluationStude
   })
 ];
 
-/** UI-only overrides for other Subject Evaluation screenshots. */
 const SUBJECT_EVALUATION_STUDENT_OVERRIDES: Partial<
   Record<string, Pick<SubjectEvaluationStudentMock, 'lastName' | 'firstName' | 'programCode' | 'yearLevelShort' | 'yearLevelKey' | 'curriculumCode'>>
 > = {
@@ -189,7 +187,6 @@ const SUBJECT_EVALUATION_STUDENTS_FROM_RECORDS: readonly SubjectEvaluationStuden
     return override ? { ...base, ...override } : base;
   });
 
-/** Additional BSIT/BSCS students for Subject Evaluation selector only. */
 const SUBJECT_EVALUATION_ADDITIONAL_STUDENTS: readonly SubjectEvaluationStudentMock[] = [
   buildSubjectEvaluationStudent({
     studentId: '010000145970',
@@ -305,7 +302,6 @@ export const SUBJECT_EVALUATION_STUDENTS_MOCK: readonly SubjectEvaluationStudent
     SUBJECT_EVALUATION_SELECTOR_DEMO_STUDENTS
   );
 
-/** Students listed in the Step 1 searchable selector dropdown. */
 export function getSubjectEvaluationSelectorStudents(): readonly SubjectEvaluationStudentMock[] {
   return SUBJECT_EVALUATION_SELECTOR_DEMO_STUDENTS;
 }
@@ -350,3 +346,4 @@ export function filterSubjectEvaluationStudents(
     return programMatch && yearMatch;
   });
 }
+

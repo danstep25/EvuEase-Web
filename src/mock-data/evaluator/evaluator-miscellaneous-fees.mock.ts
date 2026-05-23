@@ -1,4 +1,4 @@
-/** Default field values for Add Miscellaneous Fee UI (mock only). */
+
 export const EVALUATOR_MISCELLANEOUS_FEE_ADD_FORM_DEFAULTS = {
   syId: '',
   batch: '2025',
@@ -74,3 +74,4 @@ export const EVALUATOR_MISCELLANEOUS_FEES_MOCK: EvaluatorMiscellaneousFeeRow[] =
     lowMonthlyPayment: 400
   }
 ];
+

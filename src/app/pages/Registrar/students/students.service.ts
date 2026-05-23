@@ -2,13 +2,18 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CreateStudentRequest, Student, UpdateStudentRequest } from '../../../core/models/student.model';
+import {
+  MigrateStudentCurriculumRequest,
+  StudentCurriculumHistoryEntry
+} from '../../../core/models/student-curriculum.model';
 import { StudentEnrollmentOverview } from '../../../core/models/student-enrollments.model';
 import { mapStudentEnrollmentOverview } from './student-enrollments.mapper';
+import { mapStudentCurriculumHistoryList } from './student-curriculum.mapper';
 import { PaginatedResponse } from '../../../core/models/api-response.model';
-import { HttpBaseService, PaginationParams } from '../../../shared/services/http-base.service';
+import { HttpBaseService } from '../../../shared/services/http-base.service';
 import { API_URL } from '../../../shared/constants/api.url.constant';
 
-export interface StudentsPaginationParams extends PaginationParams {
+export interface StudentsPaginationParams {
   PageIndex?: number;
   PageSize?: number;
   SortDirection?: string;
@@ -50,9 +55,16 @@ export class StudentsService extends HttpBaseService {
     return this.get<Student>(API_URL.student.getById(id));
   }
 
-  
   getStudentEnrollmentOverview(id: string): Observable<StudentEnrollmentOverview> {
-    return this.get<unknown>(API_URL.student.enrollments(id)).pipe(map(raw => mapStudentEnrollmentOverview(raw)));
+    return this.get<unknown>(API_URL.student.enrollments(id)).pipe(map((raw) => mapStudentEnrollmentOverview(raw)));
+  }
+
+  getStudentCurriculumHistory(id: string): Observable<StudentCurriculumHistoryEntry[]> {
+    return this.get<unknown[]>(API_URL.student.curriculumHistory(id)).pipe(map(mapStudentCurriculumHistoryList));
+  }
+
+  migrateStudentCurriculum(id: string, request: MigrateStudentCurriculumRequest): Observable<Student> {
+    return this.post<Student>(API_URL.student.migrateCurriculum(id), request);
   }
 
   updateStudent(id: string, request: UpdateStudentRequest): Observable<Student> {
@@ -60,6 +72,3 @@ export class StudentsService extends HttpBaseService {
     return this.put<Student>(API_URL.student.update(id), body);
   }
 }
-
-
-

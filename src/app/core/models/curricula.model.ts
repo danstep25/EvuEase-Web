@@ -24,6 +24,7 @@ export interface CreateCurriculaRequest {
 
 export interface UpdateCurriculaRequest {
   id: number;
+  curriculumCode: string;
   version: string;
   programId: number;
   programCode: string;

@@ -1,4 +1,4 @@
-/** Students shown in the Step 1 searchable selector (Figma list). */
+
 export const SUBJECT_EVALUATION_SELECTOR_STUDENT_IDS = [
   '010000145957',
   '010000145958',
@@ -98,3 +98,4 @@ export function getDemoStudentConfig(
 export function getDefaultSelectionIdsForStudent(studentId: string | null): readonly string[] {
   return getDemoStudentConfig(studentId)?.defaultSelectionIds ?? [];
 }
+

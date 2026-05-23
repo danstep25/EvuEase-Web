@@ -9,6 +9,7 @@ export interface Student {
   yearLevel: string;
   type: string;
   status: string;
+  curriculumCode?: string | null;
   address?: string | null;
   contactNumber?: string | null;
   email?: string | null;

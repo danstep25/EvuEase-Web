@@ -164,6 +164,7 @@ export class CurriculaFormComponent implements OnInit, OnChanges, OnDestroy {
       }
       const updateCurriculaData: UpdateCurriculaRequest = {
         id: this.curricula.id,
+        curriculumCode: this.curricula.curriculumCode,
         version: formValue.version,
         programId: selectedProgram.programId,
         programCode: selectedProgram.programCode,

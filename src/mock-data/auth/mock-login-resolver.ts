@@ -28,9 +28,6 @@ function unauthorized(): BaseResponse<LoginResponseData> {
   };
 }
 
-/**
- * Resolves login against {@link MOCK_LOGIN_ACCOUNTS} when mock auth is enabled.
- */
 export function resolveMockLogin(credentials: LoginRequest): BaseResponse<LoginResponseData> {
   const email = credentials.email.trim().toLowerCase();
   const account = MOCK_LOGIN_ACCOUNTS.find((a) => a.email.toLowerCase() === email);
@@ -54,3 +51,4 @@ export function resolveMockLogin(credentials: LoginRequest): BaseResponse<LoginR
     error: null
   };
 }
+

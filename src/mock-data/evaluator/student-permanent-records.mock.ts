@@ -1,6 +1,4 @@
-/**
- * Static mock rows for Evaluator — Student Permanent Records (UI only).
- */
+
 export interface EvaluatorStudentPermanentRecordMock {
   readonly studentId: string;
   readonly lastName: string;
@@ -37,3 +35,4 @@ export const MOCK_EVALUATOR_STUDENT_PERMANENT_RECORDS: readonly EvaluatorStudent
   row('010000145971', 'Lim', 'Daniel', 'BSCS', 'Year 4Y1'),
   row('010000145972', 'Tan', 'Grace', 'BSIT', 'Year 3Y1')
 ];
+

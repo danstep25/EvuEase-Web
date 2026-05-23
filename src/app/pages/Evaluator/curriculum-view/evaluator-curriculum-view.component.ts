@@ -1,52 +1,30 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Subject, of } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { DateUtil } from '../../../shared/utils/date.util';
+import { Program } from '../../../core/models/program.model';
+import { Curricula } from '../../../core/models/curricula.model';
+import { CurriculumManagementService } from '../../Registrar/curriculum-management/curriculum-management.service';
+import { CourseService } from '../../Registrar/curriculum-management/course.service';
+import { LookupService } from '../../../shared/services/lookup.service';
+import { ProgramService } from '../../Admin/program-management/program.service';
+import { TuitionFeesService } from '../../Registrar/curriculum-management/fees-and-charges/tuition-fees/tuition-fees.service';
+import { OtherSchoolFeesService } from '../../Registrar/curriculum-management/fees-and-charges/other-school-fees/other-school-fees.service';
+import { MiscellaneousFeesService } from '../../Registrar/curriculum-management/fees-and-charges/miscellaneous-fees/miscellaneous-fees.service';
 import {
-  EVALUATOR_BSIT_MATRIX_COURSES_MOCK,
-  getEvaluatorTableViewCurriculumOptions,
-  EVALUATOR_BSIT_TABLE_VIEW_SUMMARY,
-  formatTableViewCurriculumDropdownLabel,
-  formatTableViewCurriculumVersionDisplay,
-  type EvaluatorTableViewCurriculumOption
-} from '../../../../mock-data/evaluator/evaluator-bsit-table-view.mock';
-import {
-  EVALUATOR_COURSES_DETAIL_MOCK,
-  EVALUATOR_COURSE_PREREQ_FILTER,
-  EVALUATOR_COURSE_PREREQ_FILTER_OPTIONS,
-  EVALUATOR_COURSE_PROGRAM_CODES,
-  EVALUATOR_COURSE_PROGRAM_FILTER_OPTIONS,
-  EVALUATOR_CURRICULA_MOCK,
-  EVALUATOR_CURRICULUM_PROGRAM_CARDS,
-  EVALUATOR_PROGRAM_TABLE_META,
-  getEvaluatorCurriculaForProgram,
-  type EvaluatorCurriculumProgramCard,
-  EVALUATOR_TABLE_VIEW_YEAR_ORDER,
-  evaluatorCourseHasPrerequisite,
-  getEvaluatorTableViewYearHeading,
-  groupEvaluatorCoursesByYearSemester,
-  type EvaluatorCourseDetailRow,
-  type EvaluatorCourseProgramCode,
-  type EvaluatorCourseSemesterLabel,
-  type EvaluatorCurriculumRow
-} from '../../../../mock-data/evaluator/evaluator-curriculum.mock';
-import {
-  EVALUATOR_DOWNPAYMENTS_MOCK,
-  type EvaluatorDownpaymentRow
-} from '../../../../mock-data/evaluator/evaluator-downpayments.mock';
-import {
-  EVALUATOR_MISCELLANEOUS_FEES_MOCK,
-  type EvaluatorMiscellaneousFeeRow
-} from '../../../../mock-data/evaluator/evaluator-miscellaneous-fees.mock';
-import {
-  EVALUATOR_OTHER_SCHOOL_FEES_MOCK,
-  type EvaluatorOtherSchoolFeeRow
-} from '../../../../mock-data/evaluator/evaluator-other-school-fees.mock';
-import {
-  EVALUATOR_TUITION_FEES_MOCK,
-  type EvaluatorFeeSubTab,
-  type EvaluatorTuitionFeeRow
-} from '../../../../mock-data/evaluator/evaluator-tuition-fees.mock';
+  CreateDownpaymentRequest,
+  Downpayment,
+  UpdateDownpaymentRequest
+} from '../../../core/models/downpayment.model';
+import { DownpaymentService } from '../../Registrar/curriculum-management/fees-and-charges/downpayment/downpayment.service';
+import { DownpaymentFormComponent } from '../../Registrar/curriculum-management/fees-and-charges/downpayment/downpayment-form/downpayment-form.component';
+import { NotificationService } from '../../../shared/services/notification.service';
+import { SORT_DEFAULTS } from '../../../shared/constants/sort.constant';
+import { CurriculumStatus } from '../../Registrar/curriculum-management/enums/curriculum-status.enum';
+import { UpdateCurriculaRequest } from '../../../core/models/curricula.model';
+import { EvaluatorDownpaymentViewComponent } from './evaluator-downpayment-view/evaluator-downpayment-view.component';
 import { EvaluatorMiscellaneousFeeAddComponent } from './evaluator-miscellaneous-fee-add/evaluator-miscellaneous-fee-add.component';
 import { EvaluatorMiscellaneousFeeDeleteComponent } from './evaluator-miscellaneous-fee-delete/evaluator-miscellaneous-fee-delete.component';
 import { EvaluatorMiscellaneousFeeEditComponent } from './evaluator-miscellaneous-fee-edit/evaluator-miscellaneous-fee-edit.component';
@@ -56,10 +34,51 @@ import { EvaluatorOtherSchoolFeeEditComponent } from './evaluator-other-school-f
 import { EvaluatorTuitionFeeAddComponent } from './evaluator-tuition-fee-add/evaluator-tuition-fee-add.component';
 import { EvaluatorTuitionFeeEditComponent } from './evaluator-tuition-fee-edit/evaluator-tuition-fee-edit.component';
 import { EvaluatorTuitionFeeDeleteComponent } from './evaluator-tuition-fee-delete/evaluator-tuition-fee-delete.component';
-import { EvaluatorDownpaymentViewComponent } from './evaluator-downpayment-view/evaluator-downpayment-view.component';
+import {
+  EVALUATOR_COURSE_PREREQ_FILTER_OPTIONS,
+  EVALUATOR_TABLE_VIEW_YEAR_ORDER,
+  buildProgramCards,
+  curriculaForProgram,
+  mapCoursePrerequisiteFilter,
+  formatTableViewCurriculumDropdownLabel,
+  formatTableViewCurriculumVersionDisplay,
+  getEvaluatorTableViewYearHeading,
+  groupEvaluatorCoursesByYearSemester
+} from './evaluator-curriculum-view.utils';
+import {
+  mapCourseToEvaluatorRow,
+  mapCurriculaToRow,
+  mapCurriculaToTableViewOption,
+  mapDownpaymentRow,
+  mapMiscellaneousFeeRow,
+  mapOtherSchoolFeeRow,
+  mapProgramTableMeta,
+  mapTuitionFeeRow
+} from './evaluator-curriculum-view.mapper';
+import type {
+  EvaluatorCourseDetailRow,
+  EvaluatorCourseFilterOption,
+  EvaluatorCourseSemesterLabel,
+  EvaluatorCurriculumProgramCard,
+  EvaluatorCurriculumRow,
+  EvaluatorDownpaymentRow,
+  EvaluatorFeeSubTab,
+  EvaluatorMiscellaneousFeeRow,
+  EvaluatorOtherSchoolFeeRow,
+  EvaluatorProgramTableMeta,
+  EvaluatorTableViewCurriculumOption,
+  EvaluatorTuitionFeeRow
+} from './evaluator-curriculum-view.models';
 
 type EvaluatorCurriculumTab = 'curricula' | 'courses' | 'fees';
 type EvaluatorCourseViewMode = 'list' | 'table';
+
+const BULK_LIST_PARAMS = {
+  PageIndex: 1,
+  PageSize: 500,
+  SortDirection: SORT_DEFAULTS.DIRECTION,
+  SortKey: ''
+} as const;
 
 @Component({
   selector: 'app-evaluator-curriculum-view',
@@ -76,7 +95,8 @@ type EvaluatorCourseViewMode = 'list' | 'table';
     EvaluatorTuitionFeeAddComponent,
     EvaluatorTuitionFeeEditComponent,
     EvaluatorTuitionFeeDeleteComponent,
-    EvaluatorDownpaymentViewComponent
+    EvaluatorDownpaymentViewComponent,
+    DownpaymentFormComponent
   ],
   templateUrl: './evaluator-curriculum-view.component.html',
   styleUrls: [
@@ -85,25 +105,22 @@ type EvaluatorCourseViewMode = 'list' | 'table';
     './evaluator-curriculum-fees.scss'
   ]
 })
-export class EvaluatorCurriculumViewComponent implements OnInit {
+export class EvaluatorCurriculumViewComponent implements OnInit, OnDestroy {
+  private readonly curriculaService = inject(CurriculumManagementService);
+  private readonly courseService = inject(CourseService);
+  private readonly lookupService = inject(LookupService);
+  private readonly programService = inject(ProgramService);
+  private readonly tuitionFeesService = inject(TuitionFeesService);
+  private readonly otherSchoolFeesService = inject(OtherSchoolFeesService);
+  private readonly miscellaneousFeesService = inject(MiscellaneousFeesService);
+  private readonly downpaymentService = inject(DownpaymentService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly destroy$ = new Subject<void>();
+
   readonly pageTitle = 'Curriculum View';
-  readonly pageSubtitle = 'View curricula, courses, and fee structures (Read-only)';
+  readonly pageSubtitle = 'View curricula, courses, and fee structures';
 
   readonly searchControl = new FormControl('', { nonNullable: true });
-  readonly allCurricula: EvaluatorCurriculumRow[] = EVALUATOR_CURRICULA_MOCK;
-  readonly curriculumProgramCards: readonly EvaluatorCurriculumProgramCard[] =
-    EVALUATOR_CURRICULUM_PROGRAM_CARDS;
-
-  selectedCurriculumProgram: string | null = null;
-  /** Mutable copy for mock Set Active / Set Inactive toggles on the detail table. */
-  programCurriculumVersions: EvaluatorCurriculumRow[] = [];
-  readonly allTuitionFees: EvaluatorTuitionFeeRow[] = EVALUATOR_TUITION_FEES_MOCK;
-  readonly allOtherSchoolFees: EvaluatorOtherSchoolFeeRow[] = EVALUATOR_OTHER_SCHOOL_FEES_MOCK;
-  readonly allMiscellaneousFees: EvaluatorMiscellaneousFeeRow[] = EVALUATOR_MISCELLANEOUS_FEES_MOCK;
-  readonly allDownpayments: EvaluatorDownpaymentRow[] = EVALUATOR_DOWNPAYMENTS_MOCK;
-
-  readonly allCourses: EvaluatorCourseDetailRow[] = EVALUATOR_COURSES_DETAIL_MOCK;
-
   readonly tuitionFeeSearchControl = new FormControl('', { nonNullable: true });
   readonly schoolFeeSearchControl = new FormControl('', { nonNullable: true });
   readonly miscellaneousFeeSearchControl = new FormControl('', { nonNullable: true });
@@ -113,21 +130,13 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
   readonly courseFilterPrereq = new FormControl('', { nonNullable: true });
   readonly courseFilterYear = new FormControl('', { nonNullable: true });
   readonly courseFilterSemester = new FormControl('', { nonNullable: true });
-
   readonly tableViewProgram = new FormControl('', { nonNullable: true });
   readonly tableViewCurriculum = new FormControl('', { nonNullable: true });
 
-  readonly programFilterOptions = EVALUATOR_COURSE_PROGRAM_FILTER_OPTIONS;
   readonly prereqFilterOptions = EVALUATOR_COURSE_PREREQ_FILTER_OPTIONS;
-  readonly tableViewProgramCodes = EVALUATOR_COURSE_PROGRAM_CODES;
   readonly tableViewSemesters: EvaluatorCourseSemesterLabel[] = ['1st Semester', '2nd Semester'];
 
-  readonly tableViewProgramSelectOptions = EVALUATOR_COURSE_PROGRAM_CODES.map((code) => ({
-    value: code,
-    label: `${code} - ${EVALUATOR_PROGRAM_TABLE_META[code].programTitle}`
-  }));
-
-  readonly yearFilterOptions: { value: string; label: string }[] = [
+  readonly yearFilterOptions: EvaluatorCourseFilterOption[] = [
     { value: '', label: 'All Years' },
     { value: 'Year 1', label: 'Year 1' },
     { value: 'Year 2', label: 'Year 2' },
@@ -135,11 +144,35 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
     { value: 'Year 4', label: 'Year 4' }
   ];
 
-  readonly semesterFilterOptions: { value: string; label: string }[] = [
+  readonly semesterFilterOptions: EvaluatorCourseFilterOption[] = [
     { value: '', label: 'All Semesters' },
     { value: '1st', label: '1st Semester' },
     { value: '2nd', label: '2nd Semester' }
   ];
+
+  allCurricula: EvaluatorCurriculumRow[] = [];
+  private allCurriculaRaw: Curricula[] = [];
+  curriculumProgramCards: EvaluatorCurriculumProgramCard[] = [];
+  programs: Program[] = [];
+  programTableMeta: Record<string, EvaluatorProgramTableMeta> = {};
+  programFilterOptions: EvaluatorCourseFilterOption[] = [{ value: '', label: 'All Programs' }];
+  tableViewProgramSelectOptions: { value: string; label: string }[] = [];
+  tableViewCurriculumOptionsList: EvaluatorTableViewCurriculumOption[] = [];
+
+  selectedCurriculumProgram: string | null = null;
+  programCurriculumVersions: EvaluatorCurriculumRow[] = [];
+
+  allTuitionFees: EvaluatorTuitionFeeRow[] = [];
+  allOtherSchoolFees: EvaluatorOtherSchoolFeeRow[] = [];
+  allMiscellaneousFees: EvaluatorMiscellaneousFeeRow[] = [];
+  allDownpayments: EvaluatorDownpaymentRow[] = [];
+  allCourses: EvaluatorCourseDetailRow[] = [];
+  tableViewCourses: EvaluatorCourseDetailRow[] = [];
+
+  isLoadingCurricula = false;
+  isLoadingCourses = false;
+  isLoadingTableViewCourses = false;
+  isLoadingFees = false;
 
   activeTab: EvaluatorCurriculumTab = 'curricula';
   activeFeeTab: EvaluatorFeeSubTab = 'tuition-fees';
@@ -161,11 +194,71 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
   deletingMiscellaneousFee: EvaluatorMiscellaneousFeeRow | null = null;
   showViewDownpayment = false;
   viewingDownpayment: EvaluatorDownpaymentRow | null = null;
+  showDownpaymentForm = false;
+  editingDownpayment: Downpayment | null = null;
+  takenDownpaymentProgramCodes: string[] = [];
+
+  @ViewChild(DownpaymentFormComponent) downpaymentFormModal?: DownpaymentFormComponent;
+  togglingCurriculumId: string | null = null;
 
   ngOnInit(): void {
-    this.tableViewProgram.valueChanges.subscribe(() => {
+    this.loadPrograms();
+    this.loadCurricula();
+
+    this.tableViewProgram.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.tableViewCurriculum.setValue('');
+      this.loadTableViewCurriculumOptions();
     });
+
+    this.tableViewCurriculum.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.loadTableViewCourses();
+    });
+
+    this.courseSearchControl.valueChanges
+      .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => this.loadCourses());
+
+    this.courseFilterProgram.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.loadCourses());
+    this.courseFilterYear.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.loadCourses());
+    this.courseFilterSemester.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.loadCourses());
+    this.courseFilterPrereq.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.loadCourses());
+
+    this.tuitionFeeSearchControl.valueChanges
+      .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.activeTab === 'fees' && this.activeFeeTab === 'tuition-fees') {
+          this.loadFees();
+        }
+      });
+
+    this.schoolFeeSearchControl.valueChanges
+      .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.activeTab === 'fees' && this.activeFeeTab === 'other-school-fees') {
+          this.loadFees();
+        }
+      });
+
+    this.miscellaneousFeeSearchControl.valueChanges
+      .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.activeTab === 'fees' && this.activeFeeTab === 'miscellaneous-fees') {
+          this.loadFees();
+        }
+      });
+
+    this.downpaymentSearchControl.valueChanges
+      .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.activeTab === 'fees' && this.activeFeeTab === 'downpayment') {
+          this.loadFees();
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   selectTab(tab: EvaluatorCurriculumTab): void {
@@ -175,12 +268,32 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
     this.activeTab = tab;
     if (tab !== 'curricula') {
       this.selectedCurriculumProgram = null;
+      this.programCurriculumVersions = [];
     }
+    if (tab === 'courses') {
+      if (this.programs.length === 0) {
+        this.loadPrograms();
+      }
+      this.loadCourses();
+      if (this.courseViewMode === 'table') {
+        this.loadTableViewCurriculumOptions();
+      }
+    } else if (tab === 'fees') {
+      this.loadFees();
+    }
+  }
+
+  selectFeeTab(tab: EvaluatorFeeSubTab): void {
+    if (this.activeFeeTab === tab) {
+      return;
+    }
+    this.activeFeeTab = tab;
+    this.loadFees();
   }
 
   openProgramCurricula(programCode: string): void {
     this.selectedCurriculumProgram = programCode;
-    this.programCurriculumVersions = getEvaluatorCurriculaForProgram(programCode).map((row) => ({ ...row }));
+    this.programCurriculumVersions = curriculaForProgram(this.allCurricula, programCode);
   }
 
   backToProgramCards(): void {
@@ -189,121 +302,48 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
   }
 
   toggleCurriculumVersionStatus(row: EvaluatorCurriculumRow): void {
-    const index = this.programCurriculumVersions.findIndex((item) => item.id === row.id);
-    if (index < 0) {
+    const raw = this.allCurriculaRaw.find((item) => String(item.id) === row.id);
+    if (!raw || this.togglingCurriculumId === row.id) {
       return;
     }
-    const nextStatus: EvaluatorCurriculumRow['status'] =
-      this.programCurriculumVersions[index].status === 'active' ? 'inactive' : 'active';
-    this.programCurriculumVersions = this.programCurriculumVersions.map((item, i) =>
-      i === index ? { ...item, status: nextStatus } : item
-    );
-  }
 
-  get selectedProgramVersionCount(): number {
-    return this.programCurriculumVersions.length;
-  }
+    const nextStatus =
+      raw.curriculumStatus === CurriculumStatus.Active
+        ? CurriculumStatus.Inactive
+        : CurriculumStatus.Active;
 
-  get selectedProgramActiveCount(): number {
-    return this.programCurriculumVersions.filter((row) => row.status === 'active').length;
-  }
+    const curriculumCode =
+      raw.curriculumCode?.trim() || row.curriculumId?.trim() || `${raw.programCode}-${raw.version}`;
 
-  formatCurriculumEffectiveDate(value: string): string {
-    return value;
-  }
+    const updateData: UpdateCurriculaRequest = {
+      id: raw.id,
+      curriculumCode,
+      version: raw.version,
+      programId: raw.programId,
+      programCode: raw.programCode,
+      syId: raw.syId,
+      effectiveDate: raw.effectiveDate,
+      curriculumStatus: nextStatus
+    };
 
-  selectFeeTab(tab: EvaluatorFeeSubTab): void {
-    if (this.activeFeeTab === tab) {
-      return;
-    }
-    this.activeFeeTab = tab;
-  }
-
-  get filteredTuitionFees(): EvaluatorTuitionFeeRow[] {
-    const q = (this.tuitionFeeSearchControl.value ?? '').trim().toLowerCase();
-    if (!q) {
-      return this.allTuitionFees;
-    }
-    return this.allTuitionFees.filter((row) => {
-      const hay = [
-        row.syId,
-        row.batch,
-        row.semester,
-        row.courseCode,
-        row.courseTitle,
-        row.component,
-        String(row.units),
-        String(row.cash),
-        String(row.lowMonthlyPayment)
-      ]
-        .join(' ')
-        .toLowerCase();
-      return hay.includes(q);
+    this.togglingCurriculumId = row.id;
+    this.curriculaService.updateCurricula(String(raw.id), updateData).subscribe({
+      next: () => {
+        this.togglingCurriculumId = null;
+        this.notificationService.success(
+          'Curriculum Updated',
+          `Curriculum "${raw.curriculumCode}" is now ${nextStatus}.`
+        );
+        this.loadCurricula();
+      },
+      error: (error) => {
+        this.togglingCurriculumId = null;
+        this.notificationService.error(
+          'Update Failed',
+          error.userMessage || error.message || 'Failed to update curriculum status.'
+        );
+      }
     });
-  }
-
-  get filteredOtherSchoolFees(): EvaluatorOtherSchoolFeeRow[] {
-    const q = (this.schoolFeeSearchControl.value ?? '').trim().toLowerCase();
-    if (!q) {
-      return this.allOtherSchoolFees;
-    }
-    return this.allOtherSchoolFees.filter((row) => {
-      const hay = [
-        row.syId,
-        row.batch,
-        row.semester,
-        row.schoolFee,
-        String(row.cash),
-        String(row.lowMonthlyPayment)
-      ]
-        .join(' ')
-        .toLowerCase();
-      return hay.includes(q);
-    });
-  }
-
-  get filteredMiscellaneousFees(): EvaluatorMiscellaneousFeeRow[] {
-    const q = (this.miscellaneousFeeSearchControl.value ?? '').trim().toLowerCase();
-    if (!q) {
-      return this.allMiscellaneousFees;
-    }
-    return this.allMiscellaneousFees.filter((row) => {
-      const hay = [
-        row.syId,
-        row.batch,
-        row.semester,
-        row.miscellaneousFee,
-        String(row.cash),
-        String(row.lowMonthlyPayment)
-      ]
-        .join(' ')
-        .toLowerCase();
-      return hay.includes(q);
-    });
-  }
-
-  get filteredDownpayments(): EvaluatorDownpaymentRow[] {
-    const q = (this.downpaymentSearchControl.value ?? '').trim().toLowerCase();
-    if (!q) {
-      return this.allDownpayments;
-    }
-    return this.allDownpayments.filter((row) => {
-      const hay = [
-        row.programCode,
-        row.programTitle,
-        row.batch,
-        String(row.downpaymentPercent),
-        row.effectiveSchoolYear,
-        this.formatDownpaymentLastUpdated(row.lastUpdated)
-      ]
-        .join(' ')
-        .toLowerCase();
-      return hay.includes(q);
-    });
-  }
-
-  formatFeeCurrency(amount: number): string {
-    return `₱${amount.toFixed(2)}`;
   }
 
   openAddTuitionFee(): void {
@@ -312,6 +352,10 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
 
   closeAddTuitionFee(): void {
     this.showAddTuitionFee = false;
+  }
+
+  onTuitionFeeSaved(): void {
+    this.loadFees();
   }
 
   openEditTuitionFee(row: EvaluatorTuitionFeeRow): void {
@@ -335,7 +379,24 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
   }
 
   confirmDeleteTuitionFee(): void {
-    this.closeDeleteTuitionFee();
+    const row = this.deletingTuitionFee;
+    if (!row) {
+      this.closeDeleteTuitionFee();
+      return;
+    }
+    this.tuitionFeesService.deleteTuitionFee(row.id).subscribe({
+      next: () => {
+        this.notificationService.success('Tuition Fee Deleted', `Tuition fee for "${row.courseCode}" was deleted.`);
+        this.closeDeleteTuitionFee();
+        this.loadFees();
+      },
+      error: (error) => {
+        this.notificationService.error(
+          'Delete Failed',
+          error.userMessage || error.message || 'Failed to delete tuition fee.'
+        );
+      }
+    });
   }
 
   openAddOtherSchoolFee(): void {
@@ -344,6 +405,10 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
 
   closeAddOtherSchoolFee(): void {
     this.showAddOtherSchoolFee = false;
+  }
+
+  onOtherSchoolFeeSaved(): void {
+    this.loadFees();
   }
 
   openEditOtherSchoolFee(row: EvaluatorOtherSchoolFeeRow): void {
@@ -367,7 +432,24 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
   }
 
   confirmDeleteOtherSchoolFee(): void {
-    this.closeDeleteOtherSchoolFee();
+    const row = this.deletingOtherSchoolFee;
+    if (!row) {
+      this.closeDeleteOtherSchoolFee();
+      return;
+    }
+    this.otherSchoolFeesService.deleteOtherSchoolFee(row.id).subscribe({
+      next: () => {
+        this.notificationService.success('School Fee Deleted', `School fee "${row.schoolFee}" was deleted.`);
+        this.closeDeleteOtherSchoolFee();
+        this.loadFees();
+      },
+      error: (error) => {
+        this.notificationService.error(
+          'Delete Failed',
+          error.userMessage || error.message || 'Failed to delete school fee.'
+        );
+      }
+    });
   }
 
   openAddMiscellaneousFee(): void {
@@ -376,6 +458,10 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
 
   closeAddMiscellaneousFee(): void {
     this.showAddMiscellaneousFee = false;
+  }
+
+  onMiscellaneousFeeSaved(): void {
+    this.loadFees();
   }
 
   openEditMiscellaneousFee(row: EvaluatorMiscellaneousFeeRow): void {
@@ -399,7 +485,118 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
   }
 
   confirmDeleteMiscellaneousFee(): void {
-    this.closeDeleteMiscellaneousFee();
+    const row = this.deletingMiscellaneousFee;
+    if (!row) {
+      this.closeDeleteMiscellaneousFee();
+      return;
+    }
+    this.miscellaneousFeesService.deleteMiscellaneousFee(row.id).subscribe({
+      next: () => {
+        this.notificationService.success(
+          'Miscellaneous Fee Deleted',
+          `Miscellaneous fee "${row.miscellaneousFee}" was deleted.`
+        );
+        this.closeDeleteMiscellaneousFee();
+        this.loadFees();
+      },
+      error: (error) => {
+        this.notificationService.error(
+          'Delete Failed',
+          error.userMessage || error.message || 'Failed to delete miscellaneous fee.'
+        );
+      }
+    });
+  }
+
+  get selectedProgramVersionCount(): number {
+    return this.programCurriculumVersions.length;
+  }
+
+  get selectedProgramActiveCount(): number {
+    return this.programCurriculumVersions.filter((row) => row.status === 'active').length;
+  }
+
+  formatCurriculumEffectiveDate(value: string): string {
+    return value;
+  }
+
+  get filteredTuitionFees(): EvaluatorTuitionFeeRow[] {
+    return this.allTuitionFees;
+  }
+
+  get filteredOtherSchoolFees(): EvaluatorOtherSchoolFeeRow[] {
+    return this.allOtherSchoolFees;
+  }
+
+  get filteredMiscellaneousFees(): EvaluatorMiscellaneousFeeRow[] {
+    return this.allMiscellaneousFees;
+  }
+
+  get filteredDownpayments(): EvaluatorDownpaymentRow[] {
+    return this.allDownpayments;
+  }
+
+  formatFeeCurrency(amount: number): string {
+    return `₱${amount.toFixed(2)}`;
+  }
+
+  openAddDownpayment(): void {
+    this.editingDownpayment = null;
+    this.refreshTakenDownpaymentProgramCodes();
+    this.showDownpaymentForm = true;
+  }
+
+  closeDownpaymentForm(): void {
+    this.showDownpaymentForm = false;
+    this.editingDownpayment = null;
+    this.takenDownpaymentProgramCodes = [];
+  }
+
+  onDownpaymentSave(payload: CreateDownpaymentRequest | UpdateDownpaymentRequest): void {
+    this.downpaymentFormModal?.setSubmitting(true);
+
+    if ('id' in payload && payload.id) {
+      this.downpaymentService.updateDownpayment(payload as UpdateDownpaymentRequest).subscribe({
+        next: () => {
+          this.downpaymentFormModal?.setSubmitting(false);
+          this.notificationService.success('Downpayment Updated', 'Downpayment rule has been saved.');
+          this.closeDownpaymentForm();
+          this.loadFees();
+        },
+        error: (error) => {
+          this.downpaymentFormModal?.setSubmitting(false);
+          const msg = error.userMessage || error.message || 'Failed to update downpayment.';
+          this.downpaymentFormModal?.setError(msg);
+          this.notificationService.error('Update Failed', msg);
+        }
+      });
+      return;
+    }
+
+    this.downpaymentService.createDownpayment(payload as CreateDownpaymentRequest).subscribe({
+      next: () => {
+        this.downpaymentFormModal?.setSubmitting(false);
+        this.notificationService.success('Downpayment Created', 'Downpayment rule has been added.');
+        this.closeDownpaymentForm();
+        this.loadFees();
+      },
+      error: (error) => {
+        this.downpaymentFormModal?.setSubmitting(false);
+        const msg = error.userMessage || error.message || 'Failed to create downpayment.';
+        this.downpaymentFormModal?.setError(msg);
+        this.notificationService.error('Create Failed', msg);
+      }
+    });
+  }
+
+  private refreshTakenDownpaymentProgramCodes(): void {
+    const codes = this.allDownpayments.map((r) => r.programCode.trim()).filter((c) => c.length > 0);
+    if (!this.editingDownpayment) {
+      this.takenDownpaymentProgramCodes = codes;
+      return;
+    }
+    const editing = this.editingDownpayment.programCode.trim().toLowerCase();
+    this.takenDownpaymentProgramCodes = codes.filter((c) => c.toLowerCase() !== editing);
   }
 
   openViewDownpayment(row: EvaluatorDownpaymentRow): void {
@@ -414,6 +611,15 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
 
   setCourseViewMode(mode: EvaluatorCourseViewMode): void {
     this.courseViewMode = mode;
+    if (this.programs.length === 0) {
+      this.loadPrograms();
+    }
+    if (mode === 'list') {
+      this.loadCourses();
+    } else {
+      this.loadTableViewCurriculumOptions();
+      this.loadTableViewCourses();
+    }
   }
 
   get filteredProgramCards(): EvaluatorCurriculumProgramCard[] {
@@ -425,7 +631,7 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
       if (card.programCode.toLowerCase().includes(q)) {
         return true;
       }
-      return getEvaluatorCurriculaForProgram(card.programCode).some(
+      return curriculaForProgram(this.allCurricula, card.programCode).some(
         (row) =>
           row.curriculumId.toLowerCase().includes(q) ||
           row.version.toLowerCase().includes(q) ||
@@ -459,81 +665,25 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
   }
 
   get filteredCourses(): EvaluatorCourseDetailRow[] {
-    const q = (this.courseSearchControl.value ?? '').trim().toLowerCase();
-    const prog = (this.courseFilterProgram.value ?? '').trim();
-    const pre = (this.courseFilterPrereq.value ?? '').trim();
-    const year = (this.courseFilterYear.value ?? '').trim();
-    const sem = (this.courseFilterSemester.value ?? '').trim();
-
-    return this.allCourses.filter((row) => {
-      if (prog && row.program !== prog) {
-        return false;
-      }
-      if (pre === EVALUATOR_COURSE_PREREQ_FILTER.noPre && evaluatorCourseHasPrerequisite(row.prerequisite)) {
-        return false;
-      }
-      if (pre === EVALUATOR_COURSE_PREREQ_FILTER.withPre && !evaluatorCourseHasPrerequisite(row.prerequisite)) {
-        return false;
-      }
-      if (year && !row.yearSem.includes(year)) {
-        return false;
-      }
-      if (sem === '1st' && !row.yearSem.includes('1st')) {
-        return false;
-      }
-      if (sem === '2nd' && !row.yearSem.includes('2nd')) {
-        return false;
-      }
-      if (!q) {
-        return true;
-      }
-      const hay = [
-        row.curriculum,
-        row.program,
-        row.courseCode,
-        row.courseTitle,
-        row.component,
-        String(row.units),
-        row.prerequisite,
-        row.yearSem,
-        row.description
-      ]
-        .join(' ')
-        .toLowerCase();
-      return hay.includes(q);
-    });
+    return this.allCourses;
   }
 
   get tableViewCurriculumOptions(): EvaluatorTableViewCurriculumOption[] {
-    const prog = (this.tableViewProgram.value ?? '').trim();
-    return getEvaluatorTableViewCurriculumOptions(prog);
-  }
-
-  get tableViewCourses(): EvaluatorCourseDetailRow[] {
-    const curriculumId = (this.tableViewCurriculum.value ?? '').trim();
-    if (!curriculumId) {
-      return [];
-    }
-    const prog = this.resolveTableViewProgramCode(curriculumId);
-    if (!prog) {
-      return [];
-    }
-    if (prog === 'BSIT' && /^BSIT-\d{2}-01$/.test(curriculumId)) {
-      return EVALUATOR_BSIT_MATRIX_COURSES_MOCK.map((row) => ({
-        ...row,
-        curriculum: curriculumId
-      }));
-    }
-    return this.allCourses.filter((row) => row.program === prog && row.curriculum === curriculumId);
+    return this.tableViewCurriculumOptionsList;
   }
 
   get tableViewSelectedCurriculum(): EvaluatorTableViewCurriculumOption | null {
-    const curriculumId = (this.tableViewCurriculum.value ?? '').trim();
-    if (!curriculumId) {
+    const selectedValue = (this.tableViewCurriculum.value ?? '').trim();
+    if (!selectedValue) {
       return null;
     }
     return (
-      getEvaluatorTableViewCurriculumOptions('').find((row) => row.curriculumId === curriculumId) ?? null
+      this.tableViewCurriculumOptionsList.find(
+        (row) =>
+          row.curriculumId === selectedValue ||
+          row.id === selectedValue ||
+          row.version === selectedValue
+      ) ?? null
     );
   }
 
@@ -542,6 +692,14 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
   }
 
   get tableViewResolvedProgramCode(): string {
+    const fromProgram = (this.tableViewProgram.value ?? '').trim();
+    if (fromProgram) {
+      return fromProgram;
+    }
+    const selected = this.tableViewSelectedCurriculum;
+    if (selected?.program) {
+      return selected.program;
+    }
     return this.resolveTableViewProgramCode((this.tableViewCurriculum.value ?? '').trim());
   }
 
@@ -551,10 +709,16 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
 
   tableViewCurriculumVersionDisplay(): string {
     const selected = this.tableViewSelectedCurriculum;
-    if (!selected) {
+    if (selected) {
+      return formatTableViewCurriculumVersionDisplay(selected);
+    }
+    const raw = (this.tableViewCurriculum.value ?? '').trim();
+    if (!raw) {
       return '';
     }
-    return formatTableViewCurriculumVersionDisplay(selected);
+    const program = this.tableViewResolvedProgramCode;
+    const version = raw.includes('-') ? raw.split('-').slice(-1)[0] : raw;
+    return program ? `${raw} - ${version}` : raw;
   }
 
   getTableViewSortedYears(): string[] {
@@ -575,53 +739,45 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
     return courses.reduce((total, course) => total + course.units, 0);
   }
 
-  getTableViewTotalCourses(): number {
-    const prog = this.resolveTableViewProgramCode((this.tableViewCurriculum.value ?? '').trim());
-    if (prog === 'BSIT') {
-      return EVALUATOR_BSIT_TABLE_VIEW_SUMMARY.footerTotalCourses;
+  tableViewPrerequisiteDisplay(prerequisite: string | undefined): string {
+    const normalized = (prerequisite ?? '').trim().toLowerCase();
+    if (!normalized || normalized === 'none' || normalized === 'n/a') {
+      return 'None';
     }
+    return prerequisite!.trim();
+  }
+
+  getTableViewTotalCourses(): number {
     return this.tableViewCourses.length;
   }
 
   getTableViewSummaryTotalUnits(): number {
-    const prog = this.resolveTableViewProgramCode((this.tableViewCurriculum.value ?? '').trim());
-    if (prog === 'BSIT') {
-      return EVALUATOR_BSIT_TABLE_VIEW_SUMMARY.summaryTotalUnits;
-    }
     return this.tableViewCourses.reduce((total, course) => total + course.units, 0);
+  }
+
+  getTableViewHeaderTotalUnits(): number {
+    const prog = this.tableViewResolvedProgramCode;
+    const fromProgram = this.programTableMeta[prog]?.totalUnits;
+    if (fromProgram != null && fromProgram > 0) {
+      return fromProgram;
+    }
+    return this.getTableViewSummaryTotalUnits();
   }
 
   getTableViewFooterTotalUnits(): number {
-    const prog = this.resolveTableViewProgramCode((this.tableViewCurriculum.value ?? '').trim());
-    if (prog === 'BSIT') {
-      return EVALUATOR_BSIT_TABLE_VIEW_SUMMARY.footerTotalUnits;
-    }
-    return this.tableViewCourses.reduce((total, course) => total + course.units, 0);
+    return this.getTableViewSummaryTotalUnits();
   }
 
   getTableViewCompletionYears(): number {
-    const curriculumId = (this.tableViewCurriculum.value ?? '').trim();
-    const prog = this.resolveTableViewProgramCode(curriculumId);
-    if (prog === 'BSIT') {
-      return EVALUATOR_BSIT_TABLE_VIEW_SUMMARY.completionYears;
-    }
-    return EVALUATOR_PROGRAM_TABLE_META[prog as EvaluatorCourseProgramCode]?.completionYears ?? 0;
+    const prog = this.tableViewResolvedProgramCode;
+    const years = this.programTableMeta[prog]?.completionYears;
+    return years != null && years > 0 ? years : 0;
   }
 
   getTableViewProgramTitle(): string {
-    const curriculumId = (this.tableViewCurriculum.value ?? '').trim();
-    const prog = (this.resolveTableViewProgramCode(curriculumId) ??
-      (this.tableViewProgram.value ?? '').trim()) as EvaluatorCourseProgramCode;
-    return EVALUATOR_PROGRAM_TABLE_META[prog]?.programTitle ?? prog;
-  }
-
-  private resolveTableViewProgramCode(curriculumId: string): string {
-    const fromSelect = (this.tableViewProgram.value ?? '').trim();
-    if (fromSelect) {
-      return fromSelect;
-    }
-    const match = curriculumId.match(/^([A-Z]+)-/);
-    return match?.[1] ?? '';
+    const prog = this.tableViewResolvedProgramCode || (this.tableViewProgram.value ?? '').trim();
+    const title = this.programTableMeta[prog]?.programTitle?.trim();
+    return title || prog;
   }
 
   formatDate(value: string): string {
@@ -657,4 +813,288 @@ export class EvaluatorCurriculumViewComponent implements OnInit {
     return 'Search courses...';
   }
 
+  private loadPrograms(): void {
+    this.programService
+      .getPrograms({
+        PageIndex: 1,
+        PageSize: 500,
+        SortDirection: SORT_DEFAULTS.DIRECTION,
+        SortKey: '',
+        searchTerm: ''
+      })
+      .pipe(
+        catchError(() => of(null)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((response) => {
+        const programs = response?.data ?? [];
+        this.programs = programs;
+        this.programTableMeta = programs.reduce<Record<string, EvaluatorProgramTableMeta>>((acc, program) => {
+          acc[program.programCode] = mapProgramTableMeta(program);
+          return acc;
+        }, {});
+        this.programFilterOptions = [
+          { value: '', label: 'All Programs' },
+          ...programs.map((program) => ({ value: program.programCode, label: program.programCode }))
+        ];
+        this.tableViewProgramSelectOptions = programs.map((program) => ({
+          value: program.programCode,
+          label: `${program.programCode} - ${program.programTitle}`
+        }));
+      });
+  }
+
+  private loadCurricula(): void {
+    this.isLoadingCurricula = true;
+    this.curriculaService
+      .getCurricula({ ...BULK_LIST_PARAMS, searchTerm: '' })
+      .pipe(
+        catchError((error) => {
+          this.notificationService.error(
+            'Loading Failed',
+            error.userMessage || error.message || 'Failed to load curricula.'
+          );
+          return of(null);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((response) => {
+        const raw = response?.data ?? [];
+        this.allCurriculaRaw = raw;
+        const rows = raw.map(mapCurriculaToRow);
+        this.allCurricula = rows;
+        this.curriculumProgramCards = buildProgramCards(raw);
+        if (this.selectedCurriculumProgram) {
+          this.programCurriculumVersions = curriculaForProgram(rows, this.selectedCurriculumProgram);
+        }
+        this.isLoadingCurricula = false;
+      });
+  }
+
+  private loadCourses(): void {
+    if (this.activeTab !== 'courses' || this.courseViewMode !== 'list') {
+      return;
+    }
+
+    const programCode = (this.courseFilterProgram.value ?? '').trim();
+    const program = this.programs.find((item) => item.programCode === programCode);
+
+    this.isLoadingCourses = true;
+    this.courseService
+      .getCourses({
+        ...BULK_LIST_PARAMS,
+        searchTerm: (this.courseSearchControl.value ?? '').trim(),
+        programId: program?.programId,
+        yearLevel: (this.courseFilterYear.value ?? '').trim() || undefined,
+        semester: this.mapSemesterFilter(this.courseFilterSemester.value),
+        hasPrerequisites: mapCoursePrerequisiteFilter(this.courseFilterPrereq.value)
+      })
+      .pipe(
+        catchError((error) => {
+          this.notificationService.error(
+            'Loading Failed',
+            error.userMessage || error.message || 'Failed to load courses.'
+          );
+          return of(null);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((response) => {
+        this.allCourses = (response?.data ?? []).map(mapCourseToEvaluatorRow);
+        this.isLoadingCourses = false;
+      });
+  }
+
+  private loadTableViewCurriculumOptions(): void {
+    const programCode = (this.tableViewProgram.value ?? '').trim();
+    if (!programCode) {
+      this.tableViewCurriculumOptionsList = [];
+      return;
+    }
+
+    const program = this.programs.find((item) => item.programCode === programCode);
+    if (!program) {
+      this.tableViewCurriculumOptionsList = [];
+      return;
+    }
+
+    this.curriculaService
+      .getCurricula({ ...BULK_LIST_PARAMS, programId: program.programId })
+      .pipe(
+        catchError(() => of(null)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((response) => {
+        const curricula = response?.data ?? [];
+        this.tableViewCurriculumOptionsList = curricula.map(mapCurriculaToTableViewOption);
+        const current = (this.tableViewCurriculum.value ?? '').trim();
+        if (current && !this.tableViewSelectedCurriculum) {
+          const match = this.tableViewCurriculumOptionsList.find(
+            (row) => row.curriculumId === current || row.id === current
+          );
+          if (match?.curriculumId) {
+            this.tableViewCurriculum.setValue(match.curriculumId, { emitEvent: true });
+          }
+        }
+      });
+  }
+
+  private loadTableViewCourses(): void {
+    const curriculumCode = (this.tableViewCurriculum.value ?? '').trim();
+    const programCode = this.resolveTableViewProgramCode(curriculumCode);
+    const program = this.programs.find((item) => item.programCode === programCode);
+
+    if (!curriculumCode || !program) {
+      this.tableViewCourses = [];
+      return;
+    }
+
+    this.isLoadingTableViewCourses = true;
+    this.courseService
+      .getCourses({
+        ...BULK_LIST_PARAMS,
+        programId: program.programId,
+        curriculumCode,
+        searchTerm: ''
+      })
+      .pipe(
+        catchError((error) => {
+          this.notificationService.error(
+            'Loading Failed',
+            error.userMessage || error.message || 'Failed to load curriculum courses.'
+          );
+          return of(null);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((response) => {
+        this.tableViewCourses = (response?.data ?? []).map(mapCourseToEvaluatorRow);
+        this.isLoadingTableViewCourses = false;
+      });
+  }
+
+  private loadFees(): void {
+    if (this.activeTab !== 'fees') {
+      return;
+    }
+
+    this.isLoadingFees = true;
+
+    if (this.activeFeeTab === 'tuition-fees') {
+      this.tuitionFeesService
+        .getTuitionFees({
+          ...BULK_LIST_PARAMS,
+          searchTerm: (this.tuitionFeeSearchControl.value ?? '').trim()
+        })
+        .pipe(
+          catchError((error) => {
+            this.notifyFeeLoadError(error);
+            return of(null);
+          }),
+          takeUntil(this.destroy$)
+        )
+        .subscribe((response) => {
+          this.allTuitionFees = (response?.data ?? []).map(mapTuitionFeeRow);
+          this.isLoadingFees = false;
+        });
+      return;
+    }
+
+    if (this.activeFeeTab === 'other-school-fees') {
+      this.otherSchoolFeesService
+        .getOtherSchoolFees({
+          ...BULK_LIST_PARAMS,
+          searchTerm: (this.schoolFeeSearchControl.value ?? '').trim()
+        })
+        .pipe(
+          catchError((error) => {
+            this.notifyFeeLoadError(error);
+            return of(null);
+          }),
+          takeUntil(this.destroy$)
+        )
+        .subscribe((response) => {
+          this.allOtherSchoolFees = (response?.data ?? []).map(mapOtherSchoolFeeRow);
+          this.isLoadingFees = false;
+        });
+      return;
+    }
+
+    if (this.activeFeeTab === 'miscellaneous-fees') {
+      this.miscellaneousFeesService
+        .getMiscellaneousFees({
+          ...BULK_LIST_PARAMS,
+          searchTerm: (this.miscellaneousFeeSearchControl.value ?? '').trim()
+        })
+        .pipe(
+          catchError((error) => {
+            this.notifyFeeLoadError(error);
+            return of(null);
+          }),
+          takeUntil(this.destroy$)
+        )
+        .subscribe((response) => {
+          this.allMiscellaneousFees = (response?.data ?? []).map(mapMiscellaneousFeeRow);
+          this.isLoadingFees = false;
+        });
+      return;
+    }
+
+    this.downpaymentService
+      .getDownpayments({
+        ...BULK_LIST_PARAMS,
+        searchTerm: (this.downpaymentSearchControl.value ?? '').trim()
+      })
+      .pipe(
+        catchError((error) => {
+          this.notifyFeeLoadError(error);
+          return of(null);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((response) => {
+        this.allDownpayments = (response?.data ?? []).map(mapDownpaymentRow);
+        this.isLoadingFees = false;
+      });
+  }
+
+  private notifyFeeLoadError(error: { userMessage?: string; message?: string }): void {
+    this.notificationService.error(
+      'Loading Failed',
+      error.userMessage || error.message || 'Failed to load fee data.'
+    );
+  }
+
+  private filterFeeRows<T>(
+    rows: T[],
+    searchValue: string,
+    toHaystack: (row: T) => string[]
+  ): T[] {
+    const q = (searchValue ?? '').trim().toLowerCase();
+    if (!q) {
+      return rows;
+    }
+    return rows.filter((row) => toHaystack(row).join(' ').toLowerCase().includes(q));
+  }
+
+  private mapSemesterFilter(value: string): string | undefined {
+    const sem = (value ?? '').trim();
+    if (sem === '1st') {
+      return '1st Semester';
+    }
+    if (sem === '2nd') {
+      return '2nd Semester';
+    }
+    return undefined;
+  }
+
+  private resolveTableViewProgramCode(curriculumId: string): string {
+    const fromSelect = (this.tableViewProgram.value ?? '').trim();
+    if (fromSelect) {
+      return fromSelect;
+    }
+    const match = curriculumId.match(/^([A-Z]+)-/);
+    return match?.[1] ?? '';
+  }
 }
+

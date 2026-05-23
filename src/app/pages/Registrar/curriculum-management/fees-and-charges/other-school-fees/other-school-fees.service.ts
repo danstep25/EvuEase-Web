@@ -2,10 +2,10 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { OtherSchoolFee, CreateOtherSchoolFeeRequest, UpdateOtherSchoolFeeRequest } from '../../../../../core/models/other-school-fee.model';
 import { PaginatedResponse } from '../../../../../core/models/api-response.model';
-import { HttpBaseService, PaginationParams } from '../../../../../shared/services/http-base.service';
+import { HttpBaseService } from '../../../../../shared/services/http-base.service';
 import { API_URL } from '../../../../../shared/constants/api.url.constant';
 
-export interface OtherSchoolFeesPaginationParams extends PaginationParams {
+export interface OtherSchoolFeesPaginationParams {
   PageIndex?: number;
   PageSize?: number;
   SortDirection?: string;

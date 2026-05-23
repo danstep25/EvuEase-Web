@@ -1,30 +1,41 @@
+:host {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
 .se-charge-slip {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  display: block;
+  width: 100%;
+  overflow: visible;
 }
 
 .se-charge-slip__document {
-  padding: 1.5rem 1.5rem 1.25rem;
+  width: 100%;
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.35rem 1rem;
   border: 1px solid #111827;
   background: #fff;
   box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: #111827;
 }
 
 .se-charge-slip__title {
-  margin: 0 0 1.25rem;
-  font-size: 1.125rem;
+  margin: 0 0 1rem;
+  font-size: 1.0625rem;
   font-weight: 700;
-  color: #111827;
   text-align: center;
   line-height: 1.3;
+  letter-spacing: 0.01em;
 }
 
 .se-charge-slip__student-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.75rem 2rem;
-  margin-bottom: 1.25rem;
+  gap: 0.5rem 2rem;
+  margin-bottom: 1rem;
 }
 
 .se-charge-slip__student-col {
@@ -32,43 +43,51 @@
 }
 
 .se-charge-slip__student-col--right {
-  text-align: left;
+  text-align: right;
 }
 
 .se-charge-slip__student-line {
-  margin: 0 0 0.45rem;
+  margin: 0 0 0.35rem;
   font-size: 0.8125rem;
-  color: #111827;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .se-charge-slip__student-label {
   font-weight: 600;
-  margin-right: 0.25rem;
+  margin-right: 0.2rem;
 }
 
 .se-charge-slip__student-value--underline {
   text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .se-charge-slip__student-value--strong {
   font-weight: 700;
 }
 
+.se-charge-slip__tables {
+  display: flex;
+  flex-direction: column;
+}
+
 .se-charge-slip__table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 0.75rem;
+  margin: 0;
   font-size: 0.75rem;
   table-layout: fixed;
+
+  & + & {
+    margin-top: -1px;
+  }
 
   thead th,
   tbody td {
     border: 1px solid #111827;
-    padding: 0.4rem 0.5rem;
+    padding: 0.35rem 0.45rem;
     vertical-align: middle;
-    color: #111827;
-    line-height: 1.35;
+    line-height: 1.3;
   }
 
   thead th {
@@ -80,15 +99,19 @@
 
 .se-charge-slip__table--tuition {
   thead th {
-    font-size: 0.6875rem;
-    text-transform: uppercase;
+    font-size: 0.625rem;
     letter-spacing: 0.02em;
+    padding: 0.3rem 0.35rem;
   }
 }
 
 .se-charge-slip__th--num {
-  width: 2rem;
+  width: 1.75rem;
   text-align: center;
+}
+
+.se-charge-slip__th--subject {
+  width: 22%;
 }
 
 .se-charge-slip__th--center {
@@ -97,18 +120,18 @@
 
 .se-charge-slip__th--amount {
   text-align: right;
-  width: 7.5rem;
+  width: 6.75rem;
 }
 
-.se-charge-slip__th--label {
-  width: 55%;
+.se-charge-slip__th--section {
+  width: 58%;
 }
 
 .se-charge-slip__th--spacer {
-  width: 8%;
+  width: 10%;
   background: #fff;
-  border-top: 1px solid #111827;
-  border-bottom: 1px solid #111827;
+  border-left: 1px solid #111827;
+  border-right: 1px solid #111827;
 }
 
 .se-charge-slip__td--center {
@@ -120,13 +143,19 @@
   white-space: nowrap;
 }
 
+.se-charge-slip__td--filler {
+  border-left: 1px solid #111827;
+  border-right: 1px solid #111827;
+}
+
 .se-charge-slip__td--spacer {
   background: #fff;
+  border-left: 1px solid #111827;
+  border-right: 1px solid #111827;
 }
 
 .se-charge-slip__total-row td {
   font-weight: 700;
-  background: #f9fafb;
 }
 
 .se-charge-slip__total-label {
@@ -138,33 +167,45 @@
   font-weight: 700;
 }
 
+.se-charge-slip__table--fees,
 .se-charge-slip__table--gross {
-  margin-bottom: 0.75rem;
+  .se-charge-slip__th--amount,
+  .se-charge-slip__td--amount {
+    width: 21%;
+  }
+}
 
+.se-charge-slip__table--gross {
+  .se-charge-slip__total-label {
+    width: 58%;
+  }
+}
+
+.se-charge-slip__table--payment {
+  .se-charge-slip__th--section,
   tbody td:first-child {
-    width: 55%;
+    width: 48%;
   }
 }
 
 .se-charge-slip__footer-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-top: 1.25rem;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  margin-top: 1rem;
+  align-items: stretch;
 }
 
 .se-charge-slip__signature-line {
   display: flex;
   align-items: flex-end;
-  gap: 0.5rem;
-  margin: 0 0 0.35rem;
+  gap: 0.4rem;
+  margin: 0 0 0.25rem;
   font-size: 0.8125rem;
-  color: #111827;
 }
 
 .se-charge-slip__signature-line--date {
-  margin-top: 1rem;
+  margin-top: 0.85rem;
 }
 
 .se-charge-slip__signature-label {
@@ -176,56 +217,51 @@
   flex: 1;
   min-width: 0;
   border-bottom: 1px solid #111827;
-  height: 1.1rem;
+  height: 1rem;
 }
 
 .se-charge-slip__signature-rule--short {
-  max-width: 8rem;
+  flex: 0 1 7.5rem;
+  max-width: 7.5rem;
 }
 
 .se-charge-slip__signature-caption {
-  margin: 0 0 0.5rem;
-  padding-left: 4.5rem;
+  margin: 0 0 0.35rem;
+  padding-left: 4.25rem;
   font-size: 0.75rem;
   color: #374151;
 }
 
 .se-charge-slip__disclaimer {
   margin: 0;
-  padding: 0.75rem 0.85rem;
+  padding: 0.65rem 0.75rem;
   border: 1px solid #111827;
   box-sizing: border-box;
-}
-
-.se-charge-slip__disclaimer-title {
-  margin: 0 0 0.5rem;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: #111827;
+  display: flex;
+  align-items: center;
 }
 
 .se-charge-slip__disclaimer-text {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-style: italic;
   color: #374151;
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
 @media (max-width: 900px) {
+  .se-charge-slip__document {
+    max-width: none;
+    overflow-x: auto;
+  }
+
   .se-charge-slip__student-grid,
   .se-charge-slip__footer-grid {
     grid-template-columns: 1fr;
   }
 
-  .se-charge-slip__document {
-    overflow-x: auto;
+  .se-charge-slip__student-col--right {
+    text-align: left;
   }
 }
 
-@media print {
-  .se-charge-slip__document {
-    border: 1px solid #111827;
-    box-shadow: none;
-  }
-}

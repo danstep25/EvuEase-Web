@@ -58,7 +58,6 @@ const DELA_CRUZ_JUAN_FINISHED_SUBJECTS: readonly SubjectEvaluationFinishedSubjec
   }
 ];
 
-/** Mock finished-subject rows keyed by student id (BSIT/BSCS students only). */
 export const SUBJECT_EVALUATION_FINISHED_SUBJECTS_BY_STUDENT: Readonly<
   Record<string, readonly SubjectEvaluationFinishedSubjectRow[]>
 > = {
@@ -309,3 +308,4 @@ export function getSubjectEvaluationFinishedSubjects(
   }
   return SUBJECT_EVALUATION_FINISHED_SUBJECTS_BY_STUDENT[studentId] ?? [];
 }
+

@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import type { ChargeSlipPreview } from '../../../../mock-data/evaluator/subject-evaluation-charge-slip.mock';
+import type { ChargeSlipPreview } from '../subject-evaluation/subject-evaluation.models';
 
 @Component({
   selector: 'app-subject-evaluation-charge-slip-preview',

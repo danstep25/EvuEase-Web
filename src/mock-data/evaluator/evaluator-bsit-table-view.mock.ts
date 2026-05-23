@@ -1,16 +1,13 @@
-import type { EvaluatorCourseDetailRow, EvaluatorCurriculumRow } from './evaluator-curriculum.mock';
+import type {
+  EvaluatorCourseDetailRow,
+  EvaluatorCurriculumRow,
+  EvaluatorTableViewCurriculumOption
+} from '../../app/pages/Evaluator/curriculum-view/evaluator-curriculum-view.models';
 import {
   EVALUATOR_CURRICULA_MOCK,
   getEvaluatorCurriculaForProgram
 } from './evaluator-curriculum.mock';
 
-/** Table-view curriculum version row (mock only). */
-export interface EvaluatorTableViewCurriculumOption extends EvaluatorCurriculumRow {
-  /** Dropdown suffix label, e.g. "25-01" for BSIT-25-01. */
-  versionSuffix: string;
-}
-
-/** BSIT curriculum versions for table view — latest to oldest, all "-01" only. */
 export const EVALUATOR_BSIT_CURRICULUM_VERSIONS: EvaluatorTableViewCurriculumOption[] = [
   {
     id: 'bsit-25',
@@ -54,7 +51,6 @@ export const EVALUATOR_BSIT_CURRICULUM_VERSIONS: EvaluatorTableViewCurriculumOpt
   }
 ];
 
-/** Display totals for BSIT table view summary (matches screenshots). */
 export const EVALUATOR_BSIT_TABLE_VIEW_SUMMARY = {
   summaryTotalUnits: 166,
   footerTotalCourses: 37,
@@ -69,7 +65,6 @@ export function toTableViewCurriculumOption(row: EvaluatorCurriculumRow): Evalua
   };
 }
 
-/** Curriculum Table View dropdown options for the selected program (Figma: `ID - version`). */
 export function getEvaluatorTableViewCurriculumOptions(
   programCode: string
 ): EvaluatorTableViewCurriculumOption[] {
@@ -99,7 +94,6 @@ function matrixRow(id: string, course: MatrixCourse): EvaluatorCourseDetailRow {
   };
 }
 
-/** Full BSIT matrix courses (BSIT-25-01); other BSIT versions reuse this set in the UI. */
 export const EVALUATOR_BSIT_MATRIX_COURSES_MOCK: EvaluatorCourseDetailRow[] = [
   matrixRow('m01', { courseCode: 'IT101', courseTitle: 'Introduction to Computing', component: 'Lec/Lab', units: 3, prerequisite: 'None', yearSem: 'Year 1 - 1st' }),
   matrixRow('m02', { courseCode: 'IT102', courseTitle: 'Computer Programming 1', component: 'Lec/Lab', units: 3, prerequisite: 'None', yearSem: 'Year 1 - 1st' }),
@@ -139,3 +133,4 @@ export const EVALUATOR_BSIT_MATRIX_COURSES_MOCK: EvaluatorCourseDetailRow[] = [
   matrixRow('m36', { courseCode: 'IT403', courseTitle: 'Capstone Project 2', component: 'Lec/Lab', units: 3, prerequisite: 'IT401', yearSem: 'Year 4 - 2nd' }),
   matrixRow('m37', { courseCode: 'IT404', courseTitle: 'Practicum (486 hours)', component: 'Practicum', units: 3, prerequisite: 'IT401', yearSem: 'Year 4 - 2nd' })
 ];
+

@@ -122,7 +122,11 @@
           <button type="button" class="curriculum-view__tuition-edit-btn curriculum-view__tuition-edit-btn--cancel" (click)="onClose()">
             Cancel
           </button>
-          <button type="submit" class="curriculum-view__tuition-edit-btn curriculum-view__tuition-edit-btn--submit">
+          <button
+            type="submit"
+            class="curriculum-view__tuition-edit-btn curriculum-view__tuition-edit-btn--submit"
+            [disabled]="isSubmitting"
+          >
             Add Miscellaneous Fee
           </button>
         </footer>

@@ -209,6 +209,21 @@ export function buildRetakeByEnrollmentId(
   return result;
 }
 
+export function isEnrollmentPassed(row: StudentClassEnrollmentRow): boolean {
+  return enrollmentRemarkKind(row.remarks, row.officialGrade) === 'passed';
+}
+
+export function isEnrollmentFailed(row: StudentClassEnrollmentRow): boolean {
+  return enrollmentRemarkKind(row.remarks, row.officialGrade) === 'failed';
+}
+
+function enrollmentRemarkKind(
+  apiRemarks: string | null | undefined,
+  officialGrade: string | null | undefined
+): AcademicRecordCourseRow['remarkKind'] {
+  return transcriptRemarks(apiRemarks, officialGrade).kind;
+}
+
 function transcriptRemarks(
   apiRemarks: string | null | undefined,
   officialGrade: string | null | undefined

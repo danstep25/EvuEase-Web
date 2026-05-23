@@ -11,6 +11,7 @@
   <section class="evaluator-surface earv__card earv__card--select">
     <app-searchable-select
       [options]="studentOptions"
+      [isLoading]="isLoadingStudents"
       label="Select Student"
       placeholder="Type to search or click to select..."
       emptyText="No students match your search."
@@ -19,7 +20,15 @@
     />
   </section>
 
-  @if (profile) {
+  @if (isLoadingProfile) {
+    <section class="evaluator-surface earv__card">
+      <p class="earv__empty">Loading student records...</p>
+    </section>
+  } @else if (profileLoadError) {
+    <section class="evaluator-surface earv__card">
+      <p class="earv__empty" role="alert">{{ profileLoadError }}</p>
+    </section>
+  } @else if (profile) {
     <section class="evaluator-surface earv__card earv__card--info" aria-labelledby="earv-info-heading">
       <div class="earv__info-header">
         <h2 id="earv-info-heading" class="earv__info-title">Student Information</h2>
@@ -279,7 +288,7 @@
         </div>
       } @else {
         <div class="earv__panel earv__panel--plan" role="tabpanel">
-          <app-evaluator-academic-plan-panel [studentId]="selectedStudentId" />
+          <app-evaluator-academic-plan-panel [plan]="academicPlan" />
         </div>
       }
     </section>
@@ -289,6 +298,7 @@
     [isOpen]="showMigrateCurriculumDialog"
     [studentId]="selectedStudentId"
     (closed)="onCloseMigrateCurriculum()"
+    (migrated)="onCloseMigrateCurriculum(true)"
   />
 
   <app-evaluator-curriculum-history-dialog

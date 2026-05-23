@@ -37,15 +37,15 @@ export class SearchableSelectComponent implements OnChanges {
 
   @Input({ required: true }) options: SearchableSelectOption[] = [];
   @Input() label = '';
-  /** When true, hides the search icon for a native-select appearance (e.g. evaluator forms). */
+  
   @Input() hideSearchIcon = false;
-  /** Optional id of an external element that labels the control when `label` is empty. */
+  
   @Input() ariaLabelledBy: string | null = null;
-  /** Light-blue heading row at the top of the open panel (e.g. native-style selects). */
+  
   @Input() listHeading: string | null = null;
-  /** CSS-only panel placement relative to the control. */
+  
   @Input() panelPlacement: 'below' | 'above' = 'below';
-  /** Renders each option as one line: `primary - secondary` when secondary is set. */
+  
   @Input() optionDisplayInline = false;
   @Input() placeholder = 'Type to search or click to select...';
   @Input() isLoading = false;
@@ -192,3 +192,4 @@ export class SearchableSelectComponent implements OnChanges {
     return item.id;
   }
 }
+

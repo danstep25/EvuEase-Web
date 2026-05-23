@@ -1,16 +1,16 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  filterAcademicPlanTerms,
-  getAcademicPlanProgressPercent,
-  getStudentAcademicPlan,
-  type AcademicPlanCourseRow,
-  type AcademicPlanCourseStatus,
-  type AcademicPlanFilteredTerm,
-  type AcademicPlanTermBlock,
-  type StudentAcademicPlan
-} from '../../../../mock-data/evaluator/student-academic-plan.mock';
+import type {
+  AcademicPlanCourseRow,
+  AcademicPlanCourseStatus,
+  AcademicPlanTermBlock,
+  StudentAcademicPlan
+} from '../student-permanent-records/evaluator-student-academic.models';
+
+export interface AcademicPlanFilteredTerm extends AcademicPlanTermBlock {
+  readonly visible: boolean;
+}
 
 @Component({
   selector: 'app-evaluator-academic-plan-panel',
@@ -20,7 +20,7 @@ import {
   styleUrl: './evaluator-academic-plan-panel.component.scss'
 })
 export class EvaluatorAcademicPlanPanelComponent implements OnChanges {
-  @Input() studentId: string | null = null;
+  @Input() plan: StudentAcademicPlan | null = null;
 
   expectedCompletionYear = 2026;
 
@@ -31,25 +31,27 @@ export class EvaluatorAcademicPlanPanelComponent implements OnChanges {
   ];
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['studentId']) {
-      const plan = getStudentAcademicPlan(this.studentId);
-      this.expectedCompletionYear = plan?.defaultExpectedCompletionYear ?? 2026;
+    if (changes['plan']) {
+      this.expectedCompletionYear = this.plan?.defaultExpectedCompletionYear ?? new Date().getFullYear() + 1;
     }
-  }
-
-  get plan(): StudentAcademicPlan | null {
-    return getStudentAcademicPlan(this.studentId);
   }
 
   get filteredTerms(): readonly AcademicPlanFilteredTerm[] {
     if (!this.plan) {
       return [];
     }
-    return filterAcademicPlanTerms(this.plan, this.expectedCompletionYear);
+    return this.plan.suggestedTerms
+      .filter((term) => term.minCompletionYear <= this.expectedCompletionYear)
+      .map((term) => ({ ...term, visible: true }));
   }
 
   get progressPercent(): number {
-    return this.plan ? getAcademicPlanProgressPercent(this.plan) : 0;
+    if (!this.plan || this.plan.statusSummary.totalUnitsRequired === 0) {
+      return 0;
+    }
+    return Math.round(
+      (this.plan.statusSummary.unitsCompleted / this.plan.statusSummary.totalUnitsRequired) * 100
+    );
   }
 
   get progressLabel(): string {

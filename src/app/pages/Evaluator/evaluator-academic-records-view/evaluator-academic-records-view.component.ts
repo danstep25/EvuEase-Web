@@ -1,18 +1,20 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subject, takeUntil } from 'rxjs';
 import { SearchableSelectComponent } from '../../../shared/components/searchable-select/searchable-select.component';
 import { EvaluatorAcademicPlanPanelComponent } from '../evaluator-academic-plan-panel/evaluator-academic-plan-panel.component';
 import { EvaluatorMigrateCurriculumDialogComponent } from '../evaluator-migrate-curriculum-dialog/evaluator-migrate-curriculum-dialog.component';
 import { EvaluatorCurriculumHistoryDialogComponent } from '../evaluator-curriculum-history-dialog/evaluator-curriculum-history-dialog.component';
 import { SearchableSelectOption } from '../../../shared/components/searchable-select/searchable-select-option.model';
-import {
-  getStudentAcademicRecordProfile,
-  type AcademicRecordCourseRow,
-  type AcademicRecordCurriculumCourseRow,
-  type AcademicRecordCurriculumTermBlock,
-  type AcademicRecordRemark,
-  type AcademicRecordSemesterBlock
-} from '../../../../mock-data/evaluator/student-academic-records.mock';
+import { EvaluatorStudentAcademicService } from '../student-permanent-records/evaluator-student-academic.service';
+import type {
+  AcademicRecordCurriculumCourseRow,
+  AcademicRecordCurriculumTermBlock,
+  AcademicRecordRemark,
+  AcademicRecordSemesterBlock,
+  StudentAcademicPlan,
+  StudentAcademicRecordProfile
+} from '../student-permanent-records/evaluator-student-academic.models';
 
 type RecordsTab = 'academic-records' | 'academic-plan';
 type RecordsViewMode = 'term' | 'curriculum';
@@ -30,8 +32,12 @@ type RecordsViewMode = 'term' | 'curriculum';
   templateUrl: './evaluator-academic-records-view.component.html',
   styleUrl: './evaluator-academic-records-view.component.scss'
 })
-export class EvaluatorAcademicRecordsViewComponent {
+export class EvaluatorAcademicRecordsViewComponent implements OnChanges, OnDestroy {
+  private readonly academicService = inject(EvaluatorStudentAcademicService);
+  private readonly destroy$ = new Subject<void>();
+
   @Input({ required: true }) studentOptions: SearchableSelectOption[] = [];
+  @Input() isLoadingStudents = false;
   @Input() selectedStudentId: string | null = null;
   @Output() readonly selectedStudentIdChange = new EventEmitter<string | null>();
   @Input() showBackLink = false;
@@ -42,8 +48,20 @@ export class EvaluatorAcademicRecordsViewComponent {
   showMigrateCurriculumDialog = false;
   showCurriculumHistoryDialog = false;
 
-  get profile() {
-    return getStudentAcademicRecordProfile(this.selectedStudentId);
+  profile: StudentAcademicRecordProfile | null = null;
+  academicPlan: StudentAcademicPlan | null = null;
+  isLoadingProfile = false;
+  profileLoadError: string | null = null;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['selectedStudentId']) {
+      this.loadStudentData(this.selectedStudentId);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get termSemesters(): readonly AcademicRecordSemesterBlock[] {
@@ -96,8 +114,11 @@ export class EvaluatorAcademicRecordsViewComponent {
     this.showMigrateCurriculumDialog = true;
   }
 
-  onCloseMigrateCurriculum(): void {
+  onCloseMigrateCurriculum(reload = false): void {
     this.showMigrateCurriculumDialog = false;
+    if (reload && this.selectedStudentId) {
+      this.loadStudentData(this.selectedStudentId);
+    }
   }
 
   onOpenCurriculumHistory(): void {
@@ -123,7 +144,7 @@ export class EvaluatorAcademicRecordsViewComponent {
     return block.label;
   }
 
-  trackCourse(_index: number, row: AcademicRecordCourseRow): string {
+  trackCourse(_index: number, row: { courseCode: string; grade: string }): string {
     return `${row.courseCode}-${row.grade}`;
   }
 
@@ -141,5 +162,42 @@ export class EvaluatorAcademicRecordsViewComponent {
 
   isPrerequisiteNone(prerequisite: string): boolean {
     return prerequisite.trim().toLowerCase() === 'none';
+  }
+
+  private loadStudentData(studentId: string | null): void {
+    this.profile = null;
+    this.academicPlan = null;
+    this.profileLoadError = null;
+
+    if (!studentId) {
+      return;
+    }
+
+    this.isLoadingProfile = true;
+    this.academicService
+      .loadAcademicProfile(studentId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (profile) => {
+          this.profile = profile;
+          this.isLoadingProfile = false;
+          if (!profile) {
+            this.profileLoadError = 'Could not load student academic records.';
+          }
+        },
+        error: () => {
+          this.isLoadingProfile = false;
+          this.profileLoadError = 'Could not load student academic records.';
+        }
+      });
+
+    this.academicService
+      .loadAcademicPlan(studentId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (plan) => {
+          this.academicPlan = plan;
+        }
+      });
   }
 }
