@@ -112,26 +112,33 @@ export const routes: Routes = [
       {
         path: 'student-records',
         loadComponent: () =>
-          import('./pages/Evaluator/feature-placeholder/feature-placeholder.component').then(
-            m => m.EvaluatorFeaturePlaceholderComponent
-          ),
-        data: { title: 'Student Records' }
+          import('./pages/Evaluator/student-permanent-records/student-permanent-records.component').then(
+            (m) => m.StudentPermanentRecordsComponent
+          )
       },
       {
         path: 'subject-evaluation',
         loadComponent: () =>
-          import('./pages/Evaluator/feature-placeholder/feature-placeholder.component').then(
-            m => m.EvaluatorFeaturePlaceholderComponent
+          import('./pages/Evaluator/subject-evaluation/subject-evaluation.component').then(
+            (m) => m.SubjectEvaluationComponent
           ),
         data: { title: 'Subject Evaluation' }
       },
       {
+        path: 'credit-subjects/add',
+        loadComponent: () =>
+          import('./pages/Evaluator/add-credit-request/add-credit-request.component').then(
+            (m) => m.AddCreditRequestComponent
+          ),
+        data: { title: 'Add Credit Request' }
+      },
+      {
         path: 'credit-subjects',
         loadComponent: () =>
-          import('./pages/Evaluator/feature-placeholder/feature-placeholder.component').then(
-            m => m.EvaluatorFeaturePlaceholderComponent
+          import('./pages/Evaluator/credit-subjects/credit-subjects.component').then(
+            (m) => m.CreditSubjectsComponent
           ),
-        data: { title: 'Credit Subjects' }
+        data: { title: 'Credit Subjects (Transferees)' }
       },
       {
         path: 'analytics',

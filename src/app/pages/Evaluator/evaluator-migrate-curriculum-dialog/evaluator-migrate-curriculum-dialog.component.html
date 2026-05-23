@@ -1,0 +1,105 @@
+@if (isOpen && context) {
+  <div
+    class="emcd__overlay"
+    role="presentation"
+    (click)="onBackdropClick()"
+    (keydown.escape)="onClose()"
+  >
+    <div
+      class="emcd__dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="emcd-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="emcd__header">
+        <div class="emcd__header-text">
+          <h2 id="emcd-title" class="emcd__title">Migrate Curriculum</h2>
+          <p class="emcd__subtitle">Update student's curriculum assignment</p>
+        </div>
+        <button type="button" class="emcd__close" (click)="onClose()">
+          <svg class="emcd__close-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Close
+        </button>
+      </header>
+
+      <div class="emcd__body">
+        <section class="emcd__student-card" aria-labelledby="emcd-student-heading">
+          <h3 id="emcd-student-heading" class="emcd__student-card-title">Student Information</h3>
+          <div class="emcd__student-grid">
+            <div class="emcd__student-item">
+              <span class="emcd__student-label">Student Number</span>
+              <span class="emcd__student-value">{{ context.studentNumber }}</span>
+            </div>
+            <div class="emcd__student-item">
+              <span class="emcd__student-label">Name</span>
+              <span class="emcd__student-value">{{ context.fullName }}</span>
+            </div>
+            <div class="emcd__student-item">
+              <span class="emcd__student-label">Program</span>
+              <span class="emcd__student-value">{{ context.program }}</span>
+            </div>
+            <div class="emcd__student-item">
+              <span class="emcd__student-label">Year Level</span>
+              <span class="emcd__student-value">{{ context.yearLevel }}</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="emcd__field">
+          <label class="emcd__label" for="emcd-current-curriculum">Current Curriculum</label>
+          <input
+            id="emcd-current-curriculum"
+            class="emcd__input emcd__input--readonly"
+            type="text"
+            [value]="context.currentCurriculumCode"
+            readonly
+            tabindex="-1"
+          />
+        </div>
+
+        <div class="emcd__field">
+          <label class="emcd__label" for="emcd-new-curriculum">
+            New Curriculum <span class="emcd__required" aria-hidden="true">*</span>
+          </label>
+          <div class="emcd__select-wrap">
+            <select
+              id="emcd-new-curriculum"
+              class="emcd__select"
+              [(ngModel)]="newCurriculumCode"
+            >
+              <option value="">Select New Curriculum</option>
+              @for (option of newCurriculumOptions; track trackOption($index, option)) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+            <svg class="emcd__select-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        <div class="emcd__alert" role="note">
+          <svg class="emcd__alert-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.75"
+              d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <p class="emcd__alert-text">
+            <strong>Important:</strong> Curriculum migration will update the student's academic plan — ensure this action is authorized.
+          </p>
+        </div>
+      </div>
+
+      <footer class="emcd__footer">
+        <button type="button" class="emcd__btn emcd__btn--cancel" (click)="onCancel()">Cancel</button>
+      </footer>
+    </div>
+  </div>
+}

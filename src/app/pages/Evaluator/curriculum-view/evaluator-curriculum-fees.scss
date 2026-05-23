@@ -1,0 +1,434 @@
+/* Fees & Charges — tuition fees toolbar, table, action icons */
+.curriculum-view__fees-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.curriculum-view__tabs-bar--fee-sub {
+  margin-bottom: 1.5rem;
+}
+
+.curriculum-view__fees-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.curriculum-view__fees-toolbar-search {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+
+.curriculum-view__fees-add-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5625rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.25);
+
+  &:hover {
+    background: #1d4ed8;
+  }
+}
+
+.curriculum-view__table--school-fees {
+  min-width: 58rem;
+
+  thead th {
+    padding: 1rem 0.875rem;
+    vertical-align: bottom;
+    line-height: 1.35;
+  }
+
+  tbody td {
+    padding: 1.25rem 0.875rem;
+  }
+
+  .curriculum-view__th-syid {
+    min-width: 5.5rem;
+  }
+
+  .curriculum-view__th-batch {
+    min-width: 4.5rem;
+  }
+
+  .curriculum-view__th-semester {
+    min-width: 5rem;
+  }
+
+  .curriculum-view__th-school-fee {
+    min-width: 10rem;
+  }
+
+  .curriculum-view__th-cash {
+    min-width: 7.5rem;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .curriculum-view__th-payment {
+    min-width: 10.5rem;
+    max-width: none;
+    white-space: normal;
+    word-break: break-word;
+    text-align: center;
+  }
+
+  .curriculum-view__th-actions {
+    min-width: 6.5rem;
+    white-space: nowrap;
+    text-align: center;
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+  }
+
+  .curriculum-view__td-cash {
+    min-width: 7.5rem;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .curriculum-view__td-payment {
+    min-width: 10.5rem;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .curriculum-view__td-actions {
+    min-width: 6.5rem;
+    white-space: nowrap;
+    text-align: center;
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+    vertical-align: middle;
+  }
+}
+
+.curriculum-view__table--miscellaneous-fees {
+  min-width: 62rem;
+
+  thead th {
+    padding: 1rem 0.875rem;
+    vertical-align: bottom;
+    line-height: 1.35;
+  }
+
+  tbody td {
+    padding: 1.25rem 0.875rem;
+  }
+
+  .curriculum-view__th-syid {
+    min-width: 5.5rem;
+  }
+
+  .curriculum-view__th-batch {
+    min-width: 4.5rem;
+  }
+
+  .curriculum-view__th-semester {
+    min-width: 5rem;
+  }
+
+  .curriculum-view__th-misc-fee {
+    min-width: 11rem;
+  }
+
+  .curriculum-view__th-cash {
+    min-width: 7.5rem;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .curriculum-view__th-payment {
+    min-width: 10.5rem;
+    max-width: none;
+    white-space: normal;
+    word-break: break-word;
+    text-align: center;
+  }
+
+  .curriculum-view__th-actions {
+    min-width: 6.5rem;
+    white-space: nowrap;
+    text-align: center;
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+  }
+
+  .curriculum-view__td-cash {
+    min-width: 7.5rem;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .curriculum-view__td-payment {
+    min-width: 10.5rem;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .curriculum-view__td-actions {
+    min-width: 6.5rem;
+    white-space: nowrap;
+    text-align: center;
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+    vertical-align: middle;
+  }
+}
+
+.curriculum-view__table--downpayments {
+  min-width: 68rem;
+
+  thead th {
+    padding: 1rem 0.875rem;
+    vertical-align: bottom;
+    line-height: 1.35;
+  }
+
+  tbody td {
+    padding: 1.25rem 0.875rem;
+  }
+
+  .curriculum-view__th-program-code {
+    min-width: 7rem;
+  }
+
+  .curriculum-view__th-program-title {
+    min-width: 14rem;
+  }
+
+  .curriculum-view__th-batch,
+  .curriculum-view__th-downpayment-pct,
+  .curriculum-view__th-effective-sy,
+  .curriculum-view__th-last-updated,
+  .curriculum-view__th-actions {
+    text-align: center;
+  }
+
+  .curriculum-view__th-batch {
+    min-width: 4.5rem;
+  }
+
+  .curriculum-view__th-downpayment-pct {
+    min-width: 8rem;
+  }
+
+  .curriculum-view__th-effective-sy {
+    min-width: 10rem;
+  }
+
+  .curriculum-view__th-last-updated {
+    min-width: 9rem;
+  }
+
+  .curriculum-view__th-actions {
+    min-width: 6.5rem;
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+  }
+
+  .curriculum-view__td-program-title {
+    min-width: 14rem;
+    line-height: 1.45;
+  }
+
+  .curriculum-view__td-center {
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .curriculum-view__td-actions {
+    min-width: 6.5rem;
+    text-align: center;
+    vertical-align: middle;
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+  }
+}
+
+.curriculum-view__fee-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.28rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.curriculum-view__fee-pill--percent {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.curriculum-view__fee-pill--sy {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.curriculum-view__fee-action--view {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.curriculum-view__table--tuition-fees,
+.curriculum-view__table--school-fees,
+.curriculum-view__table--miscellaneous-fees,
+.curriculum-view__table--downpayments {
+  .curriculum-view__th-actions {
+    text-align: center;
+  }
+
+  .curriculum-view__td-actions .curriculum-view__fee-actions {
+    display: flex;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+  }
+}
+
+.curriculum-view__fees-add-btn--readonly {
+  cursor: default;
+  pointer-events: none;
+}
+
+.curriculum-view__table--tuition-fees {
+  min-width: 72rem;
+
+  thead th {
+    padding: 1rem 0.875rem;
+    vertical-align: bottom;
+    line-height: 1.35;
+  }
+
+  tbody td {
+    padding: 1.25rem 0.875rem;
+  }
+
+  .curriculum-view__th-syid {
+    min-width: 5.5rem;
+  }
+
+  .curriculum-view__th-batch {
+    min-width: 4.5rem;
+  }
+
+  .curriculum-view__th-semester {
+    min-width: 5rem;
+  }
+
+  .curriculum-view__th-cash {
+    min-width: 6.5rem;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .curriculum-view__th-payment {
+    min-width: 10.5rem;
+    max-width: none;
+    white-space: normal;
+    word-break: break-word;
+    text-align: center;
+  }
+
+  .curriculum-view__th-actions {
+    min-width: 6.5rem;
+    white-space: nowrap;
+    text-align: center;
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+  }
+
+  .curriculum-view__td-units {
+    text-align: left;
+  }
+
+  .curriculum-view__td-cash {
+    min-width: 6.5rem;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .curriculum-view__td-payment {
+    min-width: 10.5rem;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .curriculum-view__td-actions {
+    min-width: 6.5rem;
+    white-space: nowrap;
+    text-align: center;
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+    vertical-align: middle;
+  }
+}
+
+.curriculum-view__fee-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.curriculum-view__fee-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+.curriculum-view__fee-action--edit {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.curriculum-view__fee-action--delete {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.curriculum-view__fees-placeholder {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.9375rem;
+  background: #fff;
+  border: 1px solid #e8ecf1;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(13, 32, 79, 0.08);
+}

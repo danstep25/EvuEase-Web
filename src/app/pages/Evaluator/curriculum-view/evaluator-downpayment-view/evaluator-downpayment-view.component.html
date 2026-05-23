@@ -1,0 +1,67 @@
+@if (isOpen && downpayment) {
+  <div
+    class="curriculum-view__downpayment-view-overlay"
+    role="presentation"
+    (click)="onBackdropClick()"
+    (keydown.escape)="onClose()"
+  >
+    <div
+      class="curriculum-view__downpayment-view-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="eval-downpayment-view-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="curriculum-view__downpayment-view-head">
+        <div class="curriculum-view__downpayment-view-head-text">
+          <h2 id="eval-downpayment-view-title" class="curriculum-view__downpayment-view-title">
+            Downpayment Change History
+          </h2>
+          <p class="curriculum-view__downpayment-view-subtitle">{{ programSubtitle }}</p>
+        </div>
+        <button type="button" class="curriculum-view__downpayment-view-close" (click)="onClose()" aria-label="Close">
+          ×
+        </button>
+      </header>
+
+      @if (historyRows.length === 0) {
+        <p class="curriculum-view__downpayment-view-empty">No history records for this program.</p>
+      } @else {
+        <div class="curriculum-view__downpayment-view-table-wrap">
+          <table class="curriculum-view__downpayment-view-table">
+            <thead>
+              <tr>
+                <th scope="col">Percentage</th>
+                <th scope="col">Effective school year</th>
+                <th scope="col">Updated by</th>
+                <th scope="col">Date modified</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of historyRows; track row.id) {
+                <tr>
+                  <td>
+                    <span class="curriculum-view__fee-pill curriculum-view__fee-pill--percent">
+                      {{ formatPercent(row.downpaymentPercent) }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="curriculum-view__fee-pill curriculum-view__fee-pill--sy">
+                      {{ row.effectiveSchoolYear }}
+                    </span>
+                  </td>
+                  <td class="curriculum-view__downpayment-view-user">{{ row.updatedBy }}</td>
+                  <td class="curriculum-view__downpayment-view-date">{{ formatHistoryDate(row.dateModified) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <footer class="curriculum-view__downpayment-view-footer">
+        <button type="button" class="curriculum-view__downpayment-view-close-btn" (click)="onClose()">Close</button>
+      </footer>
+    </div>
+  </div>
+}

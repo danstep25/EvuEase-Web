@@ -90,7 +90,7 @@ export const EVALUATOR_NAV_MENU: NavItem[] = [
   {
     label: 'Curriculum',
     route: 'curriculum',
-    icon: 'briefcase',
+    icon: 'book',
     module: 'curriculum',
     roles: ['Evaluator']
   },
@@ -104,14 +104,14 @@ export const EVALUATOR_NAV_MENU: NavItem[] = [
   {
     label: 'Subject Evaluation',
     route: 'subject-evaluation',
-    icon: 'people',
+    icon: 'person-add',
     module: 'evaluation',
     roles: ['Evaluator']
   },
   {
     label: 'Credit Subjects',
     route: 'credit-subjects',
-    icon: 'people',
+    icon: 'verified',
     module: 'credit-subjects',
     roles: ['Evaluator']
   },

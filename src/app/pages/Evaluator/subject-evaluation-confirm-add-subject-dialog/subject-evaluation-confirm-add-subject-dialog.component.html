@@ -1,0 +1,33 @@
+@if (isOpen) {
+  <div
+    class="se-confirm-add__overlay"
+    role="presentation"
+    (click)="onBackdropClick()"
+    (keydown.escape)="onCancel()"
+  >
+    <div
+      class="se-confirm-add__dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="se-confirm-add-title"
+      aria-describedby="se-confirm-add-message"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="se-confirm-add-title" class="se-confirm-add__title">Confirm Add Subject</h2>
+
+      <p id="se-confirm-add-message" class="se-confirm-add__message">
+        Are you sure you want to add <strong class="se-confirm-add__code">{{ courseCode }}</strong> to the
+        student&rsquo;s load?
+      </p>
+
+      <footer class="se-confirm-add__footer">
+        <button type="button" class="se-confirm-add__btn se-confirm-add__btn--cancel" (click)="onCancel()">
+          Cancel
+        </button>
+        <button type="button" class="se-confirm-add__btn se-confirm-add__btn--confirm" (click)="onConfirm()">
+          Confirm
+        </button>
+      </footer>
+    </div>
+  </div>
+}

@@ -1,0 +1,223 @@
+:host {
+  display: contents;
+}
+
+.curriculum-view__tuition-edit-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(15, 23, 42, 0.55);
+  box-sizing: border-box;
+}
+
+.curriculum-view__tuition-edit-dialog {
+  width: 100%;
+  max-width: 42rem;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 20px 40px rgba(13, 32, 79, 0.18);
+  box-sizing: border-box;
+}
+
+.curriculum-view__tuition-edit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e8ecf1;
+
+  &--close-only {
+    justify-content: flex-end;
+    border-bottom: none;
+    padding-bottom: 0.25rem;
+  }
+}
+
+.curriculum-view__tuition-edit-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.3;
+}
+
+.curriculum-view__tuition-edit-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  &:hover {
+    color: #4b5563;
+    background: #f3f4f6;
+  }
+}
+
+.curriculum-view__tuition-edit-form {
+  padding: 1.25rem 1.5rem 1.5rem;
+
+  &--add {
+    padding-top: 0;
+  }
+}
+
+.curriculum-view__tuition-edit-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  &--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  &--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.curriculum-view__tuition-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.curriculum-view__tuition-edit-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.3;
+}
+
+.curriculum-view__tuition-edit-required {
+  color: #dc2626;
+}
+
+.curriculum-view__tuition-edit-input,
+.curriculum-view__tuition-edit-select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5625rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: #111827;
+  box-sizing: border-box;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:focus {
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
+  }
+}
+
+.curriculum-view__tuition-edit-select-wrap {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    width: 0;
+    height: 0;
+    margin-top: -2px;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #9ca3af;
+    pointer-events: none;
+  }
+}
+
+.curriculum-view__tuition-edit-select {
+  padding-right: 2.25rem;
+  appearance: none;
+  cursor: pointer;
+}
+
+.curriculum-view__tuition-edit-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e8ecf1;
+}
+
+.curriculum-view__tuition-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.25;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.curriculum-view__tuition-edit-btn--cancel {
+  background: #e5e7eb;
+  color: #374151;
+
+  &:hover {
+    background: #d1d5db;
+  }
+}
+
+.curriculum-view__tuition-edit-btn--submit {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.25);
+
+  &:hover {
+    background: #1d4ed8;
+  }
+}
+
+@media (max-width: 768px) {
+  .curriculum-view__tuition-edit-overlay {
+    padding: 1rem;
+    align-items: flex-end;
+  }
+
+  .curriculum-view__tuition-edit-dialog {
+    max-height: calc(100vh - 2rem);
+  }
+
+  .curriculum-view__tuition-edit-row--2,
+  .curriculum-view__tuition-edit-row--3 {
+    grid-template-columns: 1fr;
+  }
+}

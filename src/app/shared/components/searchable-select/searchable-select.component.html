@@ -1,0 +1,110 @@
+<div
+  class="searchable-select"
+  [class.searchable-select--open]="isOpen"
+  [class.searchable-select--loading]="isLoading"
+  [class.searchable-select--no-search]="hideSearchIcon"
+>
+  @if (label) {
+    <label class="searchable-select__label" [attr.id]="labelId" [attr.for]="inputId">{{ label }}</label>
+  }
+
+  <div class="searchable-select__control-wrap">
+    <div
+      class="searchable-select__control"
+      role="combobox"
+      [attr.aria-expanded]="isOpen"
+      [attr.aria-controls]="listboxId"
+      [attr.aria-labelledby]="label ? labelId : ariaLabelledBy"
+      aria-haspopup="listbox"
+      [attr.aria-busy]="isLoading"
+    >
+      @if (!hideSearchIcon) {
+        <span class="searchable-select__icon-search" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3.5-3.5" />
+          </svg>
+        </span>
+      }
+
+      <input
+        #filterInput
+        type="text"
+        class="searchable-select__input"
+        [id]="inputId"
+        [placeholder]="placeholder"
+        [(ngModel)]="searchText"
+        (focus)="onInputFocus()"
+        (input)="onInputInput()"
+        [attr.aria-controls]="listboxId"
+        autocomplete="off"
+        [disabled]="isLoading"
+      />
+
+      @if (selectedOption && !isOpen) {
+        <button
+          type="button"
+          class="searchable-select__clear"
+          (click)="clearSelection($event)"
+          aria-label="Clear selection"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      }
+
+      <button
+        type="button"
+        class="searchable-select__chevron"
+        (click)="onChevronClick($event)"
+        [attr.aria-label]="isOpen ? 'Close list' : 'Open list'"
+        tabindex="-1"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+    </div>
+
+    @if (isOpen) {
+      <ul
+        class="searchable-select__panel"
+        [class.searchable-select__panel--above]="panelPlacement === 'above'"
+        role="listbox"
+        [id]="listboxId"
+        [attr.aria-label]="label || 'Options'"
+      >
+        @if (isLoading) {
+          <li class="searchable-select__state" role="presentation">Loading…</li>
+        } @else {
+          @if (listHeading) {
+            <li class="searchable-select__list-heading" role="presentation">{{ listHeading }}</li>
+          }
+          @if (filteredOptions.length === 0) {
+            <li class="searchable-select__state" role="presentation">{{ emptyText }}</li>
+          } @else {
+            @for (opt of filteredOptions; track trackById($index, opt)) {
+              <li role="option" [attr.aria-selected]="opt.id === selectedId">
+                <button
+                  type="button"
+                  class="searchable-select__option"
+                  (click)="selectOption(opt, $event)"
+                >
+                  @if (optionDisplayInline) {
+                    <span class="searchable-select__option-inline">{{ getOptionLabel(opt) }}</span>
+                  } @else {
+                    <span class="searchable-select__option-primary">{{ opt.primary }}</span>
+                    @if (opt.secondary) {
+                      <span class="searchable-select__option-secondary">{{ opt.secondary }}</span>
+                    }
+                  }
+                </button>
+              </li>
+            }
+          }
+        }
+      </ul>
+    }
+  </div>
+</div>

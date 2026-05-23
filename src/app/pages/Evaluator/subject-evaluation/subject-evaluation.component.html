@@ -1,0 +1,467 @@
+<div class="evaluator-page subject-evaluation">
+  <header class="evaluator-page__header subject-evaluation__header">
+    <h1 class="evaluator-page__title subject-evaluation__title">{{ pageTitle }}</h1>
+    <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
+  </header>
+
+  @if (showFullAcademicRecords) {
+    <app-evaluator-academic-records-view
+      [studentOptions]="academicRecordsStudentOptions"
+      [selectedStudentId]="selectedStudentId"
+      (selectedStudentIdChange)="selectedStudentId = $event"
+      [showBackLink]="true"
+      (back)="onCloseFullAcademicRecords()"
+    />
+  } @else {
+  <section class="evaluator-surface subject-evaluation__card subject-evaluation__card--term" aria-labelledby="se-term-heading">
+    <h2 id="se-term-heading" class="subject-evaluation__card-title">Upcoming Term Information</h2>
+    <div class="subject-evaluation__term-grid">
+      <div class="subject-evaluation__term-item">
+        <span class="subject-evaluation__term-label">School Year &amp; Term</span>
+        <span class="subject-evaluation__term-value">{{ upcomingTerm.schoolYearTerm }}</span>
+      </div>
+      <div class="subject-evaluation__term-item">
+        <span class="subject-evaluation__term-label">Enrollment Period</span>
+        <span class="subject-evaluation__term-value">{{ upcomingTerm.enrollmentPeriod }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="evaluator-surface subject-evaluation__card subject-evaluation__card--workflow">
+    <div class="subject-evaluation__stepper" aria-label="Subject evaluation progress">
+      <div class="subject-evaluation__stepper-track">
+        @for (item of steps; track item.step; let last = $last) {
+          <div
+            class="subject-evaluation__step"
+            [class.subject-evaluation__step--active]="isStepActive(item.step)"
+            [class.subject-evaluation__step--completed]="isStepCompleted(item.step)"
+          >
+            <div
+              class="subject-evaluation__step-circle"
+              [attr.aria-current]="isStepActive(item.step) ? 'step' : null"
+            >
+              @if (isStepCompleted(item.step)) {
+                <svg class="subject-evaluation__step-check" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2.5"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              } @else {
+                {{ item.step }}
+              }
+            </div>
+            <span class="subject-evaluation__step-label">{{ item.label }}</span>
+          </div>
+          @if (!last) {
+            <div
+              class="subject-evaluation__rail"
+              [class.subject-evaluation__rail--completed]="isRailCompleted(item.step)"
+              aria-hidden="true"
+            ></div>
+          }
+        }
+      </div>
+    </div>
+
+    @if (showStudentSummaryOnWorkflow) {
+      <div
+        class="subject-evaluation__student-summary subject-evaluation__student-summary--workflow"
+        role="region"
+        aria-live="polite"
+        [attr.aria-label]="'Selected student information'"
+      >
+        <div class="subject-evaluation__student-summary-item">
+          <span class="subject-evaluation__student-summary-label">Student</span>
+          <span class="subject-evaluation__student-summary-value">{{ selectedStudentSummary!.studentName }}</span>
+        </div>
+        <div class="subject-evaluation__student-summary-item">
+          <span class="subject-evaluation__student-summary-label">Program &amp; Year Level</span>
+          <span class="subject-evaluation__student-summary-value">{{ selectedStudentSummary!.programYearLevel }}</span>
+        </div>
+        <div class="subject-evaluation__student-summary-item">
+          <span class="subject-evaluation__student-summary-label">Curriculum</span>
+          <span class="subject-evaluation__student-summary-value">{{ selectedStudentSummary!.curriculum }}</span>
+        </div>
+      </div>
+    }
+
+    @if (currentStep === 1) {
+      <div class="subject-evaluation__panel">
+        <h3 class="subject-evaluation__section-title">Search and Select Student</h3>
+
+        <div class="subject-evaluation__filters">
+          <div class="subject-evaluation__field">
+            <label class="subject-evaluation__label" for="se-filter-program">Filter by Program</label>
+            <select
+              id="se-filter-program"
+              class="subject-evaluation__select"
+              [ngModel]="programFilter"
+              (ngModelChange)="onProgramFilterChange($event)"
+            >
+              @for (option of programFilterOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="subject-evaluation__field">
+            <label class="subject-evaluation__label" for="se-filter-year">Filter by Year Level</label>
+            <select
+              id="se-filter-year"
+              class="subject-evaluation__select"
+              [ngModel]="yearLevelFilter"
+              (ngModelChange)="onYearLevelFilterChange($event)"
+            >
+              @for (option of yearLevelFilterOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="subject-evaluation__student-field">
+          <span class="subject-evaluation__label" id="se-student-lbl">
+            Student <span class="subject-evaluation__req" aria-hidden="true">*</span>
+          </span>
+          <app-searchable-select
+            [options]="studentOptions"
+            [hideSearchIcon]="false"
+            ariaLabelledBy="se-student-lbl"
+            placeholder="Type to search or click to select..."
+            emptyText="No students match your search."
+            [selectedId]="selectedStudentId"
+            (selectedIdChange)="selectedStudentId = $event"
+          />
+        </div>
+
+        @if (selectedStudentSummary) {
+          <div
+            class="subject-evaluation__student-summary"
+            role="region"
+            aria-live="polite"
+            [attr.aria-label]="'Selected student information'"
+          >
+            <div class="subject-evaluation__student-summary-item">
+              <span class="subject-evaluation__student-summary-label">Student</span>
+              <span class="subject-evaluation__student-summary-value">{{ selectedStudentSummary.studentName }}</span>
+            </div>
+            <div class="subject-evaluation__student-summary-item">
+              <span class="subject-evaluation__student-summary-label">Program &amp; Year Level</span>
+              <span class="subject-evaluation__student-summary-value">{{ selectedStudentSummary.programYearLevel }}</span>
+            </div>
+            <div class="subject-evaluation__student-summary-item">
+              <span class="subject-evaluation__student-summary-label">Curriculum</span>
+              <span class="subject-evaluation__student-summary-value">{{ selectedStudentSummary.curriculum }}</span>
+            </div>
+          </div>
+        }
+
+        <div class="subject-evaluation__actions" [class.subject-evaluation__actions--with-summary]="!!selectedStudentSummary">
+          <button type="button" class="subject-evaluation__btn subject-evaluation__btn--cancel" (click)="onCancel()">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="subject-evaluation__btn subject-evaluation__btn--next"
+            [disabled]="!canProceedFromStep1"
+            (click)="onNext()"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    } @else if (currentStep === 2) {
+      <div class="subject-evaluation__panel subject-evaluation__panel--finished">
+        <div class="subject-evaluation__finished-header">
+          <h3 class="subject-evaluation__section-title">Finished Subjects Review</h3>
+          <button
+            type="button"
+            class="subject-evaluation__records-btn"
+            (click)="onViewFullAcademicRecords()"
+          >
+            View Full Academic Records
+            <svg class="subject-evaluation__records-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.75"
+                d="M13.5 4.5H19.5V10.5M19.5 4.5L10.5 13.5M10.5 6H6.75A2.25 2.25 0 004.5 8.25v9A2.25 2.25 0 006.75 19.5h9a2.25 2.25 0 002.25-2.25V13.5"
+              />
+            </svg>
+          </button>
+        </div>
+
+        @if (hasFinishedSubjects) {
+          <div class="subject-evaluation__finished-table-wrap">
+              <table class="subject-evaluation__finished-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Course Code</th>
+                    <th scope="col">Subject Description</th>
+                    <th scope="col">Pre-requisite(s)</th>
+                    <th scope="col">Units</th>
+                    <th scope="col">Grade</th>
+                    <th scope="col">Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of finishedSubjectsForStudent; track row.courseCode) {
+                    <tr>
+                      <td class="subject-evaluation__finished-cell-strong">{{ row.courseCode }}</td>
+                      <td>{{ row.subjectDescription }}</td>
+                      <td class="subject-evaluation__finished-prereq">
+                        @if (isPrerequisiteItalic(row.prerequisite)) {
+                          <em>{{ row.prerequisite }}</em>
+                        } @else {
+                          {{ row.prerequisite }}
+                        }
+                      </td>
+                      <td>{{ row.units }}</td>
+                      <td class="subject-evaluation__finished-grade">{{ row.grade }}</td>
+                      <td>
+                        <span
+                          class="subject-evaluation__remarks-pill"
+                          [class.subject-evaluation__remarks-pill--failed]="row.remarks === 'Failed'"
+                        >
+                          {{ row.remarks }}
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+          </div>
+        } @else {
+          <p class="subject-evaluation__finished-empty">No previous grades found for this student.</p>
+        }
+
+        <div class="subject-evaluation__actions subject-evaluation__actions--step-nav">
+          <div class="subject-evaluation__actions-start">
+            <button type="button" class="subject-evaluation__btn subject-evaluation__btn--previous" (click)="onBack()">
+              <svg class="subject-evaluation__btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              Previous
+            </button>
+            <button type="button" class="subject-evaluation__btn subject-evaluation__btn--cancel" (click)="onCancel()">
+              Cancel
+            </button>
+          </div>
+          <button type="button" class="subject-evaluation__btn subject-evaluation__btn--next" (click)="onNext()">
+            Next
+          </button>
+        </div>
+      </div>
+    } @else if (currentStep === 3) {
+      <div class="subject-evaluation__panel subject-evaluation__panel--selection">
+        <div class="subject-evaluation__selection-header">
+          <h3 class="subject-evaluation__section-title">Eligible Subjects for Next Term</h3>
+          <button type="button" class="subject-evaluation__add-subject-btn" (click)="onOpenAddSubjectDialog()">
+            <svg class="subject-evaluation__add-subject-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14" />
+            </svg>
+            Add Subject
+          </button>
+        </div>
+
+        <div class="subject-evaluation__units-summary">
+          <div class="subject-evaluation__units-item">
+            <span class="subject-evaluation__units-label">Regular Units for Next Term</span>
+            <span class="subject-evaluation__units-value">{{ subjectSelectionUnitsSummary.regularUnitsForNextTerm }} units</span>
+          </div>
+          <div class="subject-evaluation__units-item">
+            <span class="subject-evaluation__units-label">Total Units Selected</span>
+            <span class="subject-evaluation__units-value">
+              {{ subjectSelectionUnitsSummary.totalUnitsSelected }} units
+            </span>
+          </div>
+          @if (subjectSelectionExceedsLimit) {
+            <div class="subject-evaluation__units-warning" role="alert">
+              <svg class="subject-evaluation__units-warning-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.75"
+                  d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Exceeds limit!
+            </div>
+          }
+        </div>
+
+        <section class="subject-evaluation__suggested" aria-labelledby="se-suggested-heading">
+          <div class="subject-evaluation__suggested-header">
+            <h4 id="se-suggested-heading" class="subject-evaluation__suggested-title">Suggested New Subjects</h4>
+            <div class="subject-evaluation__view-toggle" role="group" aria-label="Suggested subjects view">
+              <button
+                type="button"
+                class="subject-evaluation__view-btn"
+                [class.subject-evaluation__view-btn--active]="subjectSelectionViewMode === 'current'"
+                (click)="setSubjectSelectionViewMode('current')"
+              >
+                <svg class="subject-evaluation__view-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.75"
+                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                Show Current
+              </button>
+              <button
+                type="button"
+                class="subject-evaluation__view-btn"
+                [class.subject-evaluation__view-btn--active]="subjectSelectionViewMode === 'all'"
+                (click)="setSubjectSelectionViewMode('all')"
+              >
+                <svg class="subject-evaluation__view-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.75"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+                Show All
+              </button>
+            </div>
+          </div>
+
+          @if (hasSuggestedSubjectsForView) {
+            <div class="subject-evaluation__suggested-table-wrap">
+              <table class="subject-evaluation__suggested-table">
+                <thead>
+                  <tr>
+                    <th scope="col" class="subject-evaluation__suggested-th--center">Course Code</th>
+                    <th scope="col">Subject Description</th>
+                    <th scope="col" class="subject-evaluation__suggested-th--center">Pre-requisite(s)</th>
+                    <th scope="col" class="subject-evaluation__suggested-th--center">Units</th>
+                    <th scope="col" class="subject-evaluation__suggested-th--center">Component</th>
+                    <th scope="col" class="subject-evaluation__suggested-th--center">Year - Term</th>
+                    <th scope="col" class="subject-evaluation__suggested-th--center">Select</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of suggestedSubjectsForView; track trackSuggestedSubject($index, row)) {
+                    <tr>
+                      <td class="subject-evaluation__suggested-cell-code">{{ row.courseCode }}</td>
+                      <td class="subject-evaluation__suggested-cell-desc">{{ row.subjectDescription }}</td>
+                      <td class="subject-evaluation__suggested-prereq">
+                        @if (isPrerequisiteNone(row.prerequisite)) {
+                          <em>{{ row.prerequisite }}</em>
+                        } @else {
+                          {{ row.prerequisite }}
+                        }
+                      </td>
+                      <td class="subject-evaluation__suggested-units">{{ row.units }}</td>
+                      <td class="subject-evaluation__suggested-component">{{ row.component }}</td>
+                      <td class="subject-evaluation__suggested-year-term">{{ row.yearTerm }}</td>
+                      <td class="subject-evaluation__suggested-select">
+                        <label class="subject-evaluation__suggested-checkbox-label">
+                          <input
+                            type="checkbox"
+                            class="subject-evaluation__suggested-checkbox"
+                            [checked]="isSuggestedSubjectSelected(row)"
+                            (change)="onSuggestedSubjectToggle(row, $any($event.target).checked)"
+                            [attr.aria-label]="'Select ' + row.courseCode"
+                          />
+                        </label>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else if (subjectSelectionViewMode === 'current') {
+            <p class="subject-evaluation__suggested-empty">
+              No courses available for the current term. Click &lsquo;Show All&rsquo; to view courses from other terms.
+            </p>
+          } @else {
+            <p class="subject-evaluation__suggested-empty">No suggested subjects available for this student.</p>
+          }
+        </section>
+
+        <div class="subject-evaluation__actions subject-evaluation__actions--step-nav">
+          <div class="subject-evaluation__actions-start">
+            <button type="button" class="subject-evaluation__btn subject-evaluation__btn--previous" (click)="onBack()">
+              <svg class="subject-evaluation__btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              Previous
+            </button>
+            <button type="button" class="subject-evaluation__btn subject-evaluation__btn--cancel" (click)="onCancel()">
+              Cancel
+            </button>
+          </div>
+          <button
+            type="button"
+            class="subject-evaluation__btn subject-evaluation__btn--next"
+            [disabled]="!canProceedFromStep3"
+            (click)="onNext()"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    } @else if (currentStep === 4) {
+      <div class="subject-evaluation__panel subject-evaluation__panel--charge-slip">
+        <app-subject-evaluation-charge-slip-preview [preview]="chargeSlipPreview" />
+
+        <div class="subject-evaluation__actions subject-evaluation__actions--step-nav">
+          <div class="subject-evaluation__actions-start">
+            <button type="button" class="subject-evaluation__btn subject-evaluation__btn--previous" (click)="onBack()">
+              <svg class="subject-evaluation__btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              Previous
+            </button>
+            <button type="button" class="subject-evaluation__btn subject-evaluation__btn--cancel" (click)="onCancel()">
+              Cancel
+            </button>
+          </div>
+          <button
+            type="button"
+            class="subject-evaluation__btn subject-evaluation__btn--print"
+            (click)="onPrintChargeSlip()"
+          >
+            <svg class="subject-evaluation__btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.75"
+                d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6v-8z"
+              />
+            </svg>
+            Print Charge Slip
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+  }
+
+  <app-subject-evaluation-add-subject-dialog
+    [isOpen]="showAddSubjectDialog"
+    [studentId]="selectedStudentId"
+    (closed)="onCloseAddSubjectDialog()"
+  />
+
+  <app-subject-evaluation-confirm-add-subject-dialog
+    [isOpen]="showConfirmAddSubjectDialog"
+    [courseCode]="confirmAddSubjectCourseCode"
+    (confirmed)="onConfirmAddSubjectDialog()"
+    (cancelled)="onCancelConfirmAddSubjectDialog()"
+  />
+
+  <button type="button" class="evaluator-help-fab" title="Help" aria-label="Help">?</button>
+</div>

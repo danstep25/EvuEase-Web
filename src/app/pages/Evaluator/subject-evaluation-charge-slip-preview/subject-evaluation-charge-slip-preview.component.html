@@ -1,0 +1,173 @@
+@if (preview) {
+  <article class="se-charge-slip" aria-label="Evaluation and charge slip preview">
+    <div class="se-charge-slip__document" id="se-charge-slip-print">
+      <h3 class="se-charge-slip__title">Evaluation and Charge Slip</h3>
+
+      <div class="se-charge-slip__student-grid">
+        <div class="se-charge-slip__student-col">
+          <p class="se-charge-slip__student-line">
+            <span class="se-charge-slip__student-label">STUDENT NAME:</span>
+            <span class="se-charge-slip__student-value se-charge-slip__student-value--underline">{{ preview.studentName }}</span>
+          </p>
+          <p class="se-charge-slip__student-line">
+            <span class="se-charge-slip__student-label">STUDENT ID:</span>
+            <span class="se-charge-slip__student-value se-charge-slip__student-value--underline">{{ preview.studentId }}</span>
+          </p>
+          <p class="se-charge-slip__student-line">
+            <span class="se-charge-slip__student-label">PROGRAM:</span>
+            <span class="se-charge-slip__student-value se-charge-slip__student-value--strong">{{ preview.program }}</span>
+          </p>
+        </div>
+        <div class="se-charge-slip__student-col se-charge-slip__student-col--right">
+          <p class="se-charge-slip__student-line">
+            <span class="se-charge-slip__student-label">Curriculum Version:</span>
+            <span class="se-charge-slip__student-value se-charge-slip__student-value--strong">{{ preview.curriculumVersion }}</span>
+          </p>
+          <p class="se-charge-slip__student-line">
+            <span class="se-charge-slip__student-label">Level/Term:</span>
+            <span class="se-charge-slip__student-value se-charge-slip__student-value--strong">{{ preview.levelTerm }}</span>
+          </p>
+        </div>
+      </div>
+
+      <table class="se-charge-slip__table se-charge-slip__table--tuition">
+        <thead>
+          <tr>
+            <th scope="col" class="se-charge-slip__th--num">#</th>
+            <th scope="col">Tuition Fee per Subject/Course</th>
+            <th scope="col" class="se-charge-slip__th--center">UNITS</th>
+            <th scope="col" class="se-charge-slip__th--center">Component</th>
+            <th scope="col" class="se-charge-slip__th--center">Curriculum Version</th>
+            <th scope="col" class="se-charge-slip__th--center">Level/Terms</th>
+            <th scope="col" class="se-charge-slip__th--amount">CASH</th>
+            <th scope="col" class="se-charge-slip__th--amount">LOW MONTHLY PAYMENT</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of preview.tuitionRows; track trackTuitionRow($index, row)) {
+            <tr>
+              <td class="se-charge-slip__td--center">{{ row.rowNumber }}</td>
+              <td>{{ row.subjectDescription }}</td>
+              <td class="se-charge-slip__td--center">{{ row.units }}</td>
+              <td class="se-charge-slip__td--center">{{ row.component }}</td>
+              <td class="se-charge-slip__td--center">{{ row.curriculumVersion }}</td>
+              <td class="se-charge-slip__td--center">{{ row.levelTerm }}</td>
+              <td class="se-charge-slip__td--amount">{{ row.cash }}</td>
+              <td class="se-charge-slip__td--amount">{{ row.lowMonthlyPayment }}</td>
+            </tr>
+          }
+          <tr class="se-charge-slip__total-row">
+            <td colspan="2" class="se-charge-slip__total-label">TOTAL TUITION FEES</td>
+            <td class="se-charge-slip__td--center se-charge-slip__total-value">{{ preview.totalTuitionUnits }}</td>
+            <td colspan="3"></td>
+            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalTuitionCash }}</td>
+            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalTuitionLowMonthly }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="se-charge-slip__table se-charge-slip__table--fees">
+        <thead>
+          <tr>
+            <th scope="col" class="se-charge-slip__th--label">OTHER SCHOOL FEES (OSF)</th>
+            <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
+            <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of preview.otherSchoolFees; track trackFeeRow($index, row)) {
+            <tr>
+              <td>{{ row.label }}</td>
+              <td class="se-charge-slip__td--amount">{{ row.cash }}</td>
+              <td class="se-charge-slip__td--amount">{{ row.lowMonthlyPayment }}</td>
+            </tr>
+          }
+          <tr class="se-charge-slip__total-row">
+            <td class="se-charge-slip__total-label">TOTAL OSF</td>
+            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalOsfCash }}</td>
+            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalOsfLowMonthly }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="se-charge-slip__table se-charge-slip__table--fees">
+        <thead>
+          <tr>
+            <th scope="col" class="se-charge-slip__th--label">Common Miscellaneous Fee (MF)</th>
+            <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
+            <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of preview.miscellaneousFees; track trackFeeRow($index, row)) {
+            <tr>
+              <td>{{ row.label }}</td>
+              <td class="se-charge-slip__td--amount">{{ row.cash }}</td>
+              <td class="se-charge-slip__td--amount">{{ row.lowMonthlyPayment }}</td>
+            </tr>
+          }
+          <tr class="se-charge-slip__total-row">
+            <td class="se-charge-slip__total-label">TOTAL MF</td>
+            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalMfCash }}</td>
+            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.totalMfLowMonthly }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="se-charge-slip__table se-charge-slip__table--gross">
+        <tbody>
+          <tr class="se-charge-slip__total-row">
+            <td class="se-charge-slip__total-label">Gross Assessment</td>
+            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.grossAssessmentCash }}</td>
+            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.grossAssessmentLowMonthly }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="se-charge-slip__table se-charge-slip__table--payment">
+        <thead>
+          <tr>
+            <th scope="col" class="se-charge-slip__th--label">Payment Scheme</th>
+            <th scope="col" class="se-charge-slip__th--spacer"></th>
+            <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
+            <th scope="col" class="se-charge-slip__th--amount">AMOUNT</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of preview.paymentScheme; track trackPaymentRow($index, row)) {
+            <tr>
+              <td>{{ row.label }}</td>
+              <td class="se-charge-slip__td--spacer"></td>
+              <td class="se-charge-slip__td--amount">{{ row.cash }}</td>
+              <td class="se-charge-slip__td--amount">{{ row.lowMonthlyPayment }}</td>
+            </tr>
+          }
+          <tr class="se-charge-slip__total-row">
+            <td class="se-charge-slip__total-label">Total Amount</td>
+            <td class="se-charge-slip__td--spacer"></td>
+            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.paymentTotalCash }}</td>
+            <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.paymentTotalLowMonthly }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="se-charge-slip__footer-grid">
+        <div class="se-charge-slip__signature">
+          <p class="se-charge-slip__signature-line">
+            <span class="se-charge-slip__signature-label">Advised by:</span>
+            <span class="se-charge-slip__signature-rule" aria-hidden="true"></span>
+          </p>
+          <p class="se-charge-slip__signature-caption">Name &amp; Signature</p>
+          <p class="se-charge-slip__signature-line se-charge-slip__signature-line--date">
+            <span class="se-charge-slip__signature-label">Date:</span>
+            <span class="se-charge-slip__signature-rule se-charge-slip__signature-rule--short" aria-hidden="true"></span>
+          </p>
+        </div>
+        <aside class="se-charge-slip__disclaimer" aria-label="Disclaimer">
+          <h4 class="se-charge-slip__disclaimer-title">Disclaimer</h4>
+          <p class="se-charge-slip__disclaimer-text">{{ disclaimerText }}</p>
+        </aside>
+      </div>
+    </div>
+  </article>
+}

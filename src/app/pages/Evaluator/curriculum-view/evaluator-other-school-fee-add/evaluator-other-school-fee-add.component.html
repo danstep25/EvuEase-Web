@@ -1,0 +1,127 @@
+@if (isOpen) {
+  <div
+    class="curriculum-view__tuition-edit-overlay"
+    role="presentation"
+    (click)="onBackdropClick()"
+    (keydown.escape)="onClose()"
+  >
+    <div
+      class="curriculum-view__tuition-edit-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Add Other School Fee"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="curriculum-view__tuition-edit-header curriculum-view__tuition-edit-header--close-only">
+        <button type="button" class="curriculum-view__tuition-edit-close" (click)="onClose()" aria-label="Close">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </header>
+
+      <form
+        class="curriculum-view__tuition-edit-form curriculum-view__tuition-edit-form--add"
+        [formGroup]="addForm"
+        (ngSubmit)="onSubmit()"
+      >
+        <div class="curriculum-view__tuition-edit-row curriculum-view__tuition-edit-row--2">
+          <div class="curriculum-view__tuition-edit-field">
+            <label class="curriculum-view__tuition-edit-label" for="eval-school-fee-add-syid">
+              School Year ID <span class="curriculum-view__tuition-edit-required">*</span>
+            </label>
+            <div class="curriculum-view__tuition-edit-select-wrap">
+              <select id="eval-school-fee-add-syid" class="curriculum-view__tuition-edit-select" formControlName="syId">
+                @for (opt of schoolYearOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="curriculum-view__tuition-edit-field">
+            <label class="curriculum-view__tuition-edit-label" for="eval-school-fee-add-batch">
+              Batch <span class="curriculum-view__tuition-edit-required">*</span>
+            </label>
+            <div class="curriculum-view__tuition-edit-select-wrap">
+              <select id="eval-school-fee-add-batch" class="curriculum-view__tuition-edit-select" formControlName="batch">
+                @for (batch of batchOptions; track batch) {
+                  <option [value]="batch">{{ batch }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="curriculum-view__tuition-edit-row">
+          <div class="curriculum-view__tuition-edit-field">
+            <label class="curriculum-view__tuition-edit-label" for="eval-school-fee-add-semester">
+              Semester <span class="curriculum-view__tuition-edit-required">*</span>
+            </label>
+            <div class="curriculum-view__tuition-edit-select-wrap">
+              <select id="eval-school-fee-add-semester" class="curriculum-view__tuition-edit-select" formControlName="semester">
+                @for (sem of semesterOptions; track sem) {
+                  <option [value]="sem">{{ sem }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="curriculum-view__tuition-edit-row">
+          <div class="curriculum-view__tuition-edit-field">
+            <label class="curriculum-view__tuition-edit-label" for="eval-school-fee-add-name">
+              School Fee Name <span class="curriculum-view__tuition-edit-required">*</span>
+            </label>
+            <input
+              id="eval-school-fee-add-name"
+              type="text"
+              class="curriculum-view__tuition-edit-input"
+              formControlName="schoolFee"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <div class="curriculum-view__tuition-edit-row curriculum-view__tuition-edit-row--2">
+          <div class="curriculum-view__tuition-edit-field">
+            <label class="curriculum-view__tuition-edit-label" for="eval-school-fee-add-cash">
+              Cash Amount <span class="curriculum-view__tuition-edit-required">*</span>
+            </label>
+            <input
+              id="eval-school-fee-add-cash"
+              type="number"
+              class="curriculum-view__tuition-edit-input"
+              formControlName="cash"
+              min="0"
+              step="1"
+            />
+          </div>
+
+          <div class="curriculum-view__tuition-edit-field">
+            <label class="curriculum-view__tuition-edit-label" for="eval-school-fee-add-low">
+              Low Monthly Payment <span class="curriculum-view__tuition-edit-required">*</span>
+            </label>
+            <input
+              id="eval-school-fee-add-low"
+              type="number"
+              class="curriculum-view__tuition-edit-input"
+              formControlName="lowMonthlyPayment"
+              min="0"
+              step="1"
+            />
+          </div>
+        </div>
+
+        <footer class="curriculum-view__tuition-edit-footer">
+          <button type="button" class="curriculum-view__tuition-edit-btn curriculum-view__tuition-edit-btn--cancel" (click)="onClose()">
+            Cancel
+          </button>
+          <button type="submit" class="curriculum-view__tuition-edit-btn curriculum-view__tuition-edit-btn--submit">
+            Add School Fee
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

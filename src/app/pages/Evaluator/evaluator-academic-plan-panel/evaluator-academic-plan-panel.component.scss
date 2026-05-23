@@ -1,0 +1,514 @@
+.eap {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.eap__status-section {
+  padding: 1.25rem 1.35rem 1.35rem;
+  border-radius: 8px;
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+}
+
+.eap__status-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.eap__status-head-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+.eap__status-title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #0d214f;
+}
+
+.eap__summary-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.125rem;
+}
+
+.eap__summary-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  background: #fff;
+  border: 1px solid #e8ecf1;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(13, 32, 79, 0.04);
+}
+
+.eap__summary-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+}
+
+.eap__summary-icon--required {
+  color: #2563eb;
+}
+
+.eap__summary-icon--completed {
+  color: #16a34a;
+}
+
+.eap__summary-icon--remaining {
+  color: #ea580c;
+}
+
+.eap__summary-text {
+  min-width: 0;
+}
+
+.eap__summary-label {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  line-height: 1.3;
+}
+
+.eap__summary-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0d214f;
+  line-height: 1.2;
+}
+
+.eap__summary-value--completed {
+  color: #16a34a;
+}
+
+.eap__summary-value--remaining {
+  color: #ea580c;
+}
+
+.eap__progress-labels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.45rem;
+}
+
+.eap__progress-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.eap__progress-percent {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0d214f;
+}
+
+.eap__progress-track {
+  height: 1.75rem;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.eap__progress-fill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.5rem;
+  height: 100%;
+  border-radius: 999px;
+  background: #16a34a;
+  transition: width 0.2s ease;
+}
+
+.eap__progress-fill-text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  padding: 0 0.5rem;
+}
+
+.eap__completion-card,
+.eap__plan-card,
+.eap__legend-card {
+  border: 1px solid #e8ecf1;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(13, 32, 79, 0.08);
+  background: #fff;
+}
+
+.eap__completion-card {
+  padding: 1.25rem 1.5rem 1.35rem;
+}
+
+.eap__completion-title {
+  margin: 0 0 1rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #0d214f;
+}
+
+.eap__completion-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+}
+
+.eap__completion-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  line-height: 1.4;
+}
+
+.eap__year-spinner {
+  display: inline-flex;
+  align-items: stretch;
+  border: 2px solid #16a34a;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.eap__year-spinner-input {
+  width: 4.5rem;
+  padding: 0.5rem 0.65rem;
+  border: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #0d214f;
+  text-align: center;
+  background: #fff;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.eap__year-spinner-input::-webkit-outer-spin-button,
+.eap__year-spinner-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.eap__year-spinner-input:focus {
+  outline: none;
+}
+
+.eap__year-spinner:focus-within {
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
+}
+
+.eap__year-spinner-controls {
+  display: flex;
+  flex-direction: column;
+  width: 1.65rem;
+  flex-shrink: 0;
+  border-left: 1px solid #9ca3af;
+  background: #4b5563;
+}
+
+.eap__year-spinner-btn {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.15rem;
+  padding: 0;
+  border: 0;
+  background: #4b5563;
+  color: #fff;
+  cursor: pointer;
+}
+
+.eap__year-spinner-btn svg {
+  width: 0.65rem;
+  height: 0.4rem;
+}
+
+.eap__year-spinner-btn:hover:not(:disabled) {
+  background: #374151;
+}
+
+.eap__year-spinner-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.eap__year-spinner-btn--up {
+  border-bottom: 1px solid #6b7280;
+}
+
+.eap__plan-card {
+  padding: 1.35rem 1.5rem 1.5rem;
+}
+
+.eap__plan-card-head {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.eap__plan-title-icon {
+  width: 1.35rem;
+  height: 1.35rem;
+  color: #16a34a;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.eap__plan-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #14532d;
+  line-height: 1.3;
+}
+
+.eap__plan-subtitle {
+  margin: 0.2rem 0 0;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.eap__terms {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.eap__term {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.eap__term--recommended {
+  border-color: #86efac;
+}
+
+.eap__term-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: #343a40;
+  color: #fff;
+}
+
+.eap__term--recommended .eap__term-header {
+  background: #16a34a;
+}
+
+.eap__term-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.eap__term-subtitle {
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  opacity: 0.92;
+  line-height: 1.3;
+}
+
+.eap__term-badge {
+  flex-shrink: 0;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #14532d;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.eap__term--recommended .eap__term-badge {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.eap__table-wrap {
+  overflow-x: auto;
+}
+
+.eap__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.eap__table thead th {
+  padding: 0.65rem 0.75rem;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #0d214f;
+  text-align: left;
+}
+
+.eap__table--recommended thead th {
+  background: #ecfdf5;
+  color: #14532d;
+  border-bottom-color: #bbf7d0;
+}
+
+.eap__table thead th:nth-child(4),
+.eap__table thead th:nth-child(5) {
+  text-align: center;
+}
+
+.eap__table tbody td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #eef1f5;
+  color: #374151;
+  vertical-align: middle;
+}
+
+.eap__table tbody tr:nth-child(even) td {
+  background: #fafbfc;
+}
+
+.eap__cell-code {
+  font-weight: 600;
+  color: #0d214f;
+}
+
+.eap__cell-center {
+  text-align: center;
+}
+
+.eap__cell-prereq em {
+  font-style: italic;
+  color: #9ca3af;
+}
+
+.eap__status {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.eap__status--available {
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+}
+
+.eap__status--pending {
+  color: #a16207;
+  background: #fffbeb;
+  border: 1px solid #fde047;
+}
+
+.eap__status--future {
+  color: #4b5563;
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+}
+
+.eap__table tfoot td {
+  padding: 0.65rem 0.75rem;
+  background: #f3f4f6;
+  border-top: 1px solid #e5e7eb;
+}
+
+.eap__total-label {
+  text-align: right;
+  font-weight: 700;
+  color: #0d214f;
+}
+
+.eap__total-value {
+  text-align: center;
+  font-weight: 700;
+  color: #0d214f;
+}
+
+.eap__legend-card {
+  padding: 1.125rem 1.25rem;
+}
+
+.eap__legend-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0d214f;
+}
+
+.eap__legend-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.eap__legend-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.eap__legend-desc {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.eap__empty {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.eap__empty--page {
+  padding: 0.5rem 0;
+}
+
+@media (max-width: 900px) {
+  .eap__summary-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .eap__completion-card,
+  .eap__plan-card,
+  .eap__legend-card {
+    padding: 1.125rem 1rem;
+  }
+
+  .eap__completion-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

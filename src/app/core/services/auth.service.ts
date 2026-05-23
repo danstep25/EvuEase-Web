@@ -1,12 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { BaseResponse } from '../models/base-response.model';
 import { LoginRequest, LoginResponseData, User } from '../models/user.model';
 import { API_URL } from '../../shared/constants/api.url.constant';
+import { resolveMockLogin } from '../../../mock-data/auth/mock-login-resolver';
 
 @Injectable({
   providedIn: 'root'
@@ -20,16 +21,17 @@ export class AuthService {
   readonly currentUser$ = this.currentUserSubject.asObservable();
 
   login(credentials: LoginRequest): Observable<BaseResponse<LoginResponseData>> {
-    return this.http.post<BaseResponse<LoginResponseData>>(
-      this.apiUrl,
-      credentials
-    ).pipe(
-      tap(response => {
+    const stream$ = environment.useMockAuth
+      ? of(resolveMockLogin(credentials))
+      : this.http.post<BaseResponse<LoginResponseData>>(this.apiUrl, credentials);
+
+    return stream$.pipe(
+      tap((response) => {
         if (response.success && response.data) {
           this.storeAuthData(response.data);
           const userId = this.extractUserIdFromToken(response.data.token);
           this.currentUserSubject.next({
-            id: userId || 0, 
+            id: userId || 0,
             email: response.data.email,
             name: response.data.name,
             role: response.data.role
