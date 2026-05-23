@@ -1,0 +1,82 @@
+/* Full padding override — avoids stacking with global `.evaluator-page { padding: 1.25rem }`. */
+.student-permanent-records.evaluator-page {
+  padding: 3.125rem 2rem 1.25rem;
+  max-width: none;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.student-permanent-records .evaluator-page__header {
+  margin-bottom: 1.875rem;
+}
+
+.student-permanent-records .evaluator-page__subtitle {
+  margin-top: 0.5rem;
+}
+
+.student-permanent-records__title {
+  color: #0d214f;
+}
+
+.student-permanent-records__card {
+  box-shadow: 0 1px 3px rgba(13, 32, 79, 0.08);
+  border: 1px solid #e8ecf1;
+  border-radius: 8px;
+  padding: 1.5625rem 1.5rem 1.5rem;
+  margin-bottom: 0;
+}
+
+.student-permanent-records__alert {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  font-size: 0.9rem;
+}
+
+.student-permanent-records__detail {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #eef1f5;
+}
+
+.student-permanent-records__detail-lead {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9ca3af;
+}
+
+.student-permanent-records__detail-primary {
+  margin: 0.35rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0d214f;
+}
+
+.student-permanent-records__detail-secondary {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.student-permanent-records__detail-note {
+  margin: 0.85rem 0 0;
+  font-size: 0.88rem;
+  color: #9ca3af;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .student-permanent-records.evaluator-page {
+    padding: 2rem 1rem 1rem;
+  }
+
+  .student-permanent-records__card {
+    padding: 1.25rem 1rem;
+  }
+}

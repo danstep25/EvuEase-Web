@@ -1,0 +1,103 @@
+@if (isOpen) {
+  <div
+    class="se-add-subject__overlay"
+    role="presentation"
+    (click)="onBackdropClick()"
+    (keydown.escape)="onClose()"
+  >
+    <div
+      class="se-add-subject__dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="se-add-subject-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="se-add-subject__header">
+        <div class="se-add-subject__header-text">
+          <h2 id="se-add-subject-title" class="se-add-subject__title">Add Subject</h2>
+          <p class="se-add-subject__subtitle">
+            Search and add subjects. Subjects with unmet prerequisites will show a warning.
+          </p>
+        </div>
+        <button type="button" class="se-add-subject__close-icon-btn" (click)="onClose()" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </header>
+
+      <div class="se-add-subject__body">
+        <label class="se-add-subject__search-label visually-hidden" for="se-add-subject-search">Search subjects</label>
+        <div class="se-add-subject__search-wrap">
+          <svg class="se-add-subject__search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.75"
+              d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"
+            />
+          </svg>
+          <input
+            id="se-add-subject-search"
+            class="se-add-subject__search-input"
+            type="search"
+            placeholder="Search by course code or title..."
+            [(ngModel)]="searchQuery"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="se-add-subject__results" role="region" aria-live="polite" aria-label="Search results">
+          @if (showEmptyState) {
+            <p class="se-add-subject__empty">No subjects found</p>
+          } @else {
+            <ul class="se-add-subject__result-list">
+              @for (item of searchResults; track trackCatalogItem($index, item)) {
+                <li class="se-add-subject__result-item">
+                  <div class="se-add-subject__result-main">
+                    <div class="se-add-subject__result-title-row">
+                      <span class="se-add-subject__result-code">{{ item.courseCode }}</span>
+                      @if (!item.prerequisiteMet) {
+                        <span class="se-add-subject__prereq-warning" role="note">
+                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path
+                              stroke="currentColor"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="1.75"
+                              d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          Prerequisite warning
+                        </span>
+                      }
+                    </div>
+                    <p class="se-add-subject__result-desc">{{ item.subjectDescription }}</p>
+                    <p class="se-add-subject__result-meta">
+                      Pre-requisite:
+                      @if (isPrerequisiteNone(item.prerequisite)) {
+                        <em>None</em>
+                      } @else {
+                        {{ item.prerequisite }}
+                      }
+                      · {{ item.units }} unit{{ item.units === 1 ? '' : 's' }}
+                      @if (item.termLabel) {
+                        · {{ item.termLabel }}
+                      }
+                    </p>
+                  </div>
+                  <button type="button" class="se-add-subject__add-btn" (click)="onAddSubject(item)">Add</button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+
+      <footer class="se-add-subject__footer">
+        <button type="button" class="se-add-subject__btn-close" (click)="onClose()">Close</button>
+      </footer>
+    </div>
+  </div>
+}

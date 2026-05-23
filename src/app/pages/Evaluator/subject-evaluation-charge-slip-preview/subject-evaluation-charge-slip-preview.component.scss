@@ -1,0 +1,231 @@
+.se-charge-slip {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.se-charge-slip__document {
+  padding: 1.5rem 1.5rem 1.25rem;
+  border: 1px solid #111827;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.se-charge-slip__title {
+  margin: 0 0 1.25rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.se-charge-slip__student-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 2rem;
+  margin-bottom: 1.25rem;
+}
+
+.se-charge-slip__student-col {
+  min-width: 0;
+}
+
+.se-charge-slip__student-col--right {
+  text-align: left;
+}
+
+.se-charge-slip__student-line {
+  margin: 0 0 0.45rem;
+  font-size: 0.8125rem;
+  color: #111827;
+  line-height: 1.45;
+}
+
+.se-charge-slip__student-label {
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+.se-charge-slip__student-value--underline {
+  text-decoration: underline;
+}
+
+.se-charge-slip__student-value--strong {
+  font-weight: 700;
+}
+
+.se-charge-slip__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.75rem;
+  font-size: 0.75rem;
+  table-layout: fixed;
+
+  thead th,
+  tbody td {
+    border: 1px solid #111827;
+    padding: 0.4rem 0.5rem;
+    vertical-align: middle;
+    color: #111827;
+    line-height: 1.35;
+  }
+
+  thead th {
+    background: #e5e7eb;
+    font-weight: 700;
+    text-align: left;
+  }
+}
+
+.se-charge-slip__table--tuition {
+  thead th {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+}
+
+.se-charge-slip__th--num {
+  width: 2rem;
+  text-align: center;
+}
+
+.se-charge-slip__th--center {
+  text-align: center;
+}
+
+.se-charge-slip__th--amount {
+  text-align: right;
+  width: 7.5rem;
+}
+
+.se-charge-slip__th--label {
+  width: 55%;
+}
+
+.se-charge-slip__th--spacer {
+  width: 8%;
+  background: #fff;
+  border-top: 1px solid #111827;
+  border-bottom: 1px solid #111827;
+}
+
+.se-charge-slip__td--center {
+  text-align: center;
+}
+
+.se-charge-slip__td--amount {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.se-charge-slip__td--spacer {
+  background: #fff;
+}
+
+.se-charge-slip__total-row td {
+  font-weight: 700;
+  background: #f9fafb;
+}
+
+.se-charge-slip__total-label {
+  font-weight: 700;
+  text-align: left;
+}
+
+.se-charge-slip__total-value {
+  font-weight: 700;
+}
+
+.se-charge-slip__table--gross {
+  margin-bottom: 0.75rem;
+
+  tbody td:first-child {
+    width: 55%;
+  }
+}
+
+.se-charge-slip__footer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1.25rem;
+  align-items: start;
+}
+
+.se-charge-slip__signature-line {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin: 0 0 0.35rem;
+  font-size: 0.8125rem;
+  color: #111827;
+}
+
+.se-charge-slip__signature-line--date {
+  margin-top: 1rem;
+}
+
+.se-charge-slip__signature-label {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.se-charge-slip__signature-rule {
+  flex: 1;
+  min-width: 0;
+  border-bottom: 1px solid #111827;
+  height: 1.1rem;
+}
+
+.se-charge-slip__signature-rule--short {
+  max-width: 8rem;
+}
+
+.se-charge-slip__signature-caption {
+  margin: 0 0 0.5rem;
+  padding-left: 4.5rem;
+  font-size: 0.75rem;
+  color: #374151;
+}
+
+.se-charge-slip__disclaimer {
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #111827;
+  box-sizing: border-box;
+}
+
+.se-charge-slip__disclaimer-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.se-charge-slip__disclaimer-text {
+  margin: 0;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: #374151;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .se-charge-slip__student-grid,
+  .se-charge-slip__footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .se-charge-slip__document {
+    overflow-x: auto;
+  }
+}
+
+@media print {
+  .se-charge-slip__document {
+    border: 1px solid #111827;
+    box-shadow: none;
+  }
+}

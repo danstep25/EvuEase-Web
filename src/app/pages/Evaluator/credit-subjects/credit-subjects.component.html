@@ -1,0 +1,58 @@
+<div class="evaluator-page credit-subjects">
+  <header class="evaluator-page__header">
+    <h1 class="evaluator-page__title credit-subjects__title">{{ pageTitle }}</h1>
+    <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
+  </header>
+
+  <section class="evaluator-surface credit-subjects__panel credit-subjects__panel--toolbar">
+    <div class="credit-subjects__toolbar-copy">
+      <h2 class="credit-subjects__panel-title">Credit Requests</h2>
+      <p class="credit-subjects__panel-lead">
+        Encode subject credits for transferee students. Requires registrar confirmation.
+      </p>
+    </div>
+    <button type="button" class="credit-subjects__add-btn" (click)="onAddCreditRequest()">
+      + Add Credit Request
+    </button>
+  </section>
+
+  <section class="evaluator-surface evaluator-surface--table credit-subjects__panel credit-subjects__panel--table">
+    <div class="credit-subjects__table-scroll">
+      <table class="credit-subjects__table">
+        <thead>
+          <tr>
+            <th scope="col">Credit Request No.</th>
+            <th scope="col">Student Number</th>
+            <th scope="col">Student Name</th>
+            <th scope="col">Program</th>
+            <th scope="col">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows; track row.creditRequestNo) {
+            <tr>
+              <td class="credit-subjects__cell-strong">{{ row.creditRequestNo }}</td>
+              <td>{{ row.studentNumber }}</td>
+              <td class="credit-subjects__cell-strong">{{ row.studentName }}</td>
+              <td>
+                <span class="credit-subjects__program-code">{{ row.programCode }}</span>
+                <span class="credit-subjects__program-name">{{ row.programName }}</span>
+              </td>
+              <td class="credit-subjects__cell-status">
+                @if (row.status === 'pending') {
+                  <span class="credit-subjects__status credit-subjects__status--pending">
+                    <svg class="credit-subjects__status-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.75" />
+                      <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+                    </svg>
+                    Pending
+                  </span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

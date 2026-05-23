@@ -1,0 +1,285 @@
+:host {
+  display: contents;
+}
+
+.emcd__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(15, 23, 42, 0.55);
+  box-sizing: border-box;
+}
+
+.emcd__dialog {
+  width: 100%;
+  max-width: 40rem;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 20px 40px rgba(13, 32, 79, 0.2);
+  box-sizing: border-box;
+}
+
+.emcd__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.35rem 1.5rem 1.25rem;
+  background: #8e24aa;
+  border-radius: 10px 10px 0 0;
+  color: #fff;
+}
+
+.emcd__header-text {
+  min-width: 0;
+}
+
+.emcd__title {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #fff;
+}
+
+.emcd__subtitle {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.emcd__close {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  padding: 0.45rem 0.75rem;
+  border: 0;
+  border-radius: 6px;
+  background: #6a1b9a;
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1.3;
+}
+
+.emcd__close:hover {
+  background: #5c1785;
+}
+
+.emcd__close-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.emcd__body {
+  padding: 1.5rem 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.emcd__student-card {
+  padding: 1rem 1.15rem;
+  border-radius: 8px;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+}
+
+.emcd__student-card-title {
+  margin: 0 0 0.85rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+.emcd__student-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem 1.5rem;
+}
+
+.emcd__student-item {
+  min-width: 0;
+}
+
+.emcd__student-label {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #3b82f6;
+  line-height: 1.35;
+}
+
+.emcd__student-value {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #0d214f;
+  line-height: 1.35;
+}
+
+.emcd__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.emcd__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  line-height: 1.35;
+}
+
+.emcd__required {
+  color: #dc2626;
+}
+
+.emcd__input {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  color: #0d214f;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.emcd__input--readonly {
+  background: #f3f4f6;
+  color: #4b5563;
+  cursor: default;
+}
+
+.emcd__select-wrap {
+  position: relative;
+}
+
+.emcd__select {
+  width: 100%;
+  padding: 0.55rem 2.25rem 0.55rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  color: #0d214f;
+  background: #fff;
+  appearance: none;
+  box-sizing: border-box;
+}
+
+.emcd__select:focus,
+.emcd__select:focus-visible {
+  outline: none;
+  border-color: #8e24aa;
+  box-shadow: 0 0 0 2px rgba(142, 36, 170, 0.2);
+}
+
+.emcd__select-wrap:focus-within .emcd__select {
+  border-color: #8e24aa;
+  box-shadow: 0 0 0 2px rgba(142, 36, 170, 0.2);
+}
+
+.emcd__select-chevron {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  width: 1rem;
+  height: 1rem;
+  color: #6b7280;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.emcd__alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-radius: 6px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.emcd__alert-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  color: #ea580c;
+  margin-top: 0.05rem;
+}
+
+.emcd__alert-text {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+.emcd__alert-text strong {
+  font-weight: 700;
+}
+
+.emcd__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 1.5rem 1.35rem;
+}
+
+.emcd__btn {
+  padding: 0.55rem 1.25rem;
+  border: 0;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1.3;
+}
+
+.emcd__btn--cancel {
+  background: #4b5563;
+  color: #fff;
+}
+
+.emcd__btn--cancel:hover {
+  background: #374151;
+}
+
+@media (max-width: 640px) {
+  .emcd__overlay {
+    padding: 1rem;
+  }
+
+  .emcd__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .emcd__close {
+    align-self: flex-end;
+  }
+
+  .emcd__student-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .emcd__body {
+    padding: 1.25rem 1rem 1rem;
+  }
+
+  .emcd__footer {
+    padding: 0 1rem 1.15rem;
+  }
+}

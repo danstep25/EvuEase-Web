@@ -1,6 +1,6 @@
 /**
  * EvuEase — Evaluator portal shared chrome.
- * Aligns with Registrar dashboard surfaces (navy #132a57, neutral borders).
+ * Design tokens: navy #0d214f, surfaces white + neutral borders.
  */
 
 .evaluator-page {
@@ -17,24 +17,26 @@
 
 .evaluator-page__title {
   margin: 0;
-  font-size: 2.2rem;
+  font-size: 2rem;
   font-weight: 700;
-  line-height: 1.1;
-  color: #132a57;
+  line-height: 1.15;
+  color: #0d214f;
   letter-spacing: -0.02em;
 }
 
 .evaluator-page__subtitle {
-  margin: 0.3rem 0 0;
-  font-size: 0.95rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 400;
   color: #6b7280;
+  line-height: 1.45;
 }
 
 .evaluator-surface {
   background: #fff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e8ecf1;
   border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 10px rgba(13, 33, 73, 0.06);
   margin-bottom: 1rem;
 }
 
@@ -55,7 +57,7 @@
   margin: 0 0 0.75rem;
   font-size: 1.75rem;
   font-weight: 700;
-  color: #132a57;
+  color: #0d214f;
 }
 
 .evaluator-placeholder-lead {
@@ -70,7 +72,7 @@
 }
 
 .evaluator-page .stat-value {
-  color: #132a57;
+  color: #0d214f;
 }
 
 .evaluator-help-fab {
@@ -95,7 +97,7 @@
 
   &:hover {
     background: #f9fafb;
-    color: #132a57;
+    color: #0d214f;
     border-color: #d1d5db;
   }
 }
