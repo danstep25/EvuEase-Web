@@ -34,6 +34,20 @@ export function firstValidationMessage(errors: ValidationErrors | null | undefin
     const e = errors['phoneTooLong'] as { maxDigits: number };
     return `Phone number cannot exceed ${e.maxDigits} digits.`;
   }
+  if (errors['min']) {
+    const e = errors['min'] as { min: number; actual: number };
+    return `Value must be at least ${e.min}.`;
+  }
+  if (errors['max']) {
+    const e = errors['max'] as { max: number; actual: number };
+    return `Value must be at most ${e.max}.`;
+  }
+  if (errors['duplicateProgramCode']) {
+    return 'This program already has a downpayment record.';
+  }
+  if (errors['duplicateClassNumber']) {
+    return 'This class number already exists for the selected academic term.';
+  }
 
   return 'This value is not valid.';
 }

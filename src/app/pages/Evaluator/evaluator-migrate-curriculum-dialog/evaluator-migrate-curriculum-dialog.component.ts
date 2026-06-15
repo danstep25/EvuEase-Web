@@ -8,7 +8,9 @@ import {
   inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormGroup, FormsModule } from '@angular/forms';
+import { FormDiscardService } from '../../../shared/services/form-discard.service';
+import { attemptFormClose } from '../../../shared/utils/form-state.util';
 import { MigrateStudentCurriculumRequest } from '../../../core/models/student-curriculum.model';
 import { EvaluatorStudentAcademicService } from '../student-permanent-records/evaluator-student-academic.service';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -30,6 +32,9 @@ import type {
 export class EvaluatorMigrateCurriculumDialogComponent implements OnChanges {
   private readonly academicService = inject(EvaluatorStudentAcademicService);
   private readonly notificationService = inject(NotificationService);
+  private readonly formDiscard = inject(FormDiscardService);
+
+  private readonly dialogForm = new FormGroup({});
 
   @Input() isOpen = false;
   @Input() studentId: string | null = null;
@@ -62,8 +67,11 @@ export class EvaluatorMigrateCurriculumDialogComponent implements OnChanges {
   }
 
   onClose(): void {
-    this.resetState();
-    this.closed.emit();
+    void attemptFormClose({
+      form: this.dialogForm,
+      discardService: this.formDiscard,
+      close: () => this.finishClose()
+    });
   }
 
   onCancel(): void {
@@ -71,6 +79,9 @@ export class EvaluatorMigrateCurriculumDialogComponent implements OnChanges {
   }
 
   onNewCurriculumChange(): void {
+    if (this.newCurriculumCode?.trim()) {
+      this.dialogForm.markAsDirty();
+    }
     this.loadPreview();
   }
 
@@ -93,7 +104,7 @@ export class EvaluatorMigrateCurriculumDialogComponent implements OnChanges {
         this.isSubmitting = false;
         this.notificationService.success('Curriculum Migrated', 'Student curriculum has been updated.');
         this.migrated.emit();
-        this.onClose();
+        this.finishClose();
       },
       error: (error) => {
         this.isSubmitting = false;
@@ -157,6 +168,11 @@ export class EvaluatorMigrateCurriculumDialogComponent implements OnChanges {
     return `${row.oldCourseCode}-${row.newCourseCode}`;
   }
 
+  private finishClose(): void {
+    this.resetState();
+    this.closed.emit();
+  }
+
   private resetState(): void {
     this.newCurriculumCode = '';
     this.context = null;
@@ -164,6 +180,7 @@ export class EvaluatorMigrateCurriculumDialogComponent implements OnChanges {
     this.preview = null;
     this.expandedStructureTerms = {};
     this.expandedMappingTerms = {};
+    this.dialogForm.markAsPristine();
   }
 
   private loadContext(): void {

@@ -17,6 +17,7 @@ import { Student } from '../../../core/models/student.model';
 import { PaginatedResponse } from '../../../core/models/api-response.model';
 import { StudentsService } from '../students/students.service';
 import { FacultyCenterService, ClassRosterStudentDto } from './faculty-center.service';
+import { isFirstYearLevel } from './class-roster-student-curriculum.util';
 
 @Component({
   selector: 'app-class-roster-add-student-modal',
@@ -111,6 +112,10 @@ export class ClassRosterAddStudentModalComponent implements OnChanges, OnInit, O
   displayName(s: Student): string {
     const mid = s.middleName?.trim() ? ` ${s.middleName.trim()}` : '';
     return `${s.lastName?.trim() ?? ''}, ${s.firstName?.trim() ?? ''}${mid}`.trim();
+  }
+
+  isFirstYearHint(yearLevel: string | null | undefined): boolean {
+    return isFirstYearLevel(yearLevel);
   }
 
   addStudent(s: Student): void {

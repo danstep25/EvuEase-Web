@@ -1,4 +1,10 @@
-export type AcademicRecordRemark = 'PASSED' | 'FAILED' | 'PASSED (RETAKE)';
+export type AcademicRecordRemark =
+  | 'PASSED'
+  | 'FAILED'
+  | 'PASSED (RETAKE)'
+  | 'NOT TAKEN'
+  | 'PENDING'
+  | 'INCOMPLETE';
 
 export type AcademicRecordSemesterHeaderVariant = 'recent' | 'standard';
 
@@ -9,6 +15,7 @@ export interface AcademicRecordCourseRow {
   readonly grade: string;
   readonly remarks: AcademicRecordRemark;
   readonly showGradeHistoryIcon?: boolean;
+  readonly isNotTaken?: boolean;
 }
 
 export interface AcademicRecordSemesterBlock {
@@ -41,6 +48,7 @@ export interface StudentAcademicRecordProfile {
   readonly currentCurriculumCode?: string;
   readonly termSemesters: readonly AcademicRecordSemesterBlock[];
   readonly curriculumTerms: readonly AcademicRecordCurriculumTermBlock[];
+  readonly usesCurriculumRoadmap: boolean;
 }
 
 export type AcademicPlanCourseStatus = 'Available' | 'Pending' | 'Future';

@@ -26,30 +26,95 @@
             <th scope="col">Student Name</th>
             <th scope="col">Program</th>
             <th scope="col">Status</th>
+            <th scope="col" class="credit-subjects__th-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
-          @for (row of rows; track row.creditRequestNo) {
+          @if (isLoading) {
             <tr>
-              <td class="credit-subjects__cell-strong">{{ row.creditRequestNo }}</td>
-              <td>{{ row.studentNumber }}</td>
-              <td class="credit-subjects__cell-strong">{{ row.studentName }}</td>
-              <td>
-                <span class="credit-subjects__program-code">{{ row.programCode }}</span>
-                <span class="credit-subjects__program-name">{{ row.programName }}</span>
-              </td>
-              <td class="credit-subjects__cell-status">
-                @if (row.status === 'pending') {
-                  <span class="credit-subjects__status credit-subjects__status--pending">
-                    <svg class="credit-subjects__status-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.75" />
-                      <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
-                    </svg>
-                    Pending
-                  </span>
-                }
-              </td>
+              <td colspan="6">Loading credit requests…</td>
             </tr>
+          } @else if (rows.length === 0) {
+            <tr>
+              <td colspan="6">No credit requests yet.</td>
+            </tr>
+          } @else {
+            @for (row of rows; track row.id) {
+              <tr class="credit-subjects__row" (click)="onViewCreditRequest(row.id)">
+                <td class="credit-subjects__cell-strong">
+                  <button
+                    type="button"
+                    class="credit-subjects__link"
+                    (click)="onViewCreditRequestFromRow(row.id, $event)"
+                  >
+                    {{ row.creditRequestNo }}
+                  </button>
+                </td>
+                <td>{{ row.studentNumber }}</td>
+                <td class="credit-subjects__cell-strong">{{ row.studentName }}</td>
+                <td>
+                  <span class="credit-subjects__program-code">{{ row.programCode }}</span>
+                  <span class="credit-subjects__program-name">{{ row.programName }}</span>
+                </td>
+                <td class="credit-subjects__cell-status">
+                  @if (row.status === 'pending') {
+                    <span class="credit-subjects__status credit-subjects__status--pending">
+                      <svg class="credit-subjects__status-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.75" />
+                        <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+                      </svg>
+                      Pending
+                    </span>
+                  } @else if (row.status === 'approved') {
+                    <span class="credit-subjects__status credit-subjects__status--approved">Approved</span>
+                  } @else if (row.status === 'rejected') {
+                    <span class="credit-subjects__status credit-subjects__status--rejected">Rejected</span>
+                  }
+                </td>
+                <td class="credit-subjects__cell-actions">
+                  <div class="credit-subjects__actions" (click)="$event.stopPropagation()">
+                    <button
+                      type="button"
+                      class="credit-subjects__action credit-subjects__action--view"
+                      title="View credit request"
+                      [attr.aria-label]="'View ' + row.creditRequestNo"
+                      (click)="onViewCreditRequest(row.id)"
+                    >
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="credit-subjects__action credit-subjects__action--print"
+                      title="Print credit request"
+                      [attr.aria-label]="'Print ' + row.creditRequestNo"
+                      (click)="onPrintCreditRequest(row.id, $event)"
+                    >
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
           }
         </tbody>
       </table>

@@ -7,11 +7,13 @@ import {
   groupEnrollmentsIntoSemesterBlocks,
   parseOfficialGradeToNumber
 } from '../../Registrar/students/student-enrollments.mapper';
+import { mergeCurriculumWithEnrollments } from '../../Registrar/students/academic-records-curriculum.mapper';
 import { buildCurriculumDisplayLabel } from '../../Registrar/students/student-curriculum.mapper';
 import type {
   AcademicPlanCourseRow,
   AcademicPlanCourseStatus,
   AcademicPlanTermBlock,
+  AcademicRecordCourseRow,
   AcademicRecordCurriculumTermBlock,
   AcademicRecordRemark,
   AcademicRecordSemesterBlock,
@@ -28,13 +30,37 @@ function yearLevelSortKey(label: string): number {
 }
 
 function mapRegistrarRemarkToEvaluator(row: RegistrarCourseRow): AcademicRecordRemark {
+  if (row.isNotTaken || row.remarkKind === 'not-taken') {
+    return 'NOT TAKEN';
+  }
+  if (row.remarkKind === 'pending') {
+    return 'PENDING';
+  }
+  if (row.remarkKind === 'incomplete') {
+    return 'INCOMPLETE';
+  }
   if (row.remarksSub?.toUpperCase().includes('RETAKE') && row.remarkKind === 'passed') {
     return 'PASSED (RETAKE)';
   }
   if (row.remarkKind === 'failed') {
     return 'FAILED';
   }
+  if (row.remarkKind === 'passed') {
+    return 'PASSED';
+  }
   return 'PASSED';
+}
+
+function mapRegistrarRowToEvaluator(row: RegistrarCourseRow): AcademicRecordCourseRow {
+  return {
+    courseCode: row.courseCode,
+    subjectDescription: row.subjectDescription,
+    units: row.units,
+    grade: row.isNotTaken ? '—' : row.grade != null ? row.grade.toFixed(2) : '—',
+    remarks: mapRegistrarRemarkToEvaluator(row),
+    showGradeHistoryIcon: row.isRetake,
+    isNotTaken: row.isNotTaken
+  };
 }
 
 export function mapRegistrarSemestersToEvaluator(blocks: RegistrarSemesterBlock[]): AcademicRecordSemesterBlock[] {
@@ -46,14 +72,19 @@ export function mapRegistrarSemestersToEvaluator(blocks: RegistrarSemesterBlock[
     label: index === 0 ? `${block.label} (Most Recent)` : block.label,
     headerVariant: index === 0 ? 'recent' : 'standard',
     totalUnits: block.courses.reduce((sum, c) => sum + c.units, 0),
-    courses: block.courses.map((c) => ({
-      courseCode: c.courseCode,
-      subjectDescription: c.subjectDescription,
-      units: c.units,
-      grade: c.grade != null ? c.grade.toFixed(2) : '—',
-      remarks: mapRegistrarRemarkToEvaluator(c),
-      showGradeHistoryIcon: c.isRetake
-    }))
+    courses: block.courses.map((c) => mapRegistrarRowToEvaluator(c))
+  }));
+}
+
+export function mapCurriculumMergedSemestersToEvaluator(
+  blocks: RegistrarSemesterBlock[],
+  extraBlocks: RegistrarSemesterBlock[] = []
+): AcademicRecordSemesterBlock[] {
+  return [...blocks, ...extraBlocks].map((block) => ({
+    label: block.label,
+    headerVariant: 'standard' as const,
+    totalUnits: block.courses.reduce((sum, c) => sum + c.units, 0),
+    courses: block.courses.map((c) => mapRegistrarRowToEvaluator(c))
   }));
 }
 
@@ -173,9 +204,16 @@ export function buildStudentAcademicProfile(
   student: Student,
   enrollments: StudentClassEnrollmentRow[],
   courses: Course[],
-  curricula: Curricula | null
+  curricula: Curricula | null,
+  effectiveCurriculumCode?: string | null
 ): StudentAcademicRecordProfile {
   const fullName = [student.lastName, student.firstName].filter(Boolean).join(', ');
+  const curriculumCode = effectiveCurriculumCode?.trim() || student.curriculumCode?.trim() || undefined;
+
+  const usesCurriculumRoadmap = courses.length > 0;
+  const merged = usesCurriculumRoadmap
+    ? mergeCurriculumWithEnrollments(courses, enrollments)
+    : null;
 
   return {
     studentNumber: student.studentNumber,
@@ -183,9 +221,12 @@ export function buildStudentAcademicProfile(
     yearLevel: student.yearLevel,
     status: student.status || 'Active',
     program: student.programCode,
-    currentCurriculum: buildCurriculumDisplayLabel(student.curriculumCode, curricula),
-    currentCurriculumCode: student.curriculumCode?.trim() || undefined,
-    termSemesters: mapRegistrarSemestersToEvaluator(groupEnrollmentsIntoSemesterBlocks(enrollments)),
-    curriculumTerms: buildCurriculumTermBlocks(courses)
+    currentCurriculum: buildCurriculumDisplayLabel(curriculumCode, curricula),
+    currentCurriculumCode: curriculumCode,
+    termSemesters: merged
+      ? mapCurriculumMergedSemestersToEvaluator(merged.blocks, merged.extraEnrollments)
+      : mapRegistrarSemestersToEvaluator(groupEnrollmentsIntoSemesterBlocks(enrollments)),
+    curriculumTerms: buildCurriculumTermBlocks(courses),
+    usesCurriculumRoadmap
   };
 }

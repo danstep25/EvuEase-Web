@@ -1,7 +1,7 @@
-<div class="dashboard-page">
-  <header class="page-header">
-    <h1 class="page-title">{{ pageTitle }}</h1>
-    <p class="page-subtitle">{{ pageSubtitle }}</p>
+<div class="evaluator-page">
+  <header class="evaluator-page__header">
+    <h1 class="evaluator-page__title">{{ pageTitle }}</h1>
+    <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
   </header>
 
   <div class="stats-grid">
@@ -43,7 +43,7 @@
   </div>
 
   <div class="content-sections">
-    <section class="user-overview-section">
+  <section class="evaluator-surface evaluator-surface--padded user-overview-section">
       <h2 class="section-title">User Overview</h2>
       <div class="user-categories">
         <div class="user-category">
@@ -61,7 +61,7 @@
       </div>
     </section>
 
-    <section class="activity-section">
+    <section class="evaluator-surface evaluator-surface--padded activity-section">
       <h2 class="section-title">Recent System Activity</h2>
       <div class="activity-list">
         @if (recentActivity.length === 0) {

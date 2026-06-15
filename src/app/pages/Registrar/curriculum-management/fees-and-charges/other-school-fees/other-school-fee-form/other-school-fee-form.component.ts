@@ -4,6 +4,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { CreateOtherSchoolFeeRequest, OtherSchoolFee, UpdateOtherSchoolFeeRequest } from '../../../../../../core/models/other-school-fee.model';
 import { SyTerm } from '../../../../../../core/models/sy-term.model';
 import { LookupService } from '../../../../../../shared/services/lookup.service';
+import { FormDiscardService } from '../../../../../../shared/services/form-discard.service';
+import { attemptFormClose, validateFormForSubmit } from '../../../../../../shared/utils/form-state.util';
 import { Semester } from '../../../enums/semester.enum';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -17,6 +19,7 @@ import { Subject, takeUntil } from 'rxjs';
 export class OtherSchoolFeeFormComponent implements OnInit, OnChanges, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly lookupService = inject(LookupService);
+  private readonly formDiscard = inject(FormDiscardService);
   private readonly destroy$ = new Subject<void>();
 
   @Input() otherSchoolFee: OtherSchoolFee | null = null;
@@ -26,6 +29,7 @@ export class OtherSchoolFeeFormComponent implements OnInit, OnChanges, OnDestroy
 
   otherSchoolFeeForm!: FormGroup;
   isSubmitting = false;
+  submitted = false;
   errorMessage: string | null = null;
   syTerms: SyTerm[] = [];
   isLoadingSyTerms = false;
@@ -99,6 +103,7 @@ export class OtherSchoolFeeFormComponent implements OnInit, OnChanges, OnDestroy
       cash: [this.otherSchoolFee?.cash ?? 0.0, [Validators.required, Validators.min(0)]],
       lowMonthlyPayment: [this.otherSchoolFee?.lowMonthlyPayment ?? 0.0, [Validators.required, Validators.min(0)]]
     });
+    this.otherSchoolFeeForm.markAsPristine();
     this.errorMessage = null;
   }
 
@@ -119,18 +124,29 @@ export class OtherSchoolFeeFormComponent implements OnInit, OnChanges, OnDestroy
   }
 
   onClose(): void {
+    void attemptFormClose({
+      form: this.otherSchoolFeeForm,
+      discardService: this.formDiscard,
+      close: () => this.finishClose()
+    });
+  }
+
+  private finishClose(): void {
+    this.submitted = false;
+    this.errorMessage = null;
     this.close.emit();
   }
 
   onSubmit(): void {
-    if (this.otherSchoolFeeForm.invalid) {
-      this.markFormGroupTouched(this.otherSchoolFeeForm);
-      this.errorMessage = 'Please fill in all required fields correctly.';
+    const result = validateFormForSubmit(this.otherSchoolFeeForm, { isEditMode: this.isEditMode });
+    this.submitted = result.submitted;
+    if (!result.canSubmit) {
+      this.errorMessage = result.errorMessage;
       return;
     }
+    this.errorMessage = null;
 
     this.isSubmitting = true;
-    this.errorMessage = null;
 
     const formValue = this.otherSchoolFeeForm.value;
     const otherSchoolFeeData: CreateOtherSchoolFeeRequest | UpdateOtherSchoolFeeRequest = {
@@ -147,16 +163,6 @@ export class OtherSchoolFeeFormComponent implements OnInit, OnChanges, OnDestroy
     }
 
     this.save.emit(otherSchoolFeeData);
-  }
-
-  private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.keys(formGroup.controls).forEach(key => {
-      const control = formGroup.get(key);
-      control?.markAsTouched();
-      if (control instanceof FormGroup) {
-        this.markFormGroupTouched(control);
-      }
-    });
   }
 
   setSubmitting(value: boolean): void {

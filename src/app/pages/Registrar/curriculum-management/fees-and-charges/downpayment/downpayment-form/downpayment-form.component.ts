@@ -16,6 +16,8 @@ import {
 } from '../../../../../../core/models/downpayment.model';
 import { Program } from '../../../../../../core/models/program.model';
 import { LookupService } from '../../../../../../shared/services/lookup.service';
+import { FormDiscardService } from '../../../../../../shared/services/form-discard.service';
+import { attemptFormClose, validateFormForSubmit } from '../../../../../../shared/utils/form-state.util';
 import { Subject } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 
@@ -29,6 +31,7 @@ import { take, takeUntil } from 'rxjs/operators';
 export class DownpaymentFormComponent implements OnChanges, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly lookupService = inject(LookupService);
+  private readonly formDiscard = inject(FormDiscardService);
   private readonly destroy$ = new Subject<void>();
 
   @Input() downpayment: Downpayment | null = null;
@@ -39,6 +42,7 @@ export class DownpaymentFormComponent implements OnChanges, OnDestroy {
 
   form: FormGroup | null = null;
   isSubmitting = false;
+  submitted = false;
   errorMessage: string | null = null;
 
   batchYears: number[] = [];
@@ -145,6 +149,7 @@ export class DownpaymentFormComponent implements OnChanges, OnDestroy {
       effectiveSchoolYear: [d?.effectiveSchoolYear ?? '', [Validators.required, Validators.maxLength(64)]]
     });
     this.syncProgramTitleFromCode();
+    this.form.markAsPristine();
   }
 
   onProgramCodePicked(): void {
@@ -171,6 +176,19 @@ export class DownpaymentFormComponent implements OnChanges, OnDestroy {
   }
 
   onClose(): void {
+    if (!this.form) {
+      this.finishClose();
+      return;
+    }
+    void attemptFormClose({
+      form: this.form,
+      discardService: this.formDiscard,
+      close: () => this.finishClose()
+    });
+  }
+
+  private finishClose(): void {
+    this.submitted = false;
     this.errorMessage = null;
     this.close.emit();
   }
@@ -179,12 +197,14 @@ export class DownpaymentFormComponent implements OnChanges, OnDestroy {
     if (!this.form) {
       return;
     }
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
+    const result = validateFormForSubmit(this.form, { isEditMode: this.isEditMode });
+    this.submitted = result.submitted;
+    if (!result.canSubmit) {
+      this.errorMessage = result.errorMessage;
       return;
     }
-    this.isSubmitting = true;
     this.errorMessage = null;
+    this.isSubmitting = true;
     const v = this.form.getRawValue();
     const base: CreateDownpaymentRequest = {
       programCode: String(v.programCode).trim(),

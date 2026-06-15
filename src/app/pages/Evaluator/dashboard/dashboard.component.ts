@@ -7,7 +7,6 @@ import { ProgramService } from '../../Admin/program-management/program.service';
 import { StudentsService } from '../../Registrar/students/students.service';
 import { SchoolYearTermService } from '../../Registrar/school-year-term/school-year-term.service';
 import { SystemLogsService } from '../../Admin/system-logs/system-logs.service';
-import { SyTerm } from '../../../core/models/sy-term.model';
 import { SystemLog } from '../../../shared/models/system-log.model';
 
 interface QuickAction {
@@ -85,25 +84,18 @@ export class EvaluatorDashboardComponent implements OnInit {
       students: this.studentsService
         .getStudents({ PageIndex: 1, PageSize: 1, SortKey: 'id', SortDirection: 'desc', status: 'Active' })
         .pipe(catchError(() => of(null))),
-      syTerms: this.schoolYearTermService
-        .getSyTerms({ PageIndex: 1, PageSize: 1, SortKey: 'sy_id', SortDirection: 'desc' })
-        .pipe(catchError(() => of(null)))
-    }).subscribe(({ programs, students, syTerms }) => {
+      currentTerm: this.schoolYearTermService.getCurrentSyTerm().pipe(catchError(() => of(null)))
+    }).subscribe(({ programs, students, currentTerm }) => {
       this.activePrograms = programs?.pagination?.total ?? 0;
       this.activeStudents = students?.pagination?.total ?? 0;
-      this.applyCurrentTermFromResponse(syTerms?.data ?? []);
+      if (currentTerm) {
+        this.currentSchoolYear = currentTerm.syYear?.trim() || '—';
+        this.currentSemester = currentTerm.sySemester?.trim() || '—';
+      } else {
+        this.currentSchoolYear = '—';
+        this.currentSemester = '—';
+      }
     });
-  }
-
-  private applyCurrentTermFromResponse(terms: SyTerm[]): void {
-    const current = terms?.[0];
-    if (!current) {
-      this.currentSchoolYear = '—';
-      this.currentSemester = '—';
-      return;
-    }
-    this.currentSchoolYear = current.syYear?.trim() || '—';
-    this.currentSemester = current.sySemester?.trim() || '—';
   }
 
   private loadRecentActivity(): void {

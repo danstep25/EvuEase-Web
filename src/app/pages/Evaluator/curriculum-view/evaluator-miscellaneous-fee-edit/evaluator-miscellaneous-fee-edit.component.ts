@@ -15,6 +15,8 @@ import { UpdateMiscellaneousFeeRequest } from '../../../../core/models/miscellan
 import { LookupService } from '../../../../shared/services/lookup.service';
 import { MiscellaneousFeesService } from '../../../Registrar/curriculum-management/fees-and-charges/miscellaneous-fees/miscellaneous-fees.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { FormDiscardService } from '../../../../shared/services/form-discard.service';
+import { attemptFormClose, validateFormForSubmit } from '../../../../shared/utils/form-state.util';
 import type { EvaluatorMiscellaneousFeeRow } from '../evaluator-curriculum-view.models';
 import {
   TUITION_FEE_SEMESTER_OPTIONS,
@@ -35,6 +37,7 @@ export class EvaluatorMiscellaneousFeeEditComponent implements OnChanges, OnDest
   private readonly lookupService = inject(LookupService);
   private readonly miscellaneousFeesService = inject(MiscellaneousFeesService);
   private readonly notificationService = inject(NotificationService);
+  private readonly formDiscard = inject(FormDiscardService);
   private readonly destroy$ = new Subject<void>();
 
   @Input() isOpen = false;
@@ -46,6 +49,8 @@ export class EvaluatorMiscellaneousFeeEditComponent implements OnChanges, OnDest
   readonly batchOptions = buildTuitionFeeBatchYears();
   readonly semesterOptions = TUITION_FEE_SEMESTER_OPTIONS;
   isSubmitting = false;
+  submitted = false;
+  errorMessage: string | null = null;
 
   readonly editForm = new FormGroup({
     syId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -78,14 +83,21 @@ export class EvaluatorMiscellaneousFeeEditComponent implements OnChanges, OnDest
   }
 
   onClose(): void {
-    this.close.emit();
+    void attemptFormClose({
+      form: this.editForm,
+      discardService: this.formDiscard,
+      close: () => this.close.emit()
+    });
   }
 
   onSubmit(): void {
-    if (this.editForm.invalid || this.isSubmitting || !this.miscellaneousFee) {
-      this.editForm.markAllAsTouched();
+    const result = validateFormForSubmit(this.editForm, { isEditMode: true });
+    this.submitted = result.submitted;
+    if (!result.canSubmit || this.isSubmitting || !this.miscellaneousFee) {
+      this.errorMessage = result.errorMessage;
       return;
     }
+    this.errorMessage = null;
 
     this.isSubmitting = true;
     const base = buildCreateMiscellaneousFeeRequest(this.editForm.getRawValue());
@@ -102,7 +114,8 @@ export class EvaluatorMiscellaneousFeeEditComponent implements OnChanges, OnDest
           'Miscellaneous fee has been updated successfully.'
         );
         this.saved.emit();
-        this.onClose();
+        this.editForm.markAsPristine();
+        this.close.emit();
       },
       error: (error) => {
         this.isSubmitting = false;
@@ -137,5 +150,8 @@ export class EvaluatorMiscellaneousFeeEditComponent implements OnChanges, OnDest
       cash: row.cash,
       lowMonthlyPayment: row.lowMonthlyPayment
     });
+    this.editForm.markAsPristine();
+    this.submitted = false;
+    this.errorMessage = null;
   }
 }

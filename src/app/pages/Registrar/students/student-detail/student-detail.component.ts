@@ -7,6 +7,7 @@ import { Student } from '../../../../core/models/student.model';
 import { StudentsService } from '../students.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
 import { splitAcademicTermLabel } from '../student-enrollments.mapper';
+import { normalizeStudentYearTerm } from '../../../../shared/utils/student-year-level.util';
 
 
 export interface OverallAcademicSummary {
@@ -177,6 +178,11 @@ export class StudentDetailComponent implements OnInit, OnDestroy {
   displayOrDash(value: string | null | undefined): string {
     const t = value?.trim();
     return t ? t : '—';
+  }
+
+  displayYearTerm(raw: string | null | undefined): string {
+    const trimmed = raw?.trim();
+    return trimmed ? normalizeStudentYearTerm(trimmed) : '—';
   }
 
   onEdit(): void {

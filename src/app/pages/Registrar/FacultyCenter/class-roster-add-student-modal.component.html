@@ -1,7 +1,6 @@
 <div
   class="add-student-modal fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6"
   role="presentation"
-  (click)="close()"
 >
   <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]" aria-hidden="true"></div>
   <div
@@ -70,6 +69,13 @@
                   {{ s.programCode }}
                   <span class="text-gray-400">·</span>
                   {{ s.yearLevel }}
+                  @if (s.curriculumCode) {
+                    <span class="text-gray-400">·</span>
+                    <span class="text-emerald-700">{{ s.curriculumCode }}</span>
+                  } @else if (isFirstYearHint(s.yearLevel)) {
+                    <span class="text-gray-400">·</span>
+                    <span class="text-amber-700">Curriculum pending</span>
+                  }
                 </p>
               </div>
               <button

@@ -4,11 +4,12 @@
   width: 100%;
   overflow-x: hidden;
   position: relative;
+  background-color: var(--portal-shell-bg);
 }
 
 .branding-section {
   flex: 1;
-  background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+  background-color: var(--portal-sidebar-bg);
   position: relative;
   display: flex;
   align-items: center;
@@ -24,9 +25,9 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: 
-      radial-gradient(circle at 20% 50%, rgba(255, 193, 7, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(255, 193, 7, 0.08) 0%, transparent 50%);
+    background:
+      radial-gradient(circle at 20% 50%, rgba(240, 180, 41, 0.12) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(240, 180, 41, 0.08) 0%, transparent 50%);
     pointer-events: none;
   }
 }
@@ -55,21 +56,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgba(255, 193, 7, 0.3);
+  border: 2px solid rgba(240, 180, 41, 0.35);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   animation: float 3s ease-in-out infinite;
 
   &:hover {
     transform: scale(1.05);
-    box-shadow: 0 12px 40px rgba(255, 193, 7, 0.3);
+    box-shadow: 0 12px 40px rgba(240, 180, 41, 0.28);
   }
 }
 
 .graduation-icon {
   width: 2.5rem;
   height: 2.5rem;
-  color: #ffc107;
+  color: var(--portal-nav-active-bg);
   display: block;
 }
 
@@ -118,7 +119,7 @@
 .shape {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255, 193, 7, 0.1);
+  background: rgba(240, 180, 41, 0.1);
   animation: float 6s ease-in-out infinite;
 }
 
@@ -148,7 +149,7 @@
 
 .form-section {
   flex: 1;
-  background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+  background-color: var(--portal-shell-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -162,26 +163,23 @@
     top: 0;
     bottom: 0;
     width: 1px;
-    background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.1), transparent);
+    background: linear-gradient(to bottom, transparent, rgba(13, 33, 79, 0.08), transparent);
   }
 }
 
 .login-card {
   background: #ffffff;
-  border-radius: 24px;
+  border-radius: 12px;
   padding: 3rem;
   width: 100%;
   max-width: 440px;
-  box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e8ecf1;
+  box-shadow: 0 2px 10px rgba(13, 33, 73, 0.06);
   animation: slideInRight 0.8s ease-out;
   transition: box-shadow 0.3s ease;
 
   &:hover {
-    box-shadow: 
-      0 24px 80px rgba(0, 0, 0, 0.12),
-      0 0 0 1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 16px rgba(13, 33, 73, 0.1);
   }
 }
 
@@ -194,7 +192,7 @@
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
-  color: #1a237e;
+  color: var(--portal-nav-active-text);
   letter-spacing: -0.02em;
 }
 
@@ -245,7 +243,7 @@
 }
 
 .form-field:focus-within .input-icon {
-  color: #1a237e;
+  color: var(--portal-nav-active-text);
 }
 
 .input-icon .icon {
@@ -276,8 +274,8 @@
 }
 
 .form-input:focus {
-  border-color: #1a237e;
-  box-shadow: 0 0 0 4px rgba(26, 35, 126, 0.08);
+  border-color: var(--portal-nav-active-text);
+  box-shadow: 0 0 0 4px rgba(13, 33, 79, 0.08);
   background-color: #ffffff;
 }
 
@@ -301,8 +299,8 @@
 
 .sign-in-button {
   width: 100%;
-  background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
-  color: #ffffff;
+  background: var(--portal-nav-active-bg);
+  color: var(--portal-nav-active-text);
   padding: 1rem 2rem;
   border-radius: 12px;
   font-size: 1rem;
@@ -314,9 +312,7 @@
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 
-    0 4px 12px rgba(255, 193, 7, 0.3),
-    0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(240, 180, 41, 0.28);
   outline: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -341,29 +337,26 @@
   }
 
   &:hover:not(:disabled) {
-    background: linear-gradient(135deg, #ffb300 0%, #ffa000 100%);
-    box-shadow: 
-      0 6px 20px rgba(255, 193, 7, 0.4),
-      0 4px 8px rgba(0, 0, 0, 0.15);
+    background: #e5a824;
+    box-shadow: 0 6px 20px rgba(240, 180, 41, 0.35);
     transform: translateY(-2px);
   }
 
   &:active:not(:disabled) {
     transform: translateY(0);
-    box-shadow: 
-      0 2px 8px rgba(255, 193, 7, 0.3),
-      0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(240, 180, 41, 0.28);
   }
 
   &:disabled {
     background: #d1d5db;
+    color: #6b7280;
     cursor: not-allowed;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transform: none;
   }
 
   &:focus {
-    outline: 2px solid #1a237e;
+    outline: 2px solid var(--portal-nav-active-text);
     outline-offset: 2px;
   }
 }
@@ -453,7 +446,7 @@
 
   .login-card {
     padding: 2rem 1.5rem;
-    border-radius: 20px;
+    border-radius: 12px;
   }
 
   .app-title {

@@ -28,6 +28,14 @@ export class SchoolYearTermService extends HttpBaseService {
     return this.getPaginated<SyTerm>(API_URL.syTerm.getAll, queryParams, 'result');
   }
 
+  getCurrentSyTerm(): Observable<SyTerm> {
+    return this.get<SyTerm>(API_URL.syTerm.current);
+  }
+
+  setCurrentSyTerm(id: string): Observable<SyTerm> {
+    return this.put<SyTerm>(API_URL.syTerm.setCurrent(id), {});
+  }
+
   getSyTermById(id: string): Observable<SyTerm> {
     return this.get<SyTerm>(API_URL.syTerm.getById(id));
   }

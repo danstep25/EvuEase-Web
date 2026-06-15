@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { EMPTY, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize, switchMap, takeUntil } from 'rxjs/operators';
 import { Router } from '@angular/router';
@@ -20,17 +20,37 @@ import { CourseService } from '../curriculum-management/course.service';
 import { SyTerm } from '../../../core/models/sy-term.model';
 import { Program } from '../../../core/models/program.model';
 import { YearLevel } from '../curriculum-management/enums/year-level.enum';
+import { CurriculumStatus } from '../curriculum-management/enums/curriculum-status.enum';
 import { trimmedRequired } from '../../../shared/validators/app-validators';
 import { controlFirstMessage, shouldShowControlError } from '../../../shared/utils/form-field-error.util';
+import { attemptFormClose, validateFormForSubmit } from '../../../shared/utils/form-state.util';
+import { FormDiscardService } from '../../../shared/services/form-discard.service';
 import {
   ConfirmationModalComponent,
   ConfirmationModalConfig
 } from '../../../shared/components/confirmation-modal/confirmation-modal.component';
 import { GradeRosterStudentGradesComponent } from './grade-roster-student-grades.component';
 import { UpdateStudentGradeModalComponent } from './update-student-grade-modal.component';
+import { FacultyCreditRequestsPanelComponent } from './faculty-credit-requests-panel.component';
 import { ClassRosterAddStudentModalComponent } from './class-roster-add-student-modal.component';
+import { ClassRosterStudentCurriculumModalComponent } from './class-roster-student-curriculum-modal.component';
+import {
+  allProgramsHaveCurriculumSelection,
+  buildProgramCurriculumImportPayload,
+  defaultCurriculumSelectionsForPrograms,
+  filterRowsByProgram,
+  formatCurriculumOptionLabel,
+  groupCurriculaByProgram,
+  hasMultiplePrograms,
+  isFirstYearLevel,
+  programTabStatsForRows,
+  uniqueProgramCodes
+} from './class-roster-student-curriculum.util';
+import { CurriculumManagementService } from '../curriculum-management/curriculum-management.service';
+import { Curricula } from '../../../core/models/curricula.model';
 import { ClassListPdfCoursePrefillItem, ClassListPdfCoursePrefillPayload } from '../../../shared/models/class-list-pdf-course-prefill.model';
 import { CLASS_LIST_PDF_COURSE_PREFILL_STORAGE_KEY } from '../../../shared/constants/class-list-pdf-prefill.constant';
+import { isDuplicateClassNumber } from './faculty-class.util';
 
 export enum FacultyMainTab {
   ClassAssignment = 'class-assignment',
@@ -77,17 +97,21 @@ export interface ClassRosterRow {
     ConfirmationModalComponent,
     GradeRosterStudentGradesComponent,
     UpdateStudentGradeModalComponent,
-    ClassRosterAddStudentModalComponent
+    FacultyCreditRequestsPanelComponent,
+    ClassRosterAddStudentModalComponent,
+    ClassRosterStudentCurriculumModalComponent
   ],
   templateUrl: './faculty-center.component.html',
   styleUrl: './faculty-center.component.scss'
 })
 export class FacultyCenterComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
+  private readonly formDiscard = inject(FormDiscardService);
   private readonly facultyCenterService = inject(FacultyCenterService);
   private readonly notificationService = inject(NotificationService);
   private readonly lookupService = inject(LookupService);
   private readonly courseService = inject(CourseService);
+  private readonly curriculumService = inject(CurriculumManagementService);
   private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
 
@@ -179,8 +203,16 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
   pendingPdfImportFile: File | null = null;
   pendingPdfPreview: ClassListPdfPreviewDto | null = null;
   selectedPdfRowKeys = new Set<string>();
+  pdfProgramCurriculumSelections: Record<string, string> = {};
+  pdfCurriculumOptionsByProgram: Record<string, Curricula[]> = {};
+  isLoadingPdfCurriculumOptions = false;
+  pdfCurriculumLoadError: string | null = null;
+  pdfImportActiveProgramTab = '';
 
   showAddStudentModal = false;
+
+  showStudentCurriculumModal = false;
+  studentCurriculumTarget: ClassRosterStudentDto | null = null;
 
   showRemoveStudentConfirmation = false;
   studentToRemoveFromClass: ClassRosterStudentDto | null = null;
@@ -217,7 +249,7 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
     });
     this.classCreateForm = this.fb.group({
       courseCode: ['', Validators.required],
-      classNumber: ['', Validators.required],
+      classNumber: ['', [Validators.required, this.duplicateClassNumberValidator()]],
       programCode: ['', Validators.required],
       yearLevel: ['', Validators.required],
       section: ['', [Validators.required, Validators.maxLength(64)]],
@@ -226,6 +258,26 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
       academicTerm: ['', Validators.required],
       enrolled: [0, [Validators.required, Validators.min(0)]]
     });
+    this.classCreateForm
+      .get('academicTerm')
+      ?.valueChanges.pipe(distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => this.classCreateForm.get('classNumber')?.updateValueAndValidity());
+  }
+
+  private duplicateClassNumberValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const classNumber = String(control.value ?? '').trim();
+      if (!classNumber) {
+        return null;
+      }
+      const academicTerm = String(this.classCreateForm?.get('academicTerm')?.value ?? '').trim();
+      if (!academicTerm) {
+        return null;
+      }
+      return isDuplicateClassNumber(this.classRosterRows, classNumber, academicTerm)
+        ? { duplicateClassNumber: true }
+        : null;
+    };
   }
 
   ngOnInit(): void {
@@ -628,6 +680,7 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
         next: rows => {
           this.isLoadingClasses = false;
           this.classRosterRows = rows.map(d => this.mapFacultyClassToRow(d));
+          this.classCreateForm.get('classNumber')?.updateValueAndValidity();
         },
         error: (err: { userMessage?: string; message?: string }) => {
           this.isLoadingClasses = false;
@@ -655,30 +708,54 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
   }
 
   onCreateClass(): void {
-    this.classCreatePanelOpen = !this.classCreatePanelOpen;
     if (this.classCreatePanelOpen) {
-      this.classCreateSubmitted = false;
-      this.courseSearchQuery = '';
-      this.courseComboOpen = false;
-      this.classCreateForm.reset({ enrolled: 0 });
-      const t = this.syTerms[0];
-      if (t) {
-        this.classCreateForm.patchValue({ academicTerm: this.academicTermDisplayLabel(t) });
-      }
+      void attemptFormClose({
+        form: this.classCreateForm,
+        discardService: this.formDiscard,
+        close: () => this.finishClassCreateClose()
+      });
+      return;
     }
+    this.openClassCreatePanel();
   }
 
   onCancelClassCreate(): void {
+    void attemptFormClose({
+      form: this.classCreateForm,
+      discardService: this.formDiscard,
+      close: () => this.finishClassCreateClose()
+    });
+  }
+
+  private openClassCreatePanel(): void {
+    this.classCreatePanelOpen = true;
+    this.classCreateSubmitted = false;
+    this.courseSearchQuery = '';
+    this.courseComboOpen = false;
+    this.classCreateForm.reset({ enrolled: 0 });
+    const t = this.syTerms[0];
+    if (t) {
+      this.classCreateForm.patchValue({ academicTerm: this.academicTermDisplayLabel(t) });
+    }
+    this.classCreateForm.markAsPristine();
+  }
+
+  private finishClassCreateClose(): void {
     this.classCreatePanelOpen = false;
     this.classCreateSubmitted = false;
     this.courseSearchQuery = '';
     this.courseComboOpen = false;
+    this.classCreateForm.reset({ enrolled: 0 });
+    this.classCreateForm.markAsPristine();
   }
 
   onSubmitClassCreate(): void {
-    this.classCreateSubmitted = true;
-    if (this.classCreateForm.invalid || this.isSavingClass) {
-      this.classCreateForm.markAllAsTouched();
+    if (this.isSavingClass) {
+      return;
+    }
+    const result = validateFormForSubmit(this.classCreateForm, { isEditMode: false, requireChanges: false });
+    this.classCreateSubmitted = result.submitted;
+    if (!result.canSubmit) {
       return;
     }
     const v = this.classCreateForm.getRawValue();
@@ -914,11 +991,14 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
   }
 
   get filteredPdfPreviewStudents(): Array<ClassListPdfPreviewStudentDto & { pageNumber: number; courseCode: string }> {
+    const scoped = this.hasMultiplePdfImportPrograms
+      ? filterRowsByProgram(this.pdfPreviewStudentsFlattened, this.pdfImportActiveProgramTab)
+      : this.pdfPreviewStudentsFlattened;
     const q = this.pdfStudentSearchQuery.trim().toLowerCase();
     if (!q) {
-      return this.pdfPreviewStudentsFlattened;
+      return scoped;
     }
-    return this.pdfPreviewStudentsFlattened.filter(s =>
+    return scoped.filter(s =>
       [s.studentNumber, s.displayName, s.programCode, s.yearLevel, s.courseCode, String(s.pageNumber)]
         .join(' ')
         .toLowerCase()
@@ -926,8 +1006,48 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
     );
   }
 
+  get pdfPreviewPrograms(): string[] {
+    return uniqueProgramCodes(this.pdfPreviewStudentsFlattened.map((row) => row.programCode));
+  }
+
+  get hasMultiplePdfImportPrograms(): boolean {
+    return hasMultiplePrograms(this.pdfPreviewStudentsFlattened.map((row) => row.programCode));
+  }
+
   get selectedPdfStudentCount(): number {
     return this.selectedPdfRowKeys.size;
+  }
+
+  get pdfImportPrograms(): string[] {
+    const selectedRows = this.pdfPreviewStudentsFlattened.filter((row) =>
+      this.selectedPdfRowKeys.has(row.rowKey)
+    );
+    return uniqueProgramCodes(selectedRows.map((row) => row.programCode));
+  }
+
+  get canConfirmPdfImport(): boolean {
+    return (
+      this.selectedPdfStudentCount > 0 &&
+      !this.isLoadingPdfCurriculumOptions &&
+      allProgramsHaveCurriculumSelection(this.pdfImportPrograms, this.pdfProgramCurriculumSelections)
+    );
+  }
+
+  curriculumOptionLabel(row: Curricula): string {
+    return formatCurriculumOptionLabel(row);
+  }
+
+  pdfImportProgramTabStats(programCode: string): { total: number; selected: number } {
+    return programTabStatsForRows(
+      this.pdfPreviewStudentsFlattened,
+      programCode,
+      this.selectedPdfRowKeys
+    );
+  }
+
+  onSelectPdfImportProgramTab(programCode: string): void {
+    this.pdfImportActiveProgramTab = programCode;
+    this.pdfStudentSearchQuery = '';
   }
 
   private openPdfStudentSelectionModal(file: File, preview: ClassListPdfPreviewDto): void {
@@ -935,7 +1055,12 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
     this.pendingPdfPreview = preview;
     this.pdfStudentSearchQuery = '';
     this.selectedPdfRowKeys = new Set(this.pdfPreviewStudentsFlattened.map(s => s.rowKey));
+    this.pdfProgramCurriculumSelections = {};
+    this.pdfCurriculumOptionsByProgram = {};
+    this.pdfCurriculumLoadError = null;
+    this.pdfImportActiveProgramTab = this.pdfPreviewPrograms[0] ?? '';
     this.showPdfStudentSelectionModal = true;
+    this.loadPdfImportCurriculumOptions();
   }
 
   closePdfStudentSelectionModal(): void {
@@ -944,6 +1069,47 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
     this.pendingPdfPreview = null;
     this.pdfStudentSearchQuery = '';
     this.selectedPdfRowKeys = new Set<string>();
+    this.pdfProgramCurriculumSelections = {};
+    this.pdfCurriculumOptionsByProgram = {};
+    this.pdfCurriculumLoadError = null;
+    this.isLoadingPdfCurriculumOptions = false;
+    this.pdfImportActiveProgramTab = '';
+  }
+
+  private loadPdfImportCurriculumOptions(): void {
+    const programs = this.pdfPreviewPrograms;
+    if (programs.length === 0) {
+      this.pdfCurriculumLoadError = 'No program codes were found in the parsed PDF.';
+      return;
+    }
+
+    this.isLoadingPdfCurriculumOptions = true;
+    this.pdfCurriculumLoadError = null;
+
+    this.curriculumService
+      .getCurricula({ PageIndex: 1, PageSize: 500, SortDirection: 'desc', SortKey: '', status: CurriculumStatus.Active })
+      .subscribe({
+        next: (response) => {
+          const grouped = groupCurriculaByProgram(response.data ?? []);
+          const options: Record<string, Curricula[]> = {};
+          for (const programCode of programs) {
+            const key = programCode.trim().toUpperCase();
+            options[programCode] = grouped[key] ?? [];
+          }
+          this.pdfCurriculumOptionsByProgram = options;
+          this.pdfProgramCurriculumSelections = defaultCurriculumSelectionsForPrograms(programs, grouped);
+          this.isLoadingPdfCurriculumOptions = false;
+
+          const missing = programs.filter((programCode) => (options[programCode] ?? []).length === 0);
+          if (missing.length > 0) {
+            this.pdfCurriculumLoadError = `No active curricula found for: ${missing.join(', ')}. Activate or create a curriculum in Curriculum Management first.`;
+          }
+        },
+        error: () => {
+          this.isLoadingPdfCurriculumOptions = false;
+          this.pdfCurriculumLoadError = 'Could not load curricula for PDF import.';
+        }
+      });
   }
 
   isPdfStudentRowSelected(rowKey: string): boolean {
@@ -989,11 +1155,26 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
       this.notificationService.warning('Nothing selected', 'Select at least one student to import.');
       return;
     }
+    if (!this.canConfirmPdfImport) {
+      const hint = this.hasMultiplePdfImportPrograms
+        ? 'Choose a curriculum on each program tab for the students you selected.'
+        : 'Choose a curriculum for each program before importing.';
+      this.notificationService.warning('Curriculum required', hint);
+      return;
+    }
+
+    const programCurricula = buildProgramCurriculumImportPayload(
+      this.pdfImportPrograms.reduce<Record<string, string>>((acc, programCode) => {
+        acc[programCode] = this.pdfProgramCurriculumSelections[programCode] ?? '';
+        return acc;
+      }, {})
+    );
+    const includedRowKeys = [...this.selectedPdfRowKeys];
 
     this.showPdfStudentSelectionModal = false;
     this.isImportingClassRosterPdf = true;
     this.facultyCenterService
-      .importClassRosterPdf(file, [...this.selectedPdfRowKeys])
+      .importClassRosterPdf(file, includedRowKeys, programCurricula)
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => {
@@ -1002,6 +1183,10 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
           this.pendingPdfPreview = null;
           this.pdfStudentSearchQuery = '';
           this.selectedPdfRowKeys = new Set<string>();
+          this.pdfProgramCurriculumSelections = {};
+          this.pdfCurriculumOptionsByProgram = {};
+          this.pdfCurriculumLoadError = null;
+          this.pdfImportActiveProgramTab = '';
         })
       )
       .subscribe({
@@ -1121,7 +1306,44 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
       }
     }
     this.showAddStudentModal = false;
-    this.notificationService.success('Student added', `${row.displayName} is now enrolled in this class.`);
+    const curriculumNote = row.curriculumCode
+      ? ` Curriculum: ${row.curriculumCode}.`
+      : isFirstYearLevel(row.yearLevel)
+        ? ' Assign a curriculum when ready.'
+        : '';
+    this.notificationService.success(
+      'Student added',
+      `${row.displayName} is now enrolled in this class.${curriculumNote}`
+    );
+  }
+
+  onOpenStudentCurriculum(student: ClassRosterStudentDto): void {
+    this.studentCurriculumTarget = student;
+    this.showStudentCurriculumModal = true;
+  }
+
+  onStudentCurriculumModalClose(): void {
+    this.showStudentCurriculumModal = false;
+    this.studentCurriculumTarget = null;
+  }
+
+  onStudentCurriculumSaved(curriculumCode: string): void {
+    const targetId = this.studentCurriculumTarget?.id;
+    if (targetId == null) {
+      return;
+    }
+    this.classRosterDetailStudents = this.classRosterDetailStudents.map((row) =>
+      row.id === targetId ? { ...row, curriculumCode } : row
+    );
+    this.onStudentCurriculumModalClose();
+  }
+
+  curriculumStatusLabel(student: ClassRosterStudentDto): string {
+    return student.curriculumCode?.trim() || 'Not assigned';
+  }
+
+  isFirstYearStudent(student: ClassRosterStudentDto): boolean {
+    return isFirstYearLevel(student.yearLevel);
   }
 
   onRemoveStudentFromClass(student: ClassRosterStudentDto): void {
@@ -1423,7 +1645,7 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
   showGradeRosterHelp(): void {
     this.notificationService.info(
       'Grade Roster',
-      'Choose a term and class, then use View Grades to manage or encode grades. Credit requests can be submitted from the Credit Requests tab when enabled.'
+      'Use Grade Management to view and encode class grades. Open Credit Requests to review, approve, or reject transferee credit requests submitted by evaluators.'
     );
   }
 
@@ -1440,9 +1662,15 @@ export class FacultyCenterComponent implements OnInit, OnDestroy {
   }
 
   onSaveSchemeAndBasis(): void {
-    this.submitted = true;
-    if (this.termForm.invalid || this.isSaving || this.isLoadingScheme || this.isLoadingTerms) {
-      this.termForm.markAllAsTouched();
+    if (this.isSaving || this.isLoadingScheme || this.isLoadingTerms) {
+      return;
+    }
+    const result = validateFormForSubmit(this.termForm, { isEditMode: true });
+    this.submitted = result.submitted;
+    if (!result.canSubmit) {
+      if (result.errorMessage) {
+        this.notificationService.error('Cannot save', result.errorMessage);
+      }
       return;
     }
 

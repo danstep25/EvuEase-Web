@@ -1,0 +1,141 @@
+@if (isOpen && student) {
+  <div
+    class="cr-curriculum-modal fixed inset-0 z-[130] flex items-center justify-center p-4 sm:p-6"
+    role="presentation"
+  >
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]" aria-hidden="true"></div>
+    <div
+      class="relative w-full max-w-xl max-h-[min(88vh,640px)] flex flex-col rounded-xl bg-white shadow-xl border border-gray-200 overflow-hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cr-curriculum-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-start justify-between gap-3 px-5 pt-4 pb-3 border-b border-gray-100 shrink-0">
+        <div class="min-w-0">
+          <h2 id="cr-curriculum-modal-title" class="text-lg font-bold text-gray-900">Assign Curriculum</h2>
+          <p class="mt-0.5 text-sm text-gray-500">
+            Link this student to a curriculum version for their program.
+          </p>
+        </div>
+        <button
+          type="button"
+          class="shrink-0 rounded-lg p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          aria-label="Close"
+          [disabled]="isSubmitting"
+          (click)="close()"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="px-5 py-4 space-y-4 overflow-y-auto">
+        <section class="rounded-lg border border-gray-200 bg-gray-50/80 p-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Student</p>
+              <p class="mt-1 font-medium text-gray-900">{{ student.displayName }}</p>
+              <p class="text-xs text-gray-500 tabular-nums">{{ student.studentId }}</p>
+            </div>
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Program / Year</p>
+              <p class="mt-1 font-medium text-gray-900">{{ student.programCode }}</p>
+              <p class="text-xs text-gray-500">{{ student.yearLevel }}</p>
+            </div>
+          </div>
+        </section>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Current curriculum</label>
+          <p
+            class="rounded-lg border px-3 py-2 text-sm"
+            [class.border-amber-200]="!student.curriculumCode"
+            [class.bg-amber-50]="!student.curriculumCode"
+            [class.text-amber-900]="!student.curriculumCode"
+            [class.border-gray-200]="!!student.curriculumCode"
+            [class.bg-white]="!!student.curriculumCode"
+            [class.text-gray-900]="!!student.curriculumCode"
+          >
+            {{ currentCurriculumLabel }}
+          </p>
+        </div>
+
+        @if (isFirstYear) {
+          <div class="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2.5 text-sm text-blue-900" role="note">
+            First year students are automatically assigned the current active curriculum when added to a class.
+            You can still choose a different curriculum here if needed.
+          </div>
+        }
+
+        <div>
+          <label for="cr-curriculum-select" class="block text-sm font-semibold text-gray-700 mb-1.5">
+            Curriculum <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          @if (isLoading) {
+            <div class="rounded-lg border border-gray-200 px-3 py-3 text-sm text-gray-500">Loading curricula…</div>
+          } @else {
+            <div class="relative">
+              <select
+                id="cr-curriculum-select"
+                class="w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2.5 pr-10 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none"
+                [(ngModel)]="selectedCurriculumCode"
+                [disabled]="isSubmitting || curriculumOptions.length === 0"
+              >
+                <option value="">Select curriculum</option>
+                @for (option of curriculumOptions; track option.id) {
+                  <option [value]="option.curriculumCode">{{ optionLabel(option) }}</option>
+                }
+              </select>
+              <svg
+                class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          }
+        </div>
+
+        @if (selectedOption) {
+          <div class="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-600">
+            Version <span class="font-medium text-gray-900">{{ selectedOption.version }}</span>
+            @if (selectedOption.syYear) {
+              · School year <span class="font-medium text-gray-900">{{ selectedOption.syYear }}</span>
+            }
+          </div>
+        }
+
+        @if (errorMessage) {
+          <div class="rounded-lg bg-red-50 border border-red-100 px-3 py-2 text-sm text-red-800" role="alert">
+            {{ errorMessage }}
+          </div>
+        }
+      </div>
+
+      <div class="flex items-center justify-end gap-2 px-5 py-4 border-t border-gray-100 shrink-0">
+        <button
+          type="button"
+          class="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+          [disabled]="isSubmitting"
+          (click)="close()"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          [disabled]="isSubmitting || !selectedCurriculumCode.trim() || isLoading"
+          (click)="save()"
+        >
+          {{ isSubmitting ? 'Saving…' : 'Save Curriculum' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

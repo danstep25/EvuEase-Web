@@ -42,9 +42,11 @@ export const API_URL = {
   syTerm: {
     base: '/SyTerm',
     getAll: '/SyTerm',
+    current: '/SyTerm/current',
     getById: (id: string) => `/SyTerm/${id}`,
     create: '/SyTerm/new',
     update: (id: string) => `/SyTerm/${id}`,
+    setCurrent: (id: string) => `/SyTerm/${id}/set-current`,
     delete: (id: string) => `/SyTerm/${id}`
   },
   curricula: {
@@ -61,7 +63,11 @@ export const API_URL = {
     getById: (code: string) => `/Course/${code}`,
     create: '/Course/new',
     update: (code: string) => `/Course/${code}`,
-    delete: (code: string) => `/Course/${code}`
+    delete: (code: string) => `/Course/${code}`,
+    batchPreview: '/Course/batch/preview',
+    batchDetectPdf: '/Course/batch/detect-pdf',
+    batchParsePdf: '/Course/batch/parse-pdf',
+    batchImport: '/Course/batch/import'
   },
   student: {
     base: '/Student',
@@ -106,6 +112,15 @@ export const API_URL = {
     create: '/Downpayment/new',
     update: (id: string) => `/Downpayment/${id}`,
     delete: (id: string) => `/Downpayment/${id}`
+  },
+  creditRequest: {
+    base: '/CreditRequest',
+    getAll: '/CreditRequest',
+    getById: (id: string) => `/CreditRequest/${id}`,
+    create: '/CreditRequest/new',
+    updateStatus: (id: string) => `/CreditRequest/${id}/status`,
+    uploadSignedPdf: (id: string) => `/CreditRequest/${id}/signed-pdf`,
+    downloadSignedPdf: (id: string) => `/CreditRequest/${id}/signed-pdf`
   },
   classAssignment: {
     gradingSchemeBasis: '/ClassAssignment/grading-scheme-basis'

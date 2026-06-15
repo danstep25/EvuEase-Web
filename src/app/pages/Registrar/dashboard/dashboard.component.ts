@@ -7,8 +7,14 @@ import { ProgramService } from '../../Admin/program-management/program.service';
 import { StudentsService } from '../students/students.service';
 import { SchoolYearTermService } from '../school-year-term/school-year-term.service';
 import { SystemLogsService } from '../../Admin/system-logs/system-logs.service';
+import { NotificationService } from '../../../shared/services/notification.service';
+import { LookupService } from '../../../shared/services/lookup.service';
 import { SyTerm } from '../../../core/models/sy-term.model';
 import { SystemLog } from '../../../shared/models/system-log.model';
+import {
+  CurrentTermPickerFocus,
+  CurrentTermPickerModalComponent
+} from '../../../shared/components/current-term-picker-modal/current-term-picker-modal.component';
 
 interface QuickAction {
   title: string;
@@ -25,7 +31,7 @@ interface DashboardActivity {
 @Component({
   selector: 'app-registrar-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, CurrentTermPickerModalComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -35,6 +41,8 @@ export class RegistrarDashboardComponent implements OnInit {
   private readonly studentsService = inject(StudentsService);
   private readonly schoolYearTermService = inject(SchoolYearTermService);
   private readonly systemLogsService = inject(SystemLogsService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly lookupService = inject(LookupService);
 
   readonly pageTitle = 'Registrar Dashboard';
   readonly pageSubtitle = 'Welcome to EvalEase - Student Subject Evaluation System';
@@ -43,6 +51,14 @@ export class RegistrarDashboardComponent implements OnInit {
   activeStudents = 0;
   currentSchoolYear = '—';
   currentSemester = '—';
+  currentSyTermId: number | null = null;
+
+  showCurrentTermPicker = false;
+  currentTermPickerFocus: CurrentTermPickerFocus = 'schoolYear';
+  availableSyTerms: SyTerm[] = [];
+  isLoadingSyTerms = false;
+  isSavingCurrentTerm = false;
+  currentTermPickerError: string | null = null;
 
   readonly quickActions: QuickAction[] = [
     {
@@ -73,6 +89,50 @@ export class RegistrarDashboardComponent implements OnInit {
     void this.router.navigateByUrl(route);
   }
 
+  onOpenCurrentTermPicker(focus: CurrentTermPickerFocus): void {
+    this.currentTermPickerFocus = focus;
+    this.currentTermPickerError = null;
+    this.showCurrentTermPicker = true;
+    this.loadSyTermsForPicker(true);
+  }
+
+  onCloseCurrentTermPicker(): void {
+    if (this.isSavingCurrentTerm) {
+      return;
+    }
+    this.showCurrentTermPicker = false;
+    this.currentTermPickerError = null;
+  }
+
+  onConfirmCurrentTerm(syTermId: number): void {
+    if (this.isSavingCurrentTerm || syTermId === this.currentSyTermId) {
+      this.showCurrentTermPicker = false;
+      return;
+    }
+
+    this.isSavingCurrentTerm = true;
+    this.currentTermPickerError = null;
+
+    this.schoolYearTermService.setCurrentSyTerm(String(syTermId)).subscribe({
+      next: (term) => {
+        this.isSavingCurrentTerm = false;
+        this.lookupService.clearCache();
+        this.applyCurrentTerm(term);
+        this.showCurrentTermPicker = false;
+        this.notificationService.success(
+          'Current Term Updated',
+          `${term.syYear} · ${term.sySemester} is now the active term.`
+        );
+      },
+      error: (error) => {
+        this.isSavingCurrentTerm = false;
+        this.currentTermPickerError =
+          error.userMessage || error.message || 'Failed to update the current term.';
+        this.notificationService.error('Update Failed', this.currentTermPickerError ?? 'Failed to update the current term.');
+      }
+    });
+  }
+
   private loadDashboardStats(): void {
     forkJoin({
       programs: this.programService
@@ -81,25 +141,46 @@ export class RegistrarDashboardComponent implements OnInit {
       students: this.studentsService
         .getStudents({ PageIndex: 1, PageSize: 1, SortKey: 'id', SortDirection: 'desc', status: 'Active' })
         .pipe(catchError(() => of(null))),
-      syTerms: this.schoolYearTermService
-        .getSyTerms({ PageIndex: 1, PageSize: 1, SortKey: 'sy_id', SortDirection: 'desc' })
-        .pipe(catchError(() => of(null)))
-    }).subscribe(({ programs, students, syTerms }) => {
+      currentTerm: this.schoolYearTermService.getCurrentSyTerm().pipe(catchError(() => of(null)))
+    }).subscribe(({ programs, students, currentTerm }) => {
       this.activePrograms = programs?.pagination?.total ?? 0;
       this.activeStudents = students?.pagination?.total ?? 0;
-      this.applyCurrentTermFromResponse(syTerms?.data ?? []);
+      if (currentTerm) {
+        this.applyCurrentTerm(currentTerm);
+      } else {
+        this.clearCurrentTermDisplay();
+      }
     });
   }
 
-  private applyCurrentTermFromResponse(terms: SyTerm[]): void {
-    const current = terms?.[0];
-    if (!current) {
-      this.currentSchoolYear = '—';
-      this.currentSemester = '—';
+  private loadSyTermsForPicker(force = false): void {
+    if (this.isLoadingSyTerms) {
       return;
     }
-    this.currentSchoolYear = current.syYear?.trim() || '—';
-    this.currentSemester = current.sySemester?.trim() || '—';
+    if (!force && this.availableSyTerms.length > 0) {
+      return;
+    }
+
+    this.isLoadingSyTerms = true;
+    this.schoolYearTermService
+      .getSyTerms({ PageIndex: 1, PageSize: 500, SortKey: 'sy_year', SortDirection: 'desc' })
+      .pipe(catchError(() => of(null)))
+      .subscribe((response) => {
+        this.availableSyTerms = response?.data ?? [];
+        this.isLoadingSyTerms = false;
+      });
+  }
+
+  private applyCurrentTerm(term: SyTerm): void {
+    this.currentSyTermId = term.syId;
+    this.currentSchoolYear = term.syYear?.trim() || '—';
+    this.currentSemester = term.sySemester?.trim() || '—';
+  }
+
+  private clearCurrentTermDisplay(): void {
+    this.currentSyTermId = null;
+    this.currentSchoolYear = '—';
+    this.currentSemester = '—';
   }
 
   private loadRecentActivity(): void {

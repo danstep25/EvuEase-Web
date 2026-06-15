@@ -9,7 +9,9 @@ import {
   inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormGroup, FormsModule } from '@angular/forms';
+import { FormDiscardService } from '../../../shared/services/form-discard.service';
+import { attemptFormClose } from '../../../shared/utils/form-state.util';
 import { take } from 'rxjs';
 import { ClassRosterStudentDto, FacultyCenterService, GradeScaleRowDto } from './faculty-center.service';
 import {
@@ -31,6 +33,9 @@ export type UpdateStudentGradeSavePayload =
 })
 export class UpdateStudentGradeModalComponent implements OnChanges, OnDestroy {
   private readonly facultyCenter = inject(FacultyCenterService);
+  private readonly formDiscard = inject(FormDiscardService);
+
+  private readonly modalForm = new FormGroup({});
 
   @Input({ required: true }) open = false;
   @Input() student: ClassRosterStudentDto | null = null;
@@ -292,9 +297,19 @@ export class UpdateStudentGradeModalComponent implements OnChanges, OnDestroy {
   }
 
   onCancel(): void {
-    if (!this.saving) {
-      this.closed.emit();
+    if (this.saving) {
+      return;
     }
+    if (this.hasChanges) {
+      this.modalForm.markAsDirty();
+    } else {
+      this.modalForm.markAsPristine();
+    }
+    void attemptFormClose({
+      form: this.modalForm,
+      discardService: this.formDiscard,
+      close: () => this.closed.emit()
+    });
   }
 
   onSubmit(): void {

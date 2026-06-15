@@ -11,6 +11,10 @@ import { LookupService } from '../../../shared/services/lookup.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { BasePaginationHandler } from '../../../shared/handlers/base-pagination.handler';
 import { SORT_DEFAULTS } from '../../../shared/constants/sort.constant';
+import {
+  normalizeStudentYearTerm,
+  studentYearTermFilterOptions
+} from '../../../shared/utils/student-year-level.util';
 
 
 interface FilterOption {
@@ -50,14 +54,7 @@ export class StudentsComponent extends BasePaginationHandler implements OnInit, 
 
   programFilterOptions: FilterOption[] = [StudentsComponent.ALL_PROGRAMS];
 
-  readonly yearLevelFilterOptions: FilterOption[] = [
-    { value: '', label: 'All Year Levels' },
-    { value: 'First Year', label: 'First Year' },
-    { value: 'Second Year', label: 'Second Year' },
-    { value: 'Third Year', label: 'Third Year' },
-    { value: 'Fourth Year', label: 'Fourth Year' },
-    { value: 'Fifth Year', label: 'Fifth Year' }
-  ];
+  readonly yearLevelFilterOptions: FilterOption[] = studentYearTermFilterOptions();
 
   readonly typeFilterOptions: FilterOption[] = [
     { value: '', label: 'All Types' },
@@ -231,6 +228,10 @@ export class StudentsComponent extends BasePaginationHandler implements OnInit, 
       return 'bg-purple-100 text-purple-800';
     }
     return 'bg-gray-100 text-gray-800';
+  }
+
+  displayYearTerm(raw: string | null | undefined): string {
+    return normalizeStudentYearTerm(raw);
   }
 
   onAddStudent(): void {

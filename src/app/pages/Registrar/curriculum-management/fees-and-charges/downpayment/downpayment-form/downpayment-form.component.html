@@ -1,5 +1,5 @@
 @if (isOpen) {
-  <div class="dp-form-backdrop" (click)="onClose()">
+  <div class="dp-form-backdrop" role="presentation">
     <div class="dp-form-panel" (click)="$event.stopPropagation()">
       <div class="dp-form-head">
         <h2 class="dp-form-title">{{ title }}</h2>

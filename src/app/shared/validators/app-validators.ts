@@ -1,4 +1,5 @@
-import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { AbstractControl, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { countDecimalPlaces, UNIT_DECIMAL_PLACES } from '../utils/unit-value.util';
 
 
 export function trimmedRequired(control: AbstractControl): ValidationErrors | null {
@@ -49,4 +50,41 @@ export function phoneDigitsLength(minDigits: number, maxDigits: number): Validat
     }
     return null;
   };
+}
+
+export function maxDecimalPlaces(maxPlaces: number): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+    if (value == null || value === '') {
+      return null;
+    }
+
+    if (countDecimalPlaces(value) > maxPlaces) {
+      return { maxDecimalPlaces: { maxPlaces } };
+    }
+
+    return null;
+  };
+}
+
+export function unitFieldValidators(options?: {
+  required?: boolean;
+  min?: number;
+  max?: number;
+}): ValidatorFn[] {
+  const { required = true, min = 0, max } = options ?? {};
+  const validators: ValidatorFn[] = [];
+
+  if (required) {
+    validators.push(Validators.required);
+  }
+
+  validators.push(Validators.min(min));
+  validators.push(maxDecimalPlaces(UNIT_DECIMAL_PLACES));
+
+  if (max != null) {
+    validators.push(Validators.max(max));
+  }
+
+  return validators;
 }

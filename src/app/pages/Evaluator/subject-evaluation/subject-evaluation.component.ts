@@ -206,7 +206,7 @@ export class SubjectEvaluationComponent implements OnInit {
   }
 
   onYearLevelFilterChange(value: string): void {
-    this.yearLevelFilter = value;
+    this.yearLevelFilter = String(value);
     this.syncSelectedStudent();
   }
 

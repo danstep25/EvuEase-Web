@@ -1,4 +1,4 @@
-<div class="page-content page-content--fluid academic-records-page">
+<div class="evaluator-page academic-records-page">
   <a [routerLink]="studentId ? ['/registrar/students', studentId] : '/registrar/students'" class="back-link">
     ← Back to Student Details
   </a>
@@ -24,12 +24,32 @@
       <div class="records-head__text">
         <h1 class="records-head__title">{{ pageTitle }}</h1>
         <p class="records-head__subtitle">{{ subtitle }}</p>
-        <p class="records-head__note">Grouped by academic term from class roster. Grades and remarks follow Grade Roster rules (e.g. numeric ≤ 3.0 = PASSED).</p>
+        @if (curriculumLabel) {
+          <p class="records-head__curriculum">Curriculum: {{ curriculumLabel }}</p>
+        }
+        <p class="records-head__note">
+          @if (usesCurriculumPlan) {
+            Subjects are listed by curriculum year and semester. Rows with grades come from class roster; subjects not yet taken are shown as placeholders.
+          } @else {
+            Grouped by academic term from class roster. Grades and remarks follow Grade Roster rules (e.g. numeric ≤ 3.0 = PASSED).
+          }
+        </p>
       </div>
     </header>
 
+    @if (usesCurriculumPlan) {
+      <div class="records-legend" aria-label="Academic records legend">
+        <span class="records-legend__item records-legend__item--taken">Taken / enrolled</span>
+        <span class="records-legend__item records-legend__item--pending">Grade pending</span>
+        <span class="records-legend__item records-legend__item--not-taken">Not yet taken</span>
+      </div>
+    }
+
     @if (recordsLoadError) {
       <p class="records-banner" role="alert">{{ recordsLoadError }}</p>
+    }
+    @if (curriculumLoadWarning) {
+      <p class="records-banner" role="status">{{ curriculumLoadWarning }}</p>
     }
 
     <div class="records-body">
@@ -79,8 +99,11 @@
               </tr>
             </thead>
             <tbody>
-              @for (row of block.courses; track row.enrollmentId) {
-                <tr [class.grades-table__row--retake]="row.isRetake">
+              @for (row of block.courses; track trackCourseRow($index, row)) {
+                <tr
+                  [class.grades-table__row--retake]="row.isRetake"
+                  [class.grades-table__row--not-taken]="row.isNotTaken"
+                >
                   <td class="grades-table__code">{{ row.courseCode }}</td>
                   <td class="grades-table__desc">
                     <div class="grades-table__line grades-table__line--subject">
@@ -143,6 +166,7 @@
                       [class.remarks--failed]="row.remarkKind === 'failed'"
                       [class.remarks--incomplete]="row.remarkKind === 'incomplete'"
                       [class.remarks--pending]="row.remarkKind === 'pending'"
+                      [class.remarks--not-taken]="row.remarkKind === 'not-taken'"
                       [class.remarks--neutral]="row.remarkKind === 'neutral'"
                     >
                       <span class="grades-table__remarks-primary">{{ row.remarks }}</span>
@@ -154,8 +178,20 @@
                 </tr>
               }
               <tr class="grades-table__footer-row">
-                <td colspan="2" class="grades-table__footer-label">Total Units</td>
-                <td class="grades-table__num grades-table__footer-units">{{ totalUnits(block.courses) }}</td>
+                <td colspan="2" class="grades-table__footer-label">
+                  @if (usesCurriculumPlan) {
+                    Units (taken / planned)
+                  } @else {
+                    Total Units
+                  }
+                </td>
+                <td class="grades-table__num grades-table__footer-units">
+                  @if (usesCurriculumPlan) {
+                    {{ takenUnits(block.courses) }} / {{ totalUnits(block.courses) }}
+                  } @else {
+                    {{ totalUnits(block.courses) }}
+                  }
+                </td>
                 <td colspan="2" class="grades-table__footer-rest"></td>
               </tr>
             </tbody>

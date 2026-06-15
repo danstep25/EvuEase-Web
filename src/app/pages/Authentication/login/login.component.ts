@@ -1,9 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { validateFormForSubmit } from '../../../shared/utils/form-state.util';
+import { controlFirstMessage, shouldShowControlError } from '../../../shared/utils/form-field-error.util';
 
 @Component({
   selector: 'app-login',
@@ -28,10 +30,12 @@ export class LoginComponent {
 
   isLoading = false;
   errorMessage: string | null = null;
+  submitted = false;
 
   onSubmit(): void {
-    if (this.loginForm.invalid) {
-      this.markFormGroupTouched();
+    const result = validateFormForSubmit(this.loginForm);
+    this.submitted = result.submitted;
+    if (!result.canSubmit) {
       return;
     }
 
@@ -77,11 +81,12 @@ export class LoginComponent {
     });
   }
 
-  private markFormGroupTouched(): void {
-    Object.keys(this.loginForm.controls).forEach(key => {
-      const control = this.loginForm.get(key);
-      control?.markAsTouched();
-    });
+  showFieldError(control: AbstractControl | null): boolean {
+    return shouldShowControlError(control, this.submitted);
+  }
+
+  fieldError(control: AbstractControl | null): string {
+    return controlFirstMessage(control, this.submitted);
   }
 
   get emailControl() {

@@ -9,13 +9,13 @@ import { StudentsService } from '../../Registrar/students/students.service';
 import { ProgramService } from '../../Admin/program-management/program.service';
 import { SchoolYearTermService } from '../../Registrar/school-year-term/school-year-term.service';
 import { CourseService } from '../../Registrar/curriculum-management/course.service';
-import { CurriculumManagementService } from '../../Registrar/curriculum-management/curriculum-management.service';
 import { TuitionFeesService } from '../../Registrar/curriculum-management/fees-and-charges/tuition-fees/tuition-fees.service';
 import { OtherSchoolFeesService } from '../../Registrar/curriculum-management/fees-and-charges/other-school-fees/other-school-fees.service';
 import { MiscellaneousFeesService } from '../../Registrar/curriculum-management/fees-and-charges/miscellaneous-fees/miscellaneous-fees.service';
 import { DownpaymentService } from '../../Registrar/curriculum-management/fees-and-charges/downpayment/downpayment.service';
 import { mapStudentEnrollmentOverview } from '../../Registrar/students/student-enrollments.mapper';
 import { mapCourseFromApi } from '../student-permanent-records/evaluator-migrate-curriculum.mapper';
+import { EvaluatorCurriculumResolutionService } from '../student-permanent-records/evaluator-curriculum-resolution.service';
 import {
   buildAddSubjectCatalog,
   buildChargeSlipPreview,
@@ -54,11 +54,11 @@ export class SubjectEvaluationService {
   private readonly programService = inject(ProgramService);
   private readonly syTermService = inject(SchoolYearTermService);
   private readonly courseService = inject(CourseService);
-  private readonly curriculumService = inject(CurriculumManagementService);
   private readonly tuitionFeesService = inject(TuitionFeesService);
   private readonly otherSchoolFeesService = inject(OtherSchoolFeesService);
   private readonly miscellaneousFeesService = inject(MiscellaneousFeesService);
   private readonly downpaymentService = inject(DownpaymentService);
+  private readonly curriculumResolutionService = inject(EvaluatorCurriculumResolutionService);
 
   private cachedStudents: Student[] = [];
 
@@ -115,30 +115,29 @@ export class SubjectEvaluationService {
       return of(null);
     }
 
-    const curriculumCode = student.curriculumCode?.trim();
-    return forkJoin({
-      curricula: curriculumCode
-        ? this.curriculumService.getCurricula({ ...BULK_PAGE, searchTerm: curriculumCode }).pipe(
-            map((res) => (res.data ?? []).find((c) => c.curriculumCode === curriculumCode) ?? null),
-            catchError(() => of(null))
+    return this.curriculumResolutionService.resolveCurriculumContext(student).pipe(
+      switchMap(({ curricula, curriculumCode: resolvedCode }) =>
+        forkJoin({
+          curricula: of(curricula),
+          tuition: this.tuitionFeesService.getTuitionFees(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
+          osf: this.otherSchoolFeesService.getOtherSchoolFees(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
+          mf: this.miscellaneousFeesService.getMiscellaneousFees(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
+          dp: this.downpaymentService.getDownpayments(BULK_PAGE).pipe(catchError(() => of({ data: [] })))
+        }).pipe(
+          map(({ curricula: resolvedCurricula, tuition, osf, mf, dp }) =>
+            buildChargeSlipPreview(
+              student,
+              resolvedCurricula,
+              selectionRows,
+              selectedIds,
+              tuition.data ?? [],
+              osf.data ?? [],
+              mf.data ?? [],
+              dp.data ?? [],
+              currentYearTerm,
+              resolvedCode
+            )
           )
-        : of(null),
-      tuition: this.tuitionFeesService.getTuitionFees(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
-      osf: this.otherSchoolFeesService.getOtherSchoolFees(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
-      mf: this.miscellaneousFeesService.getMiscellaneousFees(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
-      dp: this.downpaymentService.getDownpayments(BULK_PAGE).pipe(catchError(() => of({ data: [] })))
-    }).pipe(
-      map(({ curricula, tuition, osf, mf, dp }) =>
-        buildChargeSlipPreview(
-          student,
-          curricula,
-          selectionRows,
-          selectedIds,
-          tuition.data ?? [],
-          osf.data ?? [],
-          mf.data ?? [],
-          dp.data ?? [],
-          currentYearTerm
         )
       ),
       catchError(() => of(null))
@@ -151,53 +150,54 @@ export class SubjectEvaluationService {
     termLabel: string
   ): Observable<readonly import('./subject-evaluation.models').AddSubjectCatalogItem[]> {
     const student = this.findStudent(studentId);
-    if (!student?.curriculumCode?.trim()) {
+    if (!student) {
       return of([]);
     }
 
-    return forkJoin({
-      courses: this.courseService
-        .getCourses({ ...BULK_PAGE, curriculumCode: student.curriculumCode!.trim() })
-        .pipe(
-          map((res) => (res.data ?? []).map(mapCourseFromApi)),
-          catchError(() => of([]))
-        ),
-      overview: this.studentsService.getStudentEnrollmentOverview(studentId).pipe(
-        map((raw) => mapStudentEnrollmentOverview(raw)),
-        catchError(() => of(EMPTY_OVERVIEW))
-      )
-    }).pipe(
-      map(({ courses, overview }) =>
-        buildAddSubjectCatalog(courses, overview.enrollments, excludeCourseCodes, termLabel)
-      )
+    return this.curriculumResolutionService.resolveCurriculumContext(student).pipe(
+      switchMap(({ curriculumCode }) => {
+        if (!curriculumCode) {
+          return of([]);
+        }
+
+        return forkJoin({
+          courses: this.courseService
+            .getCourses({ ...BULK_PAGE, curriculumCode })
+            .pipe(
+              map((res) => (res.data ?? []).map(mapCourseFromApi)),
+              catchError(() => of([]))
+            ),
+          overview: this.studentsService.getStudentEnrollmentOverview(studentId).pipe(
+            map((raw) => mapStudentEnrollmentOverview(raw)),
+            catchError(() => of(EMPTY_OVERVIEW))
+          )
+        }).pipe(
+          map(({ courses, overview }) =>
+            buildAddSubjectCatalog(courses, overview.enrollments, excludeCourseCodes, termLabel)
+          )
+        );
+      }),
+      catchError(() => of([]))
     );
   }
 
   private loadWorkflowForStudent(student: Student): Observable<SubjectEvaluationStudentWorkflow | null> {
-    const curriculumCode = student.curriculumCode?.trim();
-
     return forkJoin({
       overview: this.studentsService.getStudentEnrollmentOverview(String(student.id)).pipe(
         map((raw) => mapStudentEnrollmentOverview(raw)),
         catchError(() => of(EMPTY_OVERVIEW))
       ),
-      curricula: curriculumCode
-        ? this.curriculumService.getCurricula({ ...BULK_PAGE, searchTerm: curriculumCode }).pipe(
-            map((res) => (res.data ?? []).find((c) => c.curriculumCode === curriculumCode) ?? null),
-            catchError(() => of(null))
-          )
-        : of(null),
-      courses: curriculumCode
-        ? this.courseService.getCourses({ ...BULK_PAGE, curriculumCode }).pipe(
-            map((res) => (res.data ?? []).map(mapCourseFromApi)),
-            catchError(() => of([]))
-          )
-        : of([])
+      curriculumContext: this.curriculumResolutionService.resolveCurriculumContext(student)
     }).pipe(
-      map(({ overview, curricula, courses }) => {
+      map(({ overview, curriculumContext }) => {
+        const courses = curriculumContext.courses.map(mapCourseFromApi);
         const subjectSelection = buildSubjectSelectionState(student, courses, overview.enrollments);
         return {
-          summary: buildStudentSummary(student, curricula),
+          summary: buildStudentSummary(
+            student,
+            curriculumContext.curricula,
+            curriculumContext.curriculumCode
+          ),
           finishedSubjects: mapFinishedSubjects(overview.enrollments),
           subjectSelection
         };

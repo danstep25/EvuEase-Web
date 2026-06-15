@@ -1,0 +1,332 @@
+.credit-request-print {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.credit-request-print__form {
+  border: 2px solid #111827;
+  padding: 1.25rem 1.125rem 1.5rem;
+  background: #fff;
+}
+
+.credit-request-print__form-title {
+  margin: 0 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #111827;
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #111827;
+  line-height: 1.35;
+}
+
+.credit-request-print__student-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.625rem;
+  margin-bottom: 1rem;
+}
+
+.credit-request-print__field {
+  border: 1px solid #d1d5db;
+  padding: 0.4rem 0.5rem 0.5rem;
+  min-height: 3.25rem;
+  box-sizing: border-box;
+}
+
+.credit-request-print__field-label {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b7280;
+  line-height: 1.25;
+}
+
+.credit-request-print__field-value {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.credit-request-print__course-table-wrap {
+  border: 1px solid #111827;
+}
+
+.credit-request-print__course-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.6875rem;
+
+  th,
+  td {
+    border: 1px solid #111827;
+    padding: 0.35rem 0.25rem;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 1.25;
+    word-break: break-word;
+    box-sizing: border-box;
+  }
+
+  tbody td {
+    min-height: 1.75rem;
+  }
+
+  .credit-request-print__column-headers th {
+    font-size: 0.5625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #374151;
+    background: #f9fafb;
+  }
+}
+
+.credit-request-print__col-applied-code {
+  width: 11%;
+}
+
+.credit-request-print__col-applied-title {
+  width: 19%;
+}
+
+.credit-request-print__col-applied-narrow {
+  width: 6%;
+}
+
+.credit-request-print__col-applied-grade {
+  width: 8%;
+}
+
+.credit-request-print__col-check {
+  width: 4%;
+}
+
+.credit-request-print__col-equiv-code {
+  width: 11%;
+}
+
+.credit-request-print__col-equiv-title {
+  width: 21%;
+}
+
+.credit-request-print__col-equiv-narrow {
+  width: 6%;
+}
+
+.credit-request-print__col-equiv-units {
+  width: 8%;
+}
+
+.credit-request-print__cell-title {
+  text-align: left !important;
+}
+
+.credit-request-print__band {
+  padding: 0.4rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #fff;
+  background: #4b5563;
+  line-height: 1.3;
+}
+
+.credit-request-print__subband {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #374151;
+  background: #e5e7eb;
+  line-height: 1.3;
+}
+
+.credit-request-print__table-check-col {
+  width: 1.75rem;
+  min-width: 1.75rem;
+  border-left: 2px solid #111827;
+}
+
+.credit-request-print__table-row--highlight td {
+  background: #fff8dc;
+}
+
+.credit-request-print__check {
+  width: 1rem;
+  height: 1rem;
+  margin: 0 auto;
+  display: block;
+  color: #16a34a;
+}
+
+.credit-request-print__remarks {
+  margin-top: 0.875rem;
+  min-height: 4.5rem;
+  border: 1px solid #9ca3af;
+  padding: 0.5rem 0.625rem;
+}
+
+.credit-request-print__remarks-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.credit-request-print__eligibility {
+  margin: 0.875rem 0 0;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #d1d5db;
+  font-size: 0.6875rem;
+  color: #374151;
+  line-height: 1.45;
+  background: #f9fafb;
+}
+
+.credit-request-print__rules {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem;
+  margin-top: 0.75rem;
+}
+
+.credit-request-print__rules-box {
+  border: 1px solid #9ca3af;
+  background: #f3f4f6;
+  padding: 0.5rem 0.625rem 0.625rem;
+}
+
+.credit-request-print__rules-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #111827;
+  line-height: 1.3;
+}
+
+.credit-request-print__rules-section {
+  & + & {
+    margin-top: 0.35rem;
+  }
+}
+
+.credit-request-print__rules-heading {
+  margin: 0 0 0.15rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.credit-request-print__rules-list {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.625rem;
+  color: #374151;
+  line-height: 1.4;
+
+  li + li {
+    margin-top: 0.15rem;
+  }
+}
+
+.credit-request-print__signatures {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 0.625rem;
+  margin-top: 0.875rem;
+}
+
+.credit-request-print__declaration,
+.credit-request-print__approval-box {
+  border: 1px solid #9ca3af;
+  padding: 0.5rem 0.625rem 0.625rem;
+  min-height: 7.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.credit-request-print__declaration-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  color: #111827;
+}
+
+.credit-request-print__declaration-text {
+  margin: 0;
+  flex: 1;
+  font-size: 0.625rem;
+  color: #374151;
+  line-height: 1.45;
+}
+
+.credit-request-print__approvals {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.credit-request-print__approval-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.credit-request-print__signature-line-wrap {
+  margin-top: auto;
+}
+
+.credit-request-print__signature-line {
+  display: block;
+  width: 100%;
+  border-top: 1px solid #111827;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.credit-request-print__signature-caption {
+  display: block;
+  font-size: 0.5625rem;
+  text-align: center;
+  color: #4b5563;
+  line-height: 1.3;
+}
+
+.credit-request-print .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 900px) {
+  .credit-request-print__student-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .credit-request-print__rules,
+  .credit-request-print__signatures {
+    grid-template-columns: 1fr;
+  }
+}

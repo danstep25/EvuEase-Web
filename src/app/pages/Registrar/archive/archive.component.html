@@ -1,5 +1,5 @@
-<div class="page-content">
-  <header class="page-header page-header--with-icon">
+<div class="evaluator-page">
+  <header class="evaluator-page__header page-header--with-icon">
     <div class="page-header__title-row">
       <span class="page-header__icon" aria-hidden="true">
         <svg class="w-8 h-8 text-slate-600" fill="currentColor" viewBox="0 0 24 24">
@@ -9,8 +9,8 @@
         </svg>
       </span>
       <div>
-        <h1 class="page-title">{{ pageTitle }}</h1>
-        <p class="page-subtitle">{{ pageSubtitle }}</p>
+        <h1 class="evaluator-page__title">{{ pageTitle }}</h1>
+        <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
       </div>
     </div>
   </header>
@@ -738,15 +738,6 @@
     </div>
   </div>
 
-  <button
-    type="button"
-    (click)="showArchiveHelp()"
-    class="archive-help-fab fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-slate-700 text-white shadow-lg hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-    aria-label="Help for Archive"
-    title="Help"
-  >
-    <span class="text-lg font-semibold" aria-hidden="true">?</span>
-  </button>
 </div>
 
 <app-confirmation-modal

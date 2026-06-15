@@ -15,6 +15,8 @@ import { UpdateOtherSchoolFeeRequest } from '../../../../core/models/other-schoo
 import { LookupService } from '../../../../shared/services/lookup.service';
 import { OtherSchoolFeesService } from '../../../Registrar/curriculum-management/fees-and-charges/other-school-fees/other-school-fees.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { FormDiscardService } from '../../../../shared/services/form-discard.service';
+import { attemptFormClose, validateFormForSubmit } from '../../../../shared/utils/form-state.util';
 import type { EvaluatorOtherSchoolFeeRow } from '../evaluator-curriculum-view.models';
 import {
   TUITION_FEE_SEMESTER_OPTIONS,
@@ -35,6 +37,7 @@ export class EvaluatorOtherSchoolFeeEditComponent implements OnChanges, OnDestro
   private readonly lookupService = inject(LookupService);
   private readonly otherSchoolFeesService = inject(OtherSchoolFeesService);
   private readonly notificationService = inject(NotificationService);
+  private readonly formDiscard = inject(FormDiscardService);
   private readonly destroy$ = new Subject<void>();
 
   @Input() isOpen = false;
@@ -46,6 +49,8 @@ export class EvaluatorOtherSchoolFeeEditComponent implements OnChanges, OnDestro
   readonly batchOptions = buildTuitionFeeBatchYears();
   readonly semesterOptions = TUITION_FEE_SEMESTER_OPTIONS;
   isSubmitting = false;
+  submitted = false;
+  errorMessage: string | null = null;
 
   readonly editForm = new FormGroup({
     syId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -78,14 +83,21 @@ export class EvaluatorOtherSchoolFeeEditComponent implements OnChanges, OnDestro
   }
 
   onClose(): void {
-    this.close.emit();
+    void attemptFormClose({
+      form: this.editForm,
+      discardService: this.formDiscard,
+      close: () => this.close.emit()
+    });
   }
 
   onSubmit(): void {
-    if (this.editForm.invalid || this.isSubmitting || !this.schoolFee) {
-      this.editForm.markAllAsTouched();
+    const result = validateFormForSubmit(this.editForm, { isEditMode: true });
+    this.submitted = result.submitted;
+    if (!result.canSubmit || this.isSubmitting || !this.schoolFee) {
+      this.errorMessage = result.errorMessage;
       return;
     }
+    this.errorMessage = null;
 
     this.isSubmitting = true;
     const base = buildCreateOtherSchoolFeeRequest(this.editForm.getRawValue());
@@ -99,7 +111,8 @@ export class EvaluatorOtherSchoolFeeEditComponent implements OnChanges, OnDestro
         this.isSubmitting = false;
         this.notificationService.success('School Fee Updated', 'Other school fee has been updated successfully.');
         this.saved.emit();
-        this.onClose();
+        this.editForm.markAsPristine();
+        this.close.emit();
       },
       error: (error) => {
         this.isSubmitting = false;
@@ -134,5 +147,8 @@ export class EvaluatorOtherSchoolFeeEditComponent implements OnChanges, OnDestro
       cash: row.cash,
       lowMonthlyPayment: row.lowMonthlyPayment
     });
+    this.editForm.markAsPristine();
+    this.submitted = false;
+    this.errorMessage = null;
   }
 }

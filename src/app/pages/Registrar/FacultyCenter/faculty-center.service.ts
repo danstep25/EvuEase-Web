@@ -63,10 +63,12 @@ export interface CreateClassRosterPayload {
 
 export interface ClassRosterStudentDto {
   id: number;
+  studentRecordId: number;
   studentId: string;
   displayName: string;
   programCode: string;
   yearLevel: string;
+  curriculumCode: string | null;
   
   officialGrade: string | null;
   
@@ -143,6 +145,11 @@ export interface ClassListPdfPreviewStudentDto {
 export interface ClassListPdfPreviewDto {
   academicTerm: string;
   pages: ClassListPdfPreviewPageDto[];
+}
+
+export interface ProgramCurriculumImportSelection {
+  programCode: string;
+  curriculumCode: string;
 }
 
 @Injectable({
@@ -299,11 +306,18 @@ export class FacultyCenterService extends HttpBaseService {
   }
 
   
-  importClassRosterPdf(file: File, includedRowKeys?: string[]): Observable<ClassRosterPdfImportSummaryDto> {
+  importClassRosterPdf(
+    file: File,
+    includedRowKeys?: string[],
+    programCurricula?: ProgramCurriculumImportSelection[]
+  ): Observable<ClassRosterPdfImportSummaryDto> {
     const formData = new FormData();
     formData.append('file', file, file.name);
     for (const key of includedRowKeys ?? []) {
       formData.append('includedRowKeys', key);
+    }
+    if (programCurricula?.length) {
+      formData.append('programCurriculaJson', JSON.stringify(programCurricula));
     }
     return this.http
       .post<BaseResponse<unknown>>(`${this.baseUrl}${API_URL.classRoster.importPdf}`, formData, {
@@ -669,10 +683,12 @@ export class FacultyCenterService extends HttpBaseService {
     };
     return {
       id: Number(o['id'] ?? o['Id'] ?? 0),
+      studentRecordId: Number(o['studentRecordId'] ?? o['StudentRecordId'] ?? 0),
       studentId: txt('studentId', 'StudentId'),
       displayName: txt('displayName', 'DisplayName'),
       programCode: txt('programCode', 'ProgramCode'),
       yearLevel: txt('yearLevel', 'YearLevel'),
+      curriculumCode: opt('curriculumCode', 'CurriculumCode'),
       officialGrade: opt('officialGrade', 'OfficialGrade'),
       remarks: opt('remarks', 'Remarks')
     };

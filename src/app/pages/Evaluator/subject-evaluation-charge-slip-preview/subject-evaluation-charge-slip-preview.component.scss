@@ -12,13 +12,13 @@
 
 .se-charge-slip__document {
   width: 100%;
-  max-width: 52rem;
+  max-width: 56rem;
   margin: 0 auto;
   padding: 1.25rem 1.35rem 1rem;
   border: 1px solid #111827;
   background: #fff;
   box-sizing: border-box;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: Arial, Helvetica, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color: #111827;
 }
 
@@ -28,7 +28,6 @@
   font-weight: 700;
   text-align: center;
   line-height: 1.3;
-  letter-spacing: 0.01em;
 }
 
 .se-charge-slip__student-grid {
@@ -75,63 +74,69 @@
   width: 100%;
   border-collapse: collapse;
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   table-layout: fixed;
 
-  & + & {
-    margin-top: -1px;
-  }
-
   thead th,
-  tbody td {
+  tbody td,
+  tbody th {
     border: 1px solid #111827;
-    padding: 0.35rem 0.45rem;
+    padding: 0.28rem 0.4rem;
     vertical-align: middle;
-    line-height: 1.3;
+    line-height: 1.25;
   }
 
   thead th {
     background: #e5e7eb;
     font-weight: 700;
     text-align: left;
-  }
-}
-
-.se-charge-slip__table--tuition {
-  thead th {
     font-size: 0.625rem;
-    letter-spacing: 0.02em;
     padding: 0.3rem 0.35rem;
   }
 }
 
-.se-charge-slip__th--num {
-  width: 1.75rem;
-  text-align: center;
+.se-charge-slip__col--num {
+  width: 4%;
 }
 
-.se-charge-slip__th--subject {
-  width: 22%;
+.se-charge-slip__col--subject {
+  width: 26%;
 }
 
+.se-charge-slip__col--units {
+  width: 6%;
+}
+
+.se-charge-slip__col--component {
+  width: 11%;
+}
+
+.se-charge-slip__col--curriculum {
+  width: 11%;
+}
+
+.se-charge-slip__col--level {
+  width: 8%;
+}
+
+.se-charge-slip__col--cash,
+.se-charge-slip__col--low-monthly {
+  width: 17%;
+}
+
+.se-charge-slip__th--num,
 .se-charge-slip__th--center {
   text-align: center;
 }
 
 .se-charge-slip__th--amount {
   text-align: right;
-  width: 6.75rem;
 }
 
-.se-charge-slip__th--section {
-  width: 58%;
-}
-
-.se-charge-slip__th--spacer {
-  width: 10%;
-  background: #fff;
-  border-left: 1px solid #111827;
-  border-right: 1px solid #111827;
+.se-charge-slip__th--cash,
+.se-charge-slip__th--low-monthly {
+  text-align: center;
+  line-height: 1.15;
 }
 
 .se-charge-slip__td--center {
@@ -143,15 +148,28 @@
   white-space: nowrap;
 }
 
-.se-charge-slip__td--filler {
-  border-left: 1px solid #111827;
-  border-right: 1px solid #111827;
+.se-charge-slip__section-row th {
+  background: #e5e7eb;
+  font-weight: 700;
 }
 
-.se-charge-slip__td--spacer {
-  background: #fff;
-  border-left: 1px solid #111827;
-  border-right: 1px solid #111827;
+.se-charge-slip__section-title {
+  text-align: left;
+}
+
+.se-charge-slip__section-amount-cell {
+  background: #e5e7eb;
+  padding: 0.28rem 0.4rem;
+}
+
+.se-charge-slip__section-amount-header {
+  background: #e5e7eb;
+  text-align: center;
+  font-size: 0.625rem;
+}
+
+.se-charge-slip__fee-label {
+  text-align: left;
 }
 
 .se-charge-slip__total-row td {
@@ -165,27 +183,6 @@
 
 .se-charge-slip__total-value {
   font-weight: 700;
-}
-
-.se-charge-slip__table--fees,
-.se-charge-slip__table--gross {
-  .se-charge-slip__th--amount,
-  .se-charge-slip__td--amount {
-    width: 21%;
-  }
-}
-
-.se-charge-slip__table--gross {
-  .se-charge-slip__total-label {
-    width: 58%;
-  }
-}
-
-.se-charge-slip__table--payment {
-  .se-charge-slip__th--section,
-  tbody td:first-child {
-    width: 48%;
-  }
 }
 
 .se-charge-slip__footer-grid {
@@ -264,4 +261,3 @@
     text-align: left;
   }
 }
-

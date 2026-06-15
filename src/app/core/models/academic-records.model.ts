@@ -10,14 +10,16 @@ export interface AcademicRecordCourseRow {
   
   remarks: string;
   
-  remarkKind: 'passed' | 'failed' | 'incomplete' | 'pending' | 'neutral';
+  remarkKind: 'passed' | 'failed' | 'incomplete' | 'pending' | 'neutral' | 'not-taken';
   
   remarksSub: string | null;
   
   isRetake: boolean;
-  
+
+  isNotTaken?: boolean;
+
   coursePending?: boolean;
-  
+
   gradePending?: boolean;
 }
 

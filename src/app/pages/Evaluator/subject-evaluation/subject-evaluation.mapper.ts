@@ -85,13 +85,97 @@ function prerequisiteMet(prerequisite: string, passed: Set<string>): boolean {
   return codes.every((code) => passed.has(code));
 }
 
-export function parseYearLevelFilterKey(yearLevel: string): string | null {
-  const match = yearLevel.match(/Year\s*(\d)/i);
-  if (!match) {
+const YEAR_LEVEL_FILTER_KEY_BY_LABEL: Readonly<Record<string, string>> = {
+  '1': '1',
+  '1st': '1',
+  '1st year': '1',
+  'first': '1',
+  'first year': '1',
+  'year 1': '1',
+  '2': '2',
+  '2nd': '2',
+  '2nd year': '2',
+  'second': '2',
+  'second year': '2',
+  'year 2': '2',
+  '3': '3',
+  '3rd': '3',
+  '3rd year': '3',
+  'third': '3',
+  'third year': '3',
+  'year 3': '3',
+  '4': '4',
+  '4th': '4',
+  '4th year': '4',
+  'fourth': '4',
+  'fourth year': '4',
+  'year 4': '4',
+  '5': '5',
+  '5th': '5',
+  '5th year': '5',
+  'fifth': '5',
+  'fifth year': '5',
+  'year 5': '5'
+};
+
+function isYearLevelFilterKey(value: string): value is '1' | '2' | '3' | '4' | '5' {
+  return value === '1' || value === '2' || value === '3' || value === '4' || value === '5';
+}
+
+function normalizeYearLevelFilterKey(value: string | null | undefined): string | null {
+  const normalized = value?.trim().toLowerCase() ?? '';
+  if (!normalized || normalized === 'all') {
     return null;
   }
-  const key = match[1];
-  return key === '1' || key === '2' || key === '3' || key === '4' ? key : null;
+  return parseYearLevelFilterKey(normalized) ?? (isYearLevelFilterKey(normalized) ? normalized : null);
+}
+
+export function parseYearLevelFilterKey(yearLevel: string | null | undefined): string | null {
+  const normalized = yearLevel?.trim().toLowerCase() ?? '';
+  if (!normalized) {
+    return null;
+  }
+
+  const fromLabel = YEAR_LEVEL_FILTER_KEY_BY_LABEL[normalized];
+  if (fromLabel) {
+    return fromLabel;
+  }
+
+  const compact = normalized.replace(/\s/g, '');
+  if (/^\dY\d$/i.test(compact)) {
+    const digit = compact.charAt(0);
+    if (isYearLevelFilterKey(digit)) {
+      return digit;
+    }
+  }
+
+  const yearTermMatch = normalized.match(/year\s*(\d)\s*y/i);
+  if (yearTermMatch?.[1] && isYearLevelFilterKey(yearTermMatch[1])) {
+    return yearTermMatch[1];
+  }
+
+  const yearOnlyMatch = normalized.match(/year\s*(\d)(?:\s|$|y)/i);
+  if (yearOnlyMatch?.[1] && isYearLevelFilterKey(yearOnlyMatch[1])) {
+    return yearOnlyMatch[1];
+  }
+
+  const ordinalMatch = normalized.match(/^(\d)(?:st|nd|rd|th)(?:\s+year)?$/i);
+  if (ordinalMatch?.[1] && isYearLevelFilterKey(ordinalMatch[1])) {
+    return ordinalMatch[1];
+  }
+
+  return null;
+}
+
+export function yearLevelMatchesFilter(
+  studentYearLevel: string | null | undefined,
+  yearLevelFilter: string
+): boolean {
+  const filterKey = normalizeYearLevelFilterKey(yearLevelFilter);
+  if (!filterKey) {
+    return true;
+  }
+  return parseYearLevelFilterKey(studentYearLevel) === filterKey;
 }
 
 export function toYearTermKey(courseYearLevel: string, courseSemester: string): string {
@@ -101,12 +185,25 @@ export function toYearTermKey(courseYearLevel: string, courseSemester: string): 
 }
 
 export function parseStudentCurrentYearTerm(yearLevel: string): string {
+  const compact = yearLevel.trim().replace(/\s/g, '');
+  if (/^\dY\d$/i.test(compact)) {
+    return compact.toUpperCase();
+  }
   const short = yearLevel.match(/Year\s*(.+)$/i)?.[1]?.trim();
   if (short && /^\dY\d$/i.test(short.replace(/\s/g, ''))) {
     return short.replace(/\s/g, '').toUpperCase();
   }
   const key = parseYearLevelFilterKey(yearLevel);
   return key ? `${key}Y1` : '1Y1';
+}
+
+function formatStudentFullName(student: Student): string {
+  const given = [student.firstName, student.middleName].filter(Boolean).join(' ').trim();
+  return `${student.lastName}, ${given || student.firstName}`;
+}
+
+function formatStudentProgramYearTerm(programCode: string, yearLevel: string): string {
+  return `${programCode.trim().toUpperCase()} - ${parseStudentCurrentYearTerm(yearLevel)}`;
 }
 
 export function mapUpcomingTerm(terms: readonly SyTerm[]): SubjectEvaluationUpcomingTerm | null {
@@ -135,11 +232,10 @@ export function buildProgramFilterOptions(programCodes: readonly string[]): read
 }
 
 export function toStudentOption(student: Student): SearchableSelectOption {
-  const given = [student.firstName, student.middleName].filter(Boolean).join(' ').trim();
   return {
     id: String(student.id),
-    primary: `${student.studentNumber} - ${student.lastName}, ${given || student.firstName}`,
-    secondary: `${student.programCode} - ${student.yearLevel}`
+    primary: `${student.studentNumber} - ${formatStudentFullName(student)}`.toUpperCase(),
+    secondary: formatStudentProgramYearTerm(student.programCode, student.yearLevel)
   };
 }
 
@@ -152,22 +248,22 @@ export function filterStudents(
     if (programFilter !== 'all' && s.programCode.toLowerCase() !== programFilter.toLowerCase()) {
       return false;
     }
-    if (yearLevelFilter !== 'all') {
-      const key = parseYearLevelFilterKey(s.yearLevel);
-      if (key !== yearLevelFilter) {
-        return false;
-      }
+    if (yearLevelFilter !== 'all' && !yearLevelMatchesFilter(s.yearLevel, yearLevelFilter)) {
+      return false;
     }
     return true;
   });
 }
 
-export function buildStudentSummary(student: Student, curricula: Curricula | null): SubjectEvaluationStudentSummary {
-  const given = [student.firstName, student.middleName].filter(Boolean).join(' ').trim();
-  const curriculumCode = student.curriculumCode?.trim();
+export function buildStudentSummary(
+  student: Student,
+  curricula: Curricula | null,
+  effectiveCurriculumCode?: string | null
+): SubjectEvaluationStudentSummary {
+  const curriculumCode = effectiveCurriculumCode?.trim() || student.curriculumCode?.trim();
   return {
-    studentName: `${student.lastName}, ${given || student.firstName}`,
-    programYearLevel: `${student.programCode} - ${student.yearLevel}`,
+    studentName: formatStudentFullName(student),
+    programYearLevel: formatStudentProgramYearTerm(student.programCode, student.yearLevel),
     curriculum: buildCurriculumDisplayLabel(curriculumCode, curricula)
   };
 }
@@ -330,6 +426,14 @@ function curriculumVersionFrom(curricula: Curricula | null, curriculumCode: stri
   return parts.length >= 2 ? parts.slice(1).join('-') : code || '—';
 }
 
+function chargeSlipCurriculumVersion(curricula: Curricula | null, curriculumCode: string | null | undefined): string {
+  const code = curriculumCode?.trim();
+  if (code) {
+    return code;
+  }
+  return curriculumVersionFrom(curricula, curriculumCode);
+}
+
 function mapFeeRows<T extends { cash: number; lowMonthlyPayment: number }>(
   items: readonly T[],
   label: (item: T) => string
@@ -360,14 +464,18 @@ export function buildChargeSlipPreview(
   otherSchoolFees: readonly OtherSchoolFee[],
   miscellaneousFees: readonly MiscellaneousFee[],
   downpayments: readonly Downpayment[],
-  currentYearTerm: string
+  currentYearTerm: string,
+  effectiveCurriculumCode?: string | null
 ): ChargeSlipPreview {
   const selected = selectionRows.filter((r) => selectedIds.includes(r.id));
   const tuitionByCode = new Map(
     tuitionFees.map((t) => [normalizeCode(t.courseCode), t])
   );
 
-  const curriculumVersion = curriculumVersionFrom(curricula, student.curriculumCode);
+  const curriculumVersion = chargeSlipCurriculumVersion(
+    curricula,
+    effectiveCurriculumCode ?? student.curriculumCode
+  );
   const tuitionRows: ChargeSlipTuitionRow[] = selected.map((row, index) => {
     const fee = tuitionByCode.get(normalizeCode(row.courseCode));
     const cash = fee?.cash ?? 0;

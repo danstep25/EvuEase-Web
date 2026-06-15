@@ -21,6 +21,7 @@ import { User } from '../../../core/models/user.model';
 import { PaginatedResponse } from '../../../core/models/api-response.model';
 import { LookupService } from '../../../shared/services/lookup.service';
 import { Program } from '../../../core/models/program.model';
+import { studentYearTermFilterOptions } from '../../../shared/utils/student-year-level.util';
 
 export enum ArchiveTab {
   Programs = 'programs',
@@ -102,14 +103,8 @@ export class ArchiveComponent implements OnInit, OnDestroy {
 
   programFilterOptions: ArchiveStudentFilterOption[] = [{ value: '', label: 'All Programs' }];
 
-  readonly yearLevelFilterOptions: readonly ArchiveStudentFilterOption[] = [
-    { value: '', label: 'All Year Levels' },
-    { value: 'First Year', label: 'First Year' },
-    { value: 'Second Year', label: 'Second Year' },
-    { value: 'Third Year', label: 'Third Year' },
-    { value: 'Fourth Year', label: 'Fourth Year' },
-    { value: 'Fifth Year', label: 'Fifth Year' }
-  ];
+  readonly yearLevelFilterOptions: readonly ArchiveStudentFilterOption[] =
+    studentYearTermFilterOptions();
 
   
   readonly semesterFilterOptions: readonly ArchiveStudentFilterOption[] = [
@@ -229,13 +224,6 @@ export class ArchiveComponent implements OnInit, OnDestroy {
 
   toggleAdvancedFilters(): void {
     this.showAdvancedFilters = !this.showAdvancedFilters;
-  }
-
-  showArchiveHelp(): void {
-    this.notificationService.info(
-      'About Archive',
-      'Deleted items appear here when the archive API is enabled. Restore brings a record back; permanent delete removes it forever.'
-    );
   }
 
   onRestoreProgram(row: ArchivedProgramRow): void {

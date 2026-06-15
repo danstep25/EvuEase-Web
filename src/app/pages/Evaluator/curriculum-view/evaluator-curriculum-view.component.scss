@@ -877,24 +877,6 @@
   }
 }
 
-.curriculum-view__help-fab.evaluator-help-fab {
-  background: #111827;
-  color: #fff;
-  border: none;
-  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.35);
-
-  &:hover {
-    background: #1f2937;
-    color: #fff;
-    border: none;
-  }
-
-  &:focus-visible {
-    outline: 2px solid #2563eb;
-    outline-offset: 2px;
-  }
-}
-
 @media (max-width: 1024px) {
   .curriculum-view__program-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

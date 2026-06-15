@@ -1,5 +1,5 @@
 @if (isOpen) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" (click)="onClose()">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" role="presentation">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
       <div class="px-6 py-4 border-b border-gray-200">
         <h2 class="text-xl font-bold text-blue-900">{{ title }}</h2>
@@ -105,11 +105,20 @@
               id="courseTotalUnits"
               formControlName="courseTotalUnits"
               min="0"
+              step="0.01"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               [class.border-red-500]="formControls.courseTotalUnits?.invalid && formControls.courseTotalUnits?.touched"
             />
             @if (formControls.courseTotalUnits?.invalid && formControls.courseTotalUnits?.touched) {
-              <p class="mt-1 text-sm text-red-600">Units is required</p>
+              <p class="mt-1 text-sm text-red-600">
+                @if (formControls.courseTotalUnits?.errors?.['required']) {
+                  Units is required
+                } @else if (formControls.courseTotalUnits?.errors?.['min']) {
+                  Units must be 0 or greater
+                } @else if (formControls.courseTotalUnits?.errors?.['maxDecimalPlaces']) {
+                  Units must have at most 2 decimal places
+                }
+              </p>
             }
           </div>
         </div>

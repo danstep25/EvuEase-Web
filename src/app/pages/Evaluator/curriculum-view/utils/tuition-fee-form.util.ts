@@ -3,6 +3,7 @@ import { CreateOtherSchoolFeeRequest } from '../../../../core/models/other-schoo
 import { CreateMiscellaneousFeeRequest } from '../../../../core/models/miscellaneous-fee.model';
 import { SyTerm } from '../../../../core/models/sy-term.model';
 import { Semester } from '../../../Registrar/curriculum-management/enums/semester.enum';
+import { normalizeUnitValue } from '../../../../shared/utils/unit-value.util';
 
 export const TUITION_FEE_COMPONENT_OPTIONS = ['Lecture', 'Lab', 'Lec/Lab'] as const;
 
@@ -65,7 +66,7 @@ export function buildCreateTuitionFeeRequest(formValue: {
     courseCode: formValue.courseCode?.trim(),
     courseTitle: formValue.courseTitle?.trim(),
     component: formValue.component?.trim(),
-    units: formValue.units != null ? Number(formValue.units) : undefined,
+    units: formValue.units != null ? normalizeUnitValue(formValue.units) : undefined,
     cash: Number(formValue.cash ?? 0),
     lowMonthlyPayment: Number(formValue.lowMonthlyPayment ?? 0)
   };

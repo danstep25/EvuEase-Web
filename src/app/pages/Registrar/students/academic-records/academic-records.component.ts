@@ -2,8 +2,14 @@ import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, forkJoin, of } from 'rxjs';
-import { catchError, finalize, takeUntil } from 'rxjs/operators';
+import { catchError, finalize, switchMap, takeUntil } from 'rxjs/operators';
 import { Student } from '../../../../core/models/student.model';
+import { EvaluatorCurriculumResolutionService } from '../../../Evaluator/student-permanent-records/evaluator-curriculum-resolution.service';
+import { buildCurriculumDisplayLabel } from '../student-curriculum.mapper';
+import {
+  buildCurriculumSemesterLayoutRows,
+  mergeCurriculumWithEnrollments
+} from '../academic-records-curriculum.mapper';
 import {
   AcademicRecordCourseRow,
   AcademicRecordSemesterBlock,
@@ -29,6 +35,7 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly studentsService = inject(StudentsService);
+  private readonly curriculumResolution = inject(EvaluatorCurriculumResolutionService);
   private readonly destroy$ = new Subject<void>();
 
   readonly pageTitle = 'Academic Records';
@@ -38,6 +45,9 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
   isLoadingStudent = true;
   loadError: string | null = null;
   recordsLoadError: string | null = null;
+  curriculumLabel: string | null = null;
+  curriculumLoadWarning: string | null = null;
+  usesCurriculumPlan = false;
 
   semesters: AcademicRecordSemesterBlock[] = [];
   
@@ -79,6 +89,9 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
     this.isLoadingStudent = true;
     this.loadError = null;
     this.recordsLoadError = null;
+    this.curriculumLabel = null;
+    this.curriculumLoadWarning = null;
+    this.usesCurriculumPlan = false;
     this.student = null;
     this.semesters = [];
     this.semesterPairs = [];
@@ -86,27 +99,61 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
     this.enrollmentRows = [];
     this.closeCourseHistory();
 
-    forkJoin({
-      student: this.studentsService.getStudentById(id),
-      overview: this.studentsService.getStudentEnrollmentOverview(id).pipe(
-        catchError(() => {
-          this.recordsLoadError = 'Could not load enrollment history for academic records.';
-          return of(null);
-        })
-      )
-    })
+    this.studentsService
+      .getStudentById(id)
       .pipe(
+        switchMap((student) =>
+          forkJoin({
+            student: of(student),
+            overview: this.studentsService.getStudentEnrollmentOverview(id).pipe(
+              catchError(() => {
+                this.recordsLoadError = 'Could not load enrollment history for academic records.';
+                return of(null);
+              })
+            ),
+            curriculum: this.curriculumResolution.resolveCurriculumContext(student).pipe(
+              catchError(() =>
+                of({
+                  programCurricula: [],
+                  curricula: null,
+                  curriculumCode: student.curriculumCode?.trim() || null,
+                  courses: []
+                })
+              )
+            )
+          })
+        ),
         takeUntil(this.destroy$),
         finalize(() => {
           this.isLoadingStudent = false;
         })
       )
       .subscribe({
-        next: ({ student, overview }) => {
+        next: ({ student, overview, curriculum }) => {
           this.student = student;
-          if (overview) {
-            this.enrollmentRows = overview.enrollments;
-            this.semesters = groupEnrollmentsIntoSemesterBlocks(overview.enrollments);
+          const enrollments = overview?.enrollments ?? [];
+          this.enrollmentRows = enrollments;
+
+          const curriculumCode = curriculum.curriculumCode?.trim() || null;
+          this.curriculumLabel = curriculumCode
+            ? buildCurriculumDisplayLabel(curriculumCode, curriculum.curricula)
+            : null;
+
+          if (curriculum.courses.length > 0) {
+            this.usesCurriculumPlan = true;
+            const merged = mergeCurriculumWithEnrollments([...curriculum.courses], enrollments);
+            const layout = buildCurriculumSemesterLayoutRows(merged.blocks);
+            this.semesterPairs = layout.pairs;
+            this.semesterFullWidth = [...layout.fullWidthBlocks, ...merged.extraEnrollments];
+          } else if (overview) {
+            if (curriculumCode) {
+              this.curriculumLoadWarning =
+                'Curriculum courses could not be loaded. Showing class roster enrollments only.';
+            } else {
+              this.curriculumLoadWarning =
+                'No curriculum is assigned to this student. Showing class roster enrollments only.';
+            }
+            this.semesters = groupEnrollmentsIntoSemesterBlocks(enrollments);
             const layout = buildSemesterLayoutRows(this.semesters);
             this.semesterPairs = layout.pairs;
             this.semesterFullWidth = layout.fullWidthBlocks;
@@ -132,6 +179,14 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
 
   totalUnits(courses: AcademicRecordCourseRow[]): number {
     return courses.reduce((sum, c) => sum + c.units, 0);
+  }
+
+  takenUnits(courses: AcademicRecordCourseRow[]): number {
+    return courses.filter((c) => !c.isNotTaken).reduce((sum, c) => sum + c.units, 0);
+  }
+
+  trackCourseRow(_index: number, row: AcademicRecordCourseRow): string {
+    return row.enrollmentId > 0 ? String(row.enrollmentId) : row.courseCode;
   }
 
   formatGrade(value: number | null): string {

@@ -2,65 +2,68 @@
   display: flex;
   min-height: 100vh;
   width: 100%;
-  background-color: #f5f5f5;
+  background-color: var(--portal-shell-bg);
 }
 
 .sidebar {
-  width: 280px;
-  background-color: #2D3C59;
-  color: #ffffff;
+  width: 252px;
+  flex-shrink: 0;
+  background-color: var(--portal-sidebar-bg);
+  color: #fff;
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 0 12px rgba(13, 32, 79, 0.18);
 }
 
 .sidebar-header {
-  padding: 2rem 1.5rem;
+  padding: 1.5rem 1.25rem 1.35rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .app-name {
   font-size: 1.5rem;
   font-weight: 700;
-  margin: 0 0 0.25rem 0;
-  color: #ffffff;
-  letter-spacing: 0.5px;
+  margin: 0 0 0.25rem;
+  letter-spacing: -0.02em;
 }
 
 .portal-name {
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0;
+  font-size: 0.8125rem;
   font-weight: 400;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.88);
+  letter-spacing: 0.01em;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 1rem 0;
+  padding: 0.75rem 0.65rem;
   overflow-y: auto;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1.5rem;
-  color: rgba(255, 255, 255, 0.7);
+  gap: 0.65rem;
+  padding: 0.65rem 0.85rem;
+  margin: 0 0 0.28rem;
+  color: rgba(255, 255, 255, 0.92);
   text-decoration: none;
-  transition: all 0.2s ease;
-  border-left: 3px solid transparent;
-  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 500;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.07);
+    color: #fff;
   }
 
   &.active {
-    background-color: #E5BA41;
-    color: #ffffff;
-    border-left-color: #E5BA41;
+    background-color: var(--portal-nav-active-bg);
+    color: var(--portal-nav-active-text);
     font-weight: 600;
   }
 }
@@ -71,53 +74,52 @@
   flex-shrink: 0;
 }
 
-.nav-label {
-  font-size: 0.9375rem;
-  font-weight: inherit;
-}
-
 .sidebar-footer {
-  padding: 1.5rem;
+  padding: 1.05rem 1rem 1.25rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .logged-in-text {
+  margin: 0;
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0 0 1rem 0;
   font-weight: 400;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.logged-in-name {
+  margin: 0.3rem 0 0.85rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
 }
 
 .logout-button {
   width: 100%;
-  background-color: #ffffff;
-  color: #1a237e;
   border: none;
-  padding: 0.75rem 1rem;
-  border-radius: 6px;
-  font-size: 0.9375rem;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--portal-nav-active-text);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  display: flex;
+  cursor: pointer;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 
   &:hover {
-    background-color: #f5f5f5;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  &:active {
-    transform: translateY(0);
+    background: var(--portal-shell-bg);
+    box-shadow: 0 1px 3px rgba(13, 33, 73, 0.12);
   }
 }
 
 .logout-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  flex-shrink: 0;
 }
 
 .main-content {
@@ -125,7 +127,8 @@
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
-  background-color: #f5f5f5;
+  min-width: 0;
+  background-color: var(--portal-shell-bg);
 }
 
 @media (max-width: 768px) {
@@ -135,12 +138,32 @@
 
   .sidebar {
     width: 100%;
-    max-height: 60vh;
+    min-width: 0;
+    max-height: none;
   }
 
-  .main-content {
-    width: 100%;
+  .sidebar-nav {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+    padding: 0.5rem 0.75rem 0.65rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .nav-item {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    min-height: 44px;
+  }
+
+  .sidebar-footer {
+    padding: 0.85rem 1rem 1rem;
+  }
+
+  .logout-button {
+    max-width: 280px;
   }
 }
-
-

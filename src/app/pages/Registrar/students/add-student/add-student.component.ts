@@ -1,7 +1,11 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { CanComponentDeactivate } from '../../../../core/models/can-deactivate.model';
+import { FormDiscardService } from '../../../../shared/services/form-discard.service';
+import { UnsavedChangesWarningDirective } from '../../../../shared/directives/unsaved-changes-warning.directive';
+import { attemptFormClose, validateFormForSubmit } from '../../../../shared/utils/form-state.util';
 import { Subject, forkJoin, of, catchError, finalize, takeUntil } from 'rxjs';
 import { Program } from '../../../../core/models/program.model';
 import { SyTerm } from '../../../../core/models/sy-term.model';
@@ -15,21 +19,26 @@ import {
   phoneDigitsLength,
   trimmedRequired
 } from '../../../../shared/validators/app-validators';
+import {
+  normalizeStudentYearTerm,
+  STUDENT_YEAR_TERM_OPTIONS
+} from '../../../../shared/utils/student-year-level.util';
 
 @Component({
   selector: 'app-add-student',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, UnsavedChangesWarningDirective],
   templateUrl: './add-student.component.html',
   styleUrl: './add-student.component.scss'
 })
-export class AddStudentComponent implements OnInit, OnDestroy {
+export class AddStudentComponent implements OnInit, OnDestroy, CanComponentDeactivate {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly lookupService = inject(LookupService);
   private readonly studentsService = inject(StudentsService);
   private readonly notificationService = inject(NotificationService);
+  private readonly formDiscard = inject(FormDiscardService);
   private readonly destroy$ = new Subject<void>();
 
   
@@ -56,13 +65,7 @@ export class AddStudentComponent implements OnInit, OnDestroy {
     { value: 'Transferee', label: 'Transferee' }
   ];
 
-  readonly yearLevels = [
-    'First Year',
-    'Second Year',
-    'Third Year',
-    'Fourth Year',
-    'Fifth Year'
-  ];
+  readonly yearLevels = STUDENT_YEAR_TERM_OPTIONS;
 
   readonly genders = [
     { value: 'Male', label: 'Male' },
@@ -88,7 +91,7 @@ export class AddStudentComponent implements OnInit, OnDestroy {
 
   form = this.fb.nonNullable.group({
     admitType: ['New Student', Validators.required],
-    yearLevel: ['First Year', Validators.required],
+    yearLevel: ['1Y1', Validators.required],
     schoolYear: ['', Validators.required],
     syTermId: [null as number | null, Validators.required],
     studentNumber: ['', [trimmedRequired, Validators.maxLength(50)]],
@@ -101,7 +104,7 @@ export class AddStudentComponent implements OnInit, OnDestroy {
     address: ['', [Validators.maxLength(500)]],
     contactNumber: ['', [phoneDigitsLength(7, 15)]],
     email: ['', [Validators.email, Validators.maxLength(200)]],
-    currentYearLevel: ['First Year', Validators.required],
+    currentYearLevel: ['1Y1', Validators.required],
     academicStatus: ['Active', Validators.required],
     isTransferee: [false]
   });
@@ -236,6 +239,8 @@ export class AddStudentComponent implements OnInit, OnDestroy {
     const gender = s.gender === 'Female' || s.gender === 'Male' ? s.gender : '';
     const isTransferee = (s.type || '').toLowerCase() === 'transferee';
 
+    const normalizedYearTerm = normalizeStudentYearTerm(s.yearLevel);
+
     this.form.patchValue(
       {
         studentNumber: s.studentNumber ?? '',
@@ -248,11 +253,11 @@ export class AddStudentComponent implements OnInit, OnDestroy {
         address: (s.address ?? '').trim(),
         contactNumber: (s.contactNumber ?? '').trim(),
         email: (s.email ?? '').trim(),
-        currentYearLevel: s.yearLevel || 'First Year',
+        currentYearLevel: normalizedYearTerm,
         academicStatus: s.status || 'Active',
         isTransferee,
         admitType: isTransferee ? 'Transferee' : 'New Student',
-        yearLevel: s.yearLevel || 'First Year'
+        yearLevel: normalizedYearTerm
       },
       { emitEvent: false }
     );
@@ -335,11 +340,22 @@ export class AddStudentComponent implements OnInit, OnDestroy {
     );
   }
 
+  canDeactivate(): Promise<boolean> {
+    if (!this.form.dirty) {
+      return Promise.resolve(true);
+    }
+    return this.formDiscard.confirmDiscard();
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.form.dirty;
+  }
+
   onSubmit(): void {
-    this.submitted = true;
-    this.errorMessage = null;
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
+    const result = validateFormForSubmit(this.form, { isEditMode: this.isEditMode });
+    this.submitted = result.submitted;
+    if (!result.canSubmit) {
+      this.errorMessage = result.errorMessage;
       queueMicrotask(() => {
         const first = document.querySelector<HTMLElement>(
           'form input.ng-invalid:not([disabled]), form select.ng-invalid:not([disabled])'
@@ -348,6 +364,7 @@ export class AddStudentComponent implements OnInit, OnDestroy {
       });
       return;
     }
+    this.errorMessage = null;
 
     const v = this.form.getRawValue();
     const program = this.programs.find(p => p.programCode === v.programCode);
@@ -355,6 +372,8 @@ export class AddStudentComponent implements OnInit, OnDestroy {
 
     const studentType =
       v.isTransferee || v.admitType === 'Transferee' ? 'Transferee' : 'Regular';
+
+    const normalizedYearTerm = normalizeStudentYearTerm(v.currentYearLevel);
 
     if (this.isEditMode && this.editStudentId) {
       const updateBody: UpdateStudentRequest = {
@@ -365,7 +384,7 @@ export class AddStudentComponent implements OnInit, OnDestroy {
         middleName: v.middleName?.trim() || null,
         programCode: v.programCode,
         programTitle,
-        yearLevel: v.currentYearLevel,
+        yearLevel: normalizedYearTerm,
         studentType,
         enrollmentStatus: v.academicStatus,
         address: v.address.trim() || null,
@@ -402,7 +421,7 @@ export class AddStudentComponent implements OnInit, OnDestroy {
       middleName: v.middleName?.trim() || null,
       programCode: v.programCode,
       programTitle,
-      yearLevel: v.currentYearLevel,
+      yearLevel: normalizedYearTerm,
       studentType,
       enrollmentStatus: v.academicStatus,
       address: v.address.trim() || null,
@@ -432,6 +451,10 @@ export class AddStudentComponent implements OnInit, OnDestroy {
   }
 
   cancel(): void {
-    void this.router.navigate(['/registrar/students']);
+    void attemptFormClose({
+      form: this.form,
+      discardService: this.formDiscard,
+      close: () => void this.router.navigate(['/registrar/students'])
+    });
   }
 }

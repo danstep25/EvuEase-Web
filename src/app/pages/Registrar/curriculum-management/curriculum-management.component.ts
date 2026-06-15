@@ -19,6 +19,7 @@ import { TuitionFeesComponent } from './fees-and-charges/tuition-fees/tuition-fe
 import { OtherSchoolFeesComponent } from './fees-and-charges/other-school-fees/other-school-fees.component';
 import { MiscellaneousFeesComponent } from './fees-and-charges/miscellaneous-fees/miscellaneous-fees.component';
 import { DownpaymentsComponent } from './fees-and-charges/downpayment/downpayments.component';
+import { CourseBatchUploadModalComponent } from './course-batch-upload-modal.component';
 import { CourseService } from './course.service';
 import { Course, CreateCourseRequest, UpdateCourseRequest } from '../../../core/models/course.model';
 import { Program } from '../../../core/models/program.model';
@@ -39,7 +40,7 @@ import { CLASS_LIST_PDF_COURSE_PREFILL_STORAGE_KEY } from '../../../shared/const
 @Component({
   selector: 'app-curriculum-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, CurriculaFormComponent, CourseFormComponent, ConfirmationModalComponent, ListViewComponent, CurriculumTableViewComponent, TuitionFeesComponent, OtherSchoolFeesComponent, MiscellaneousFeesComponent, DownpaymentsComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, CurriculaFormComponent, CourseFormComponent, ConfirmationModalComponent, ListViewComponent, CurriculumTableViewComponent, TuitionFeesComponent, OtherSchoolFeesComponent, MiscellaneousFeesComponent, DownpaymentsComponent, CourseBatchUploadModalComponent],
   templateUrl: './curriculum-management.component.html',
   styleUrl: './curriculum-management.component.scss'
 })
@@ -75,6 +76,7 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
   selectedCurricula: Curricula | null = null;
   showCourseForm = false;
   selectedCourse: Course | null = null;
+  showCourseBatchUploadModal = false;
   
   courseCreatePrefill: Partial<CreateCourseRequest> | null = null;
   showDeleteConfirmation = false;
@@ -600,6 +602,26 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
     this.selectedCourse = null;
     this.courseCreatePrefill = null;
     this.showCourseForm = true;
+  }
+
+  onBatchUploadCourses(): void {
+    if (this.programs.length === 0) {
+      this.loadPrograms();
+    }
+    this.showCourseBatchUploadModal = true;
+  }
+
+  onCloseCourseBatchUploadModal(): void {
+    this.showCourseBatchUploadModal = false;
+  }
+
+  onCourseBatchImported(count: number): void {
+    this.showCourseBatchUploadModal = false;
+    this.loadCourses();
+    this.notificationService.success(
+      'Courses imported',
+      `${count} course${count === 1 ? '' : 's'} were added to the curriculum.`
+    );
   }
 
   onEditCourse(course: Course): void {

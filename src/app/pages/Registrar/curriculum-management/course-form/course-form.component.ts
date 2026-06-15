@@ -5,6 +5,10 @@ import { Course, CreateCourseRequest, UpdateCourseRequest } from '../../../../co
 import { Curricula } from '../../../../core/models/curricula.model';
 import { Program } from '../../../../core/models/program.model';
 import { LookupService } from '../../../../shared/services/lookup.service';
+import { FormDiscardService } from '../../../../shared/services/form-discard.service';
+import { attemptFormClose, validateFormForSubmit } from '../../../../shared/utils/form-state.util';
+import { unitFieldValidators } from '../../../../shared/validators/app-validators';
+import { normalizeUnitValue } from '../../../../shared/utils/unit-value.util';
 import { YearLevel } from '../enums/year-level.enum';
 import { Semester } from '../enums/semester.enum';
 import { Subject, takeUntil, distinctUntilChanged } from 'rxjs';
@@ -19,6 +23,7 @@ import { Subject, takeUntil, distinctUntilChanged } from 'rxjs';
 export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly lookupService = inject(LookupService);
+  private readonly formDiscard = inject(FormDiscardService);
   private readonly destroy$ = new Subject<void>();
 
   @Input() course: Course | null = null;
@@ -30,6 +35,7 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
 
   courseForm!: FormGroup;
   isSubmitting = false;
+  submitted = false;
   errorMessage: string | null = null;
   curricula: Curricula[] = [];
   programs: Program[] = [];
@@ -278,7 +284,7 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
       courseCode: [initialCourseCode, [Validators.required, Validators.maxLength(20)]],
       courseTitle: [initialTitle, [Validators.required, Validators.maxLength(50)]],
       courseComponent: [initialComponents, [this.validateComponentRequired.bind(this), this.validateNoDuplicates.bind(this)]],
-      courseTotalUnits: [totalUnits, [Validators.required, Validators.min(0)]],
+      courseTotalUnits: [totalUnits, unitFieldValidators()],
       courseYearLevel: [initialYear, [Validators.required]],
       courseSemester: [initialSem, [Validators.required]],
       prerequisites: [initialPrerequisite],
@@ -336,10 +342,19 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
       }, 0);
     }
 
+    this.courseForm.markAsPristine();
     this.errorMessage = null;
   }
 
   onClose(): void {
+    void attemptFormClose({
+      form: this.courseForm,
+      discardService: this.formDiscard,
+      close: () => this.finishClose()
+    });
+  }
+
+  private finishClose(): void {
     this.selectedComponents = [];
     this.courseForm.reset({
       curriculumCode: null,
@@ -353,18 +368,22 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
       prerequisites: null,
       description: ''
     });
+    this.courseForm.markAsPristine();
+    this.submitted = false;
     this.errorMessage = null;
     this.close.emit();
   }
 
   onSubmit(): void {
-    if (this.courseForm.invalid) {
-      this.markFormGroupTouched(this.courseForm);
+    const result = validateFormForSubmit(this.courseForm, { isEditMode: this.isEditMode });
+    this.submitted = result.submitted;
+    if (!result.canSubmit) {
+      this.errorMessage = result.errorMessage;
       return;
     }
+    this.errorMessage = null;
 
     this.isSubmitting = true;
-    this.errorMessage = null;
 
     const formValue = this.courseForm.value;
     
@@ -409,7 +428,7 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
         curriculumCode: fullCurriculumCode,
         programId: programId,
         courseTitle: formValue.courseTitle,
-        courseTotalUnits: formValue.courseTotalUnits,
+        courseTotalUnits: normalizeUnitValue(formValue.courseTotalUnits),
         courseYearLevel: formValue.courseYearLevel,
         courseSemester: formValue.courseSemester,
         courseComponent: Array.isArray(formValue.courseComponent) 
@@ -425,7 +444,7 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
         curriculumCode: fullCurriculumCode,
         programId: programId,
         courseTitle: formValue.courseTitle,
-        courseTotalUnits: formValue.courseTotalUnits,
+        courseTotalUnits: normalizeUnitValue(formValue.courseTotalUnits),
         courseYearLevel: formValue.courseYearLevel,
         courseSemester: formValue.courseSemester,
         courseComponent: Array.isArray(formValue.courseComponent) 
@@ -436,13 +455,6 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
       };
       this.save.emit(createCourseData);
     }
-  }
-
-  private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.keys(formGroup.controls).forEach(key => {
-      const control = formGroup.get(key);
-      control?.markAsTouched();
-    });
   }
 
   get formControls() {

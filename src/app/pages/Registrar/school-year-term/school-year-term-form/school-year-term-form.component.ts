@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { SyTerm, CreateSyTermRequest, UpdateSyTermRequest } from '../../../../core/models/sy-term.model';
+import { FormDiscardService } from '../../../../shared/services/form-discard.service';
+import { attemptFormClose, validateFormForSubmit } from '../../../../shared/utils/form-state.util';
 
 @Component({
   selector: 'app-school-year-term-form',
@@ -13,6 +15,7 @@ import { SyTerm, CreateSyTermRequest, UpdateSyTermRequest } from '../../../../co
 })
 export class SchoolYearTermFormComponent implements OnInit, OnChanges, OnDestroy {
   private readonly fb = inject(FormBuilder);
+  private readonly formDiscard = inject(FormDiscardService);
   private readonly destroy$ = new Subject<void>();
 
   @Input() syTerm: SyTerm | null = null;
@@ -22,6 +25,7 @@ export class SchoolYearTermFormComponent implements OnInit, OnChanges, OnDestroy
 
   syTermForm!: FormGroup;
   isSubmitting = false;
+  submitted = false;
   errorMessage: string | null = null;
 
   get isEditMode(): boolean {
@@ -75,6 +79,7 @@ export class SchoolYearTermFormComponent implements OnInit, OnChanges, OnDestroy
       syEnrollmentEnd: [this.syTerm?.syEnrollmentEnd || '', [Validators.required]],
       syStatus: [this.syTerm?.syStatus || 'Active', [Validators.required]]
     });
+    this.syTermForm.markAsPristine();
     this.errorMessage = null;
 
     if (!this.isEditMode) {
@@ -95,6 +100,14 @@ export class SchoolYearTermFormComponent implements OnInit, OnChanges, OnDestroy
   }
 
   onClose(): void {
+    void attemptFormClose({
+      form: this.syTermForm,
+      discardService: this.formDiscard,
+      close: () => this.finishClose()
+    });
+  }
+
+  private finishClose(): void {
     if (this.syTermForm) {
       this.syTermForm.reset({
         syCode: '',
@@ -109,19 +122,23 @@ export class SchoolYearTermFormComponent implements OnInit, OnChanges, OnDestroy
       if (this.syTermForm.get('syCode')?.disabled) {
         this.syTermForm.get('syCode')?.enable();
       }
+      this.syTermForm.markAsPristine();
     }
+    this.submitted = false;
     this.errorMessage = null;
     this.close.emit();
   }
 
   onSubmit(): void {
-    if (this.syTermForm.invalid) {
-      this.markFormGroupTouched(this.syTermForm);
+    const result = validateFormForSubmit(this.syTermForm, { isEditMode: this.isEditMode });
+    this.submitted = result.submitted;
+    if (!result.canSubmit) {
+      this.errorMessage = result.errorMessage;
       return;
     }
+    this.errorMessage = null;
 
     this.isSubmitting = true;
-    this.errorMessage = null;
 
     const formValue = this.syTermForm.getRawValue();
 
@@ -156,13 +173,6 @@ export class SchoolYearTermFormComponent implements OnInit, OnChanges, OnDestroy
       };
       this.save.emit(createSyTermData);
     }
-  }
-
-  private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.keys(formGroup.controls).forEach(key => {
-      const control = formGroup.get(key);
-      control?.markAsTouched();
-    });
   }
 
   get formControls() {

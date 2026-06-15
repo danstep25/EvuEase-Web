@@ -10,7 +10,6 @@ import { CourseService } from '../../Registrar/curriculum-management/course.serv
 import { CurriculumManagementService } from '../../Registrar/curriculum-management/curriculum-management.service';
 import { ProgramService } from '../../Admin/program-management/program.service';
 import {
-  buildCurriculumDisplayLabel,
   buildCurriculumHistoryViewModel,
   enrichCurriculumHistoryEntries,
   type CurriculumHistoryViewModel
@@ -24,6 +23,8 @@ import {
   buildMigrateCurriculumPreview,
   mapCourseFromApi
 } from './evaluator-migrate-curriculum.mapper';
+import { EvaluatorCurriculumResolutionService } from './evaluator-curriculum-resolution.service';
+import { resolveEffectiveCurriculumCode } from './evaluator-curriculum-resolution.util';
 import type {
   MigrateCurriculumOption,
   MigrateCurriculumPreview,
@@ -46,6 +47,7 @@ export class EvaluatorStudentAcademicService {
   private readonly courseService = inject(CourseService);
   private readonly curriculumService = inject(CurriculumManagementService);
   private readonly programService = inject(ProgramService);
+  private readonly curriculumResolutionService = inject(EvaluatorCurriculumResolutionService);
 
   loadAcademicProfile(studentId: string): Observable<StudentAcademicRecordProfile | null> {
     return forkJoin({
@@ -54,11 +56,19 @@ export class EvaluatorStudentAcademicService {
         catchError(() => of(EMPTY_ENROLLMENT_OVERVIEW))
       )
     }).pipe(
-      switchMap(({ student, overview }) => this.loadCurriculumBundle(student).pipe(
-        map(({ curricula, courses }) =>
-          buildStudentAcademicProfile(student, overview.enrollments, courses, curricula)
+      switchMap(({ student, overview }) =>
+        this.curriculumResolutionService.resolveCurriculumContext(student).pipe(
+          map(({ curricula, curriculumCode, courses }) =>
+            buildStudentAcademicProfile(
+              student,
+              overview.enrollments,
+              [...courses],
+              curricula,
+              curriculumCode
+            )
+          )
         )
-      )),
+      ),
       catchError(() => of(null))
     );
   }
@@ -70,15 +80,11 @@ export class EvaluatorStudentAcademicService {
         catchError(() => of(EMPTY_ENROLLMENT_OVERVIEW))
       )
     }).pipe(
-      switchMap(({ student, overview }) => {
-        const curriculumCode = student.curriculumCode?.trim();
-        if (!curriculumCode) {
-          return of(null);
-        }
-        return this.courseService
-          .getCourses({ ...BULK_PAGE, curriculumCode })
-          .pipe(map((res) => buildAcademicPlan(res.data ?? [], overview.enrollments)));
-      }),
+      switchMap(({ student, overview }) =>
+        this.curriculumResolutionService.resolveCurriculumContext(student).pipe(
+          map(({ courses }) => buildAcademicPlan([...courses], overview.enrollments))
+        )
+      ),
       catchError(() => of(null))
     );
   }
@@ -107,13 +113,15 @@ export class EvaluatorStudentAcademicService {
                 })
                 .pipe(
                   map((res) => {
-                    const current = student.curriculumCode?.trim().toLowerCase() ?? '';
                     const programCurricula = (res.data ?? []).filter(
                       (c) => c.programCode.toLowerCase() === student.programCode.toLowerCase()
                     );
                     const curriculaByCode = new Map(
                       programCurricula.map((c) => [c.curriculumCode.trim().toLowerCase(), c])
                     );
+                    const currentCurriculumCode =
+                      resolveEffectiveCurriculumCode(student, programCurricula) || '—';
+                    const current = currentCurriculumCode.toLowerCase();
                     const options = programCurricula
                       .filter((c) => c.curriculumCode.trim().toLowerCase() !== current)
                       .sort((a, b) => {
@@ -136,7 +144,7 @@ export class EvaluatorStudentAcademicService {
                         fullName: formatStudentFullName(student),
                         program: student.programCode,
                         yearLevel: student.yearLevel,
-                        currentCurriculumCode: student.curriculumCode?.trim() || '—'
+                        currentCurriculumCode
                       },
                       options,
                       student,
@@ -186,7 +194,7 @@ export class EvaluatorStudentAcademicService {
           map(({ overview, newCourses }) => {
             const newCurricula =
               migrateBundle.curriculaByCode.get(code.toLowerCase()) ?? null;
-            const oldCode = migrateBundle.student.curriculumCode?.trim() ?? '';
+            const oldCode = migrateBundle.context.currentCurriculumCode?.trim() ?? '';
             const oldCurricula = oldCode
               ? migrateBundle.curriculaByCode.get(oldCode.toLowerCase()) ?? null
               : null;
@@ -229,22 +237,6 @@ export class EvaluatorStudentAcademicService {
       }),
       catchError(() => of(null))
     );
-  }
-
-  private loadCurriculumBundle(student: Student) {
-    const curriculumCode = student.curriculumCode?.trim();
-    if (!curriculumCode) {
-      return of({ curricula: null, courses: [] as import('../../../core/models/course.model').Course[] });
-    }
-
-    return forkJoin({
-      curricula: this.curriculumService.getCurricula({ ...BULK_PAGE, searchTerm: curriculumCode }).pipe(
-        map((res) => (res.data ?? []).find((c) => c.curriculumCode === curriculumCode) ?? null)
-      ),
-      courses: this.courseService
-        .getCourses({ ...BULK_PAGE, curriculumCode })
-        .pipe(map((res) => res.data ?? []))
-    });
   }
 }
 

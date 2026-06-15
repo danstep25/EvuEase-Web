@@ -2,6 +2,10 @@ import { Component, OnInit, OnChanges, Input, Output, EventEmitter, inject } fro
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Program, CreateProgramRequest, UpdateProgramRequest } from '../../../../core/models/program.model';
+import { FormDiscardService } from '../../../../shared/services/form-discard.service';
+import { attemptFormClose, validateFormForSubmit } from '../../../../shared/utils/form-state.util';
+import { unitFieldValidators } from '../../../../shared/validators/app-validators';
+import { normalizeUnitValue } from '../../../../shared/utils/unit-value.util';
 
 @Component({
   selector: 'app-program-form',
@@ -12,6 +16,7 @@ import { Program, CreateProgramRequest, UpdateProgramRequest } from '../../../..
 })
 export class ProgramFormComponent implements OnInit, OnChanges {
   private readonly fb = inject(FormBuilder);
+  private readonly formDiscard = inject(FormDiscardService);
 
   @Input() program: Program | null = null;
   @Input() isOpen = false;
@@ -20,6 +25,7 @@ export class ProgramFormComponent implements OnInit, OnChanges {
 
   programForm!: FormGroup;
   isSubmitting = false;
+  submitted = false;
   errorMessage: string | null = null;
 
   get isEditMode(): boolean {
@@ -52,13 +58,22 @@ export class ProgramFormComponent implements OnInit, OnChanges {
       programCode: [this.program?.programCode || '', [Validators.required, Validators.maxLength(50)]],
       programTitle: [this.program?.programTitle || '', [Validators.required, Validators.maxLength(200)]],
       programCompletionYears: [this.program?.programCompletionYears || 4, [Validators.required, Validators.min(1), Validators.max(10)]],
-      programTotalUnits: [this.program?.programTotalUnits ?? 0, [Validators.required, Validators.min(0)]],
+      programTotalUnits: [this.program?.programTotalUnits ?? 0, unitFieldValidators()],
       programStatus: [this.program?.programStatus || 'active', [Validators.required]]
     });
+    this.programForm.markAsPristine();
     this.errorMessage = null;
   }
 
   onClose(): void {
+    void attemptFormClose({
+      form: this.programForm,
+      discardService: this.formDiscard,
+      close: () => this.finishClose()
+    });
+  }
+
+  private finishClose(): void {
     this.programForm.reset({
       programCode: '',
       programTitle: '',
@@ -66,18 +81,22 @@ export class ProgramFormComponent implements OnInit, OnChanges {
       programTotalUnits: 0,
       programStatus: 'active'
     });
+    this.programForm.markAsPristine();
+    this.submitted = false;
     this.errorMessage = null;
     this.close.emit();
   }
 
   onSubmit(): void {
-    if (this.programForm.invalid) {
-      this.markFormGroupTouched(this.programForm);
+    const result = validateFormForSubmit(this.programForm, { isEditMode: this.isEditMode });
+    this.submitted = result.submitted;
+    if (!result.canSubmit) {
+      this.errorMessage = result.errorMessage;
       return;
     }
+    this.errorMessage = null;
 
     this.isSubmitting = true;
-    this.errorMessage = null;
 
     const formValue = this.programForm.value;
     
@@ -92,7 +111,7 @@ export class ProgramFormComponent implements OnInit, OnChanges {
         programCode: formValue.programCode,
         programTitle: formValue.programTitle,
         programCompletionYears: formValue.programCompletionYears,
-        programTotalUnits: formValue.programTotalUnits,
+        programTotalUnits: normalizeUnitValue(formValue.programTotalUnits),
         programStatus: formValue.programStatus
       };
       this.save.emit(updateProgramData);
@@ -101,18 +120,11 @@ export class ProgramFormComponent implements OnInit, OnChanges {
         programCode: formValue.programCode,
         programTitle: formValue.programTitle,
         programCompletionYears: formValue.programCompletionYears,
-        programTotalUnits: formValue.programTotalUnits,
+        programTotalUnits: normalizeUnitValue(formValue.programTotalUnits),
         programStatus: formValue.programStatus
       };
       this.save.emit(createProgramData);
     }
-  }
-
-  private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.keys(formGroup.controls).forEach(key => {
-      const control = formGroup.get(key);
-      control?.markAsTouched();
-    });
   }
 
   get formControls() {

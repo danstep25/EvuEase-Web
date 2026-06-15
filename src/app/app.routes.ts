@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { unsavedChangesGuard } from './core/guards/unsaved-changes.guard';
 
 export const routes: Routes = [
   {
@@ -58,11 +59,13 @@ export const routes: Routes = [
       },
       {
         path: 'students/new',
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./pages/Registrar/students/add-student').then(m => m.AddStudentComponent)
       },
       {
         path: 'students/:id/edit',
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./pages/Registrar/students/add-student').then(m => m.AddStudentComponent)
       },
@@ -126,11 +129,20 @@ export const routes: Routes = [
       },
       {
         path: 'credit-subjects/add',
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>
           import('./pages/Evaluator/add-credit-request/add-credit-request.component').then(
             (m) => m.AddCreditRequestComponent
           ),
         data: { title: 'Add Credit Request' }
+      },
+      {
+        path: 'credit-subjects/:id',
+        loadComponent: () =>
+          import('./pages/Evaluator/view-credit-request/view-credit-request.component').then(
+            (m) => m.ViewCreditRequestComponent
+          ),
+        data: { title: 'View Credit Request' }
       },
       {
         path: 'credit-subjects',

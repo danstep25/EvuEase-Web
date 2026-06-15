@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ModalBackdropDirective } from '../../directives/modal-backdrop.directive';
 
 export interface ConfirmationModalConfig {
   title: string;
@@ -12,7 +13,7 @@ export interface ConfirmationModalConfig {
 @Component({
   selector: 'app-confirmation-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ModalBackdropDirective],
   templateUrl: './confirmation-modal.component.html',
   styleUrl: './confirmation-modal.component.scss'
 })
@@ -34,12 +35,6 @@ export class ConfirmationModalComponent {
 
   onCancel(): void {
     this.cancel.emit();
-  }
-
-  onBackdropClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
-      this.onCancel();
-    }
   }
 }
 

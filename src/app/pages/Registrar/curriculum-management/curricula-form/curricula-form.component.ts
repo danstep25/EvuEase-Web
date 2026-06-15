@@ -5,6 +5,8 @@ import { Curricula, CreateCurriculaRequest, UpdateCurriculaRequest } from '../..
 import { Program } from '../../../../core/models/program.model';
 import { SyTerm } from '../../../../core/models/sy-term.model';
 import { LookupService } from '../../../../shared/services/lookup.service';
+import { FormDiscardService } from '../../../../shared/services/form-discard.service';
+import { attemptFormClose, validateFormForSubmit } from '../../../../shared/utils/form-state.util';
 import { CurriculumStatus } from '../enums/curriculum-status.enum';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -18,6 +20,7 @@ import { Subject, takeUntil } from 'rxjs';
 export class CurriculaFormComponent implements OnInit, OnChanges, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly lookupService = inject(LookupService);
+  private readonly formDiscard = inject(FormDiscardService);
   private readonly destroy$ = new Subject<void>();
 
   @Input() curricula: Curricula | null = null;
@@ -27,6 +30,7 @@ export class CurriculaFormComponent implements OnInit, OnChanges, OnDestroy {
 
   curriculaForm!: FormGroup;
   isSubmitting = false;
+  submitted = false;
   errorMessage: string | null = null;
   programs: Program[] = [];
   syTerms: SyTerm[] = [];
@@ -109,10 +113,19 @@ export class CurriculaFormComponent implements OnInit, OnChanges, OnDestroy {
       effectiveDate: [this.curricula?.effectiveDate || '', [Validators.required]],
       curriculumStatus: [this.curricula?.curriculumStatus || CurriculumStatus.Active, [Validators.required]]
     });
+    this.curriculaForm.markAsPristine();
     this.errorMessage = null;
   }
 
   onClose(): void {
+    void attemptFormClose({
+      form: this.curriculaForm,
+      discardService: this.formDiscard,
+      close: () => this.finishClose()
+    });
+  }
+
+  private finishClose(): void {
     this.curriculaForm.reset({
       version: '',
       programId: null,
@@ -120,18 +133,22 @@ export class CurriculaFormComponent implements OnInit, OnChanges, OnDestroy {
       effectiveDate: '',
       curriculumStatus: CurriculumStatus.Active
     });
+    this.curriculaForm.markAsPristine();
+    this.submitted = false;
     this.errorMessage = null;
     this.close.emit();
   }
 
   onSubmit(): void {
-    if (this.curriculaForm.invalid) {
-      this.markFormGroupTouched(this.curriculaForm);
+    const result = validateFormForSubmit(this.curriculaForm, { isEditMode: this.isEditMode });
+    this.submitted = result.submitted;
+    if (!result.canSubmit) {
+      this.errorMessage = result.errorMessage;
       return;
     }
+    this.errorMessage = null;
 
     this.isSubmitting = true;
-    this.errorMessage = null;
 
     const formValue = this.curriculaForm.value;
     
@@ -184,13 +201,6 @@ export class CurriculaFormComponent implements OnInit, OnChanges, OnDestroy {
       };
       this.save.emit(createCurriculaData);
     }
-  }
-
-  private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.keys(formGroup.controls).forEach(key => {
-      const control = formGroup.get(key);
-      control?.markAsTouched();
-    });
   }
 
   get formControls() {

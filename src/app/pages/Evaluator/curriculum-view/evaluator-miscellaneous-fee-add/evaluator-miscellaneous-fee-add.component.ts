@@ -14,6 +14,8 @@ import { Subject, takeUntil } from 'rxjs';
 import { LookupService } from '../../../../shared/services/lookup.service';
 import { MiscellaneousFeesService } from '../../../Registrar/curriculum-management/fees-and-charges/miscellaneous-fees/miscellaneous-fees.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { FormDiscardService } from '../../../../shared/services/form-discard.service';
+import { attemptFormClose, validateFormForSubmit } from '../../../../shared/utils/form-state.util';
 import {
   TUITION_FEE_SEMESTER_OPTIONS,
   buildCreateMiscellaneousFeeRequest,
@@ -33,6 +35,7 @@ export class EvaluatorMiscellaneousFeeAddComponent implements OnChanges, OnDestr
   private readonly lookupService = inject(LookupService);
   private readonly miscellaneousFeesService = inject(MiscellaneousFeesService);
   private readonly notificationService = inject(NotificationService);
+  private readonly formDiscard = inject(FormDiscardService);
   private readonly destroy$ = new Subject<void>();
 
   @Input() isOpen = false;
@@ -43,6 +46,8 @@ export class EvaluatorMiscellaneousFeeAddComponent implements OnChanges, OnDestr
   readonly batchOptions = buildTuitionFeeBatchYears();
   readonly semesterOptions = TUITION_FEE_SEMESTER_OPTIONS;
   isSubmitting = false;
+  submitted = false;
+  errorMessage: string | null = null;
 
   readonly addForm = new FormGroup({
     syId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -78,14 +83,21 @@ export class EvaluatorMiscellaneousFeeAddComponent implements OnChanges, OnDestr
   }
 
   onClose(): void {
-    this.close.emit();
+    void attemptFormClose({
+      form: this.addForm,
+      discardService: this.formDiscard,
+      close: () => this.close.emit()
+    });
   }
 
   onSubmit(): void {
-    if (this.addForm.invalid || this.isSubmitting) {
-      this.addForm.markAllAsTouched();
+    const result = validateFormForSubmit(this.addForm);
+    this.submitted = result.submitted;
+    if (!result.canSubmit || this.isSubmitting) {
+      this.errorMessage = result.errorMessage;
       return;
     }
+    this.errorMessage = null;
 
     this.isSubmitting = true;
     const payload = buildCreateMiscellaneousFeeRequest(this.addForm.getRawValue());
@@ -98,7 +110,8 @@ export class EvaluatorMiscellaneousFeeAddComponent implements OnChanges, OnDestr
           'Miscellaneous fee has been added successfully.'
         );
         this.saved.emit();
-        this.onClose();
+        this.addForm.markAsPristine();
+        this.close.emit();
       },
       error: (error) => {
         this.isSubmitting = false;
@@ -139,5 +152,8 @@ export class EvaluatorMiscellaneousFeeAddComponent implements OnChanges, OnDestr
       cash: 0,
       lowMonthlyPayment: 0
     });
+    this.addForm.markAsPristine();
+    this.submitted = false;
+    this.errorMessage = null;
   }
 }

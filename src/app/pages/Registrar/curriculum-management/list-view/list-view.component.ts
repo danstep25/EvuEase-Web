@@ -69,6 +69,7 @@ export class ListViewComponent extends BasePaginationHandler implements OnInit, 
   @Output() yearFilterChange = new EventEmitter<string>();
   @Output() semesterFilterChange = new EventEmitter<string>();
   @Output() addCourse = new EventEmitter<void>();
+  @Output() batchUpload = new EventEmitter<void>();
   @Output() editCourse = new EventEmitter<Course>();
   @Output() deleteCourse = new EventEmitter<Course>();
   @Output() pageChange = new EventEmitter<{ page: number; reset: boolean }>();
@@ -119,6 +120,10 @@ export class ListViewComponent extends BasePaginationHandler implements OnInit, 
 
   onAddCourseClick(): void {
     this.addCourse.emit();
+  }
+
+  onBatchUploadClick(): void {
+    this.batchUpload.emit();
   }
 
   onEditCourseClick(course: Course): void {

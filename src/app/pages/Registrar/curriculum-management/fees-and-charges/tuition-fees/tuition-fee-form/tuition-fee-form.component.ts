@@ -5,6 +5,10 @@ import { TuitionFee, CreateTuitionFeeRequest, UpdateTuitionFeeRequest } from '..
 import { SyTerm } from '../../../../../../core/models/sy-term.model';
 import { Course } from '../../../../../../core/models/course.model';
 import { LookupService } from '../../../../../../shared/services/lookup.service';
+import { FormDiscardService } from '../../../../../../shared/services/form-discard.service';
+import { attemptFormClose, validateFormForSubmit } from '../../../../../../shared/utils/form-state.util';
+import { unitFieldValidators } from '../../../../../../shared/validators/app-validators';
+import { normalizeUnitValue } from '../../../../../../shared/utils/unit-value.util';
 import { CourseService } from '../../../course.service';
 import { Semester } from '../../../enums/semester.enum';
 import { Subject, takeUntil, distinctUntilChanged } from 'rxjs';
@@ -20,6 +24,7 @@ export class TuitionFeeFormComponent implements OnInit, OnChanges, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly lookupService = inject(LookupService);
   private readonly courseService = inject(CourseService);
+  private readonly formDiscard = inject(FormDiscardService);
   private readonly destroy$ = new Subject<void>();
 
   @Input() tuitionFee: TuitionFee | null = null;
@@ -29,6 +34,7 @@ export class TuitionFeeFormComponent implements OnInit, OnChanges, OnDestroy {
 
   tuitionFeeForm!: FormGroup;
   isSubmitting = false;
+  submitted = false;
   errorMessage: string | null = null;
   syTerms: SyTerm[] = [];
   isLoadingSyTerms = false;
@@ -112,12 +118,13 @@ export class TuitionFeeFormComponent implements OnInit, OnChanges, OnDestroy {
       courseCode: [this.tuitionFee?.courseCode || null, [Validators.required]],
       courseTitle: [this.tuitionFee?.courseTitle || '', [Validators.required, Validators.maxLength(255)]],
       component: [this.tuitionFee?.component || null, [Validators.required]],
-      units: [this.tuitionFee?.units || null, [Validators.required, Validators.min(0.5), Validators.max(10)]],
+      units: [this.tuitionFee?.units || null, unitFieldValidators({ min: 0.5, max: 10 })],
       cash: [this.tuitionFee?.cash ?? 0.00, [Validators.required, Validators.min(0)]],
       lowMonthlyPayment: [this.tuitionFee?.lowMonthlyPayment ?? 0.00, [Validators.required, Validators.min(0)]]
     });
 
     this.setupFormValueChanges();
+    this.tuitionFeeForm.markAsPristine();
     this.errorMessage = null;
   }
 
@@ -230,19 +237,30 @@ export class TuitionFeeFormComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   onClose(): void {
+    void attemptFormClose({
+      form: this.tuitionFeeForm,
+      discardService: this.formDiscard,
+      close: () => this.finishClose()
+    });
+  }
+
+  private finishClose(): void {
     this.courses = [];
+    this.submitted = false;
+    this.errorMessage = null;
     this.close.emit();
   }
 
   onSubmit(): void {
-    if (this.tuitionFeeForm.invalid) {
-      this.markFormGroupTouched(this.tuitionFeeForm);
-      this.errorMessage = 'Please fill in all required fields correctly.';
+    const result = validateFormForSubmit(this.tuitionFeeForm, { isEditMode: this.isEditMode });
+    this.submitted = result.submitted;
+    if (!result.canSubmit) {
+      this.errorMessage = result.errorMessage;
       return;
     }
+    this.errorMessage = null;
 
     this.isSubmitting = true;
-    this.errorMessage = null;
 
     const formValue = this.tuitionFeeForm.value;
     const tuitionFeeData: CreateTuitionFeeRequest | UpdateTuitionFeeRequest = {
@@ -252,7 +270,7 @@ export class TuitionFeeFormComponent implements OnInit, OnChanges, OnDestroy {
       courseCode: formValue.courseCode?.trim(),
       courseTitle: formValue.courseTitle?.trim(),
       component: formValue.component,
-      units: Number(formValue.units),
+      units: normalizeUnitValue(formValue.units),
       cash: Number(formValue.cash),
       lowMonthlyPayment: Number(formValue.lowMonthlyPayment)
     };
@@ -262,16 +280,6 @@ export class TuitionFeeFormComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     this.save.emit(tuitionFeeData);
-  }
-
-  private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.keys(formGroup.controls).forEach(key => {
-      const control = formGroup.get(key);
-      control?.markAsTouched();
-      if (control instanceof FormGroup) {
-        this.markFormGroupTouched(control);
-      }
-    });
   }
 
   setSubmitting(value: boolean): void {

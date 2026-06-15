@@ -2,7 +2,6 @@
   <div
     class="curriculum-view__tuition-edit-overlay"
     role="presentation"
-    (click)="onBackdropClick()"
     (keydown.escape)="onClose()"
   >
     <div
@@ -25,6 +24,10 @@
         [formGroup]="addForm"
         (ngSubmit)="onSubmit()"
       >
+        @if (errorMessage) {
+          <div class="curriculum-view__tuition-edit-error" role="alert">{{ errorMessage }}</div>
+        }
+
         <div class="curriculum-view__tuition-edit-row curriculum-view__tuition-edit-row--2">
           <div class="curriculum-view__tuition-edit-field">
             <label class="curriculum-view__tuition-edit-label" for="eval-misc-fee-add-syid">

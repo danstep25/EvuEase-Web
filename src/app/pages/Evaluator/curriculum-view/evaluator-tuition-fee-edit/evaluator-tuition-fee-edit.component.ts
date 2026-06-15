@@ -17,6 +17,9 @@ import { LookupService } from '../../../../shared/services/lookup.service';
 import { CourseService } from '../../../Registrar/curriculum-management/course.service';
 import { TuitionFeesService } from '../../../Registrar/curriculum-management/fees-and-charges/tuition-fees/tuition-fees.service';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { FormDiscardService } from '../../../../shared/services/form-discard.service';
+import { attemptFormClose, validateFormForSubmit } from '../../../../shared/utils/form-state.util';
+import { unitFieldValidators } from '../../../../shared/validators/app-validators';
 import type { EvaluatorTuitionFeeRow } from '../evaluator-curriculum-view.models';
 import {
   TUITION_FEE_COMPONENT_OPTIONS,
@@ -40,6 +43,7 @@ export class EvaluatorTuitionFeeEditComponent implements OnChanges, OnDestroy {
   private readonly courseService = inject(CourseService);
   private readonly tuitionFeesService = inject(TuitionFeesService);
   private readonly notificationService = inject(NotificationService);
+  private readonly formDiscard = inject(FormDiscardService);
   private readonly destroy$ = new Subject<void>();
 
   @Input() isOpen = false;
@@ -54,6 +58,8 @@ export class EvaluatorTuitionFeeEditComponent implements OnChanges, OnDestroy {
   courseOptions: TuitionFeeSelectOption[] = [];
   isSubmitting = false;
   isLoadingCourses = false;
+  submitted = false;
+  errorMessage: string | null = null;
 
   readonly editForm = new FormGroup({
     syId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -62,7 +68,7 @@ export class EvaluatorTuitionFeeEditComponent implements OnChanges, OnDestroy {
     courseCode: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     courseTitle: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     component: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    units: new FormControl<number | null>(null, { validators: [Validators.required, Validators.min(0.5)] }),
+    units: new FormControl<number | null>(null, { validators: unitFieldValidators({ min: 0.5 }) }),
     cash: new FormControl<number | null>(null, { validators: [Validators.required, Validators.min(0)] }),
     lowMonthlyPayment: new FormControl<number | null>(null, {
       validators: [Validators.required, Validators.min(0)]
@@ -98,14 +104,21 @@ export class EvaluatorTuitionFeeEditComponent implements OnChanges, OnDestroy {
   }
 
   onClose(): void {
-    this.close.emit();
+    void attemptFormClose({
+      form: this.editForm,
+      discardService: this.formDiscard,
+      close: () => this.close.emit()
+    });
   }
 
   onSubmit(): void {
-    if (this.editForm.invalid || this.isSubmitting || !this.tuitionFee) {
-      this.editForm.markAllAsTouched();
+    const result = validateFormForSubmit(this.editForm, { isEditMode: true });
+    this.submitted = result.submitted;
+    if (!result.canSubmit || this.isSubmitting || !this.tuitionFee) {
+      this.errorMessage = result.errorMessage;
       return;
     }
+    this.errorMessage = null;
 
     this.isSubmitting = true;
     const base = buildCreateTuitionFeeRequest(this.editForm.getRawValue());
@@ -119,7 +132,8 @@ export class EvaluatorTuitionFeeEditComponent implements OnChanges, OnDestroy {
         this.isSubmitting = false;
         this.notificationService.success('Tuition Fee Updated', 'Tuition fee has been updated successfully.');
         this.saved.emit();
-        this.onClose();
+        this.editForm.markAsPristine();
+        this.close.emit();
       },
       error: (error) => {
         this.isSubmitting = false;
@@ -210,6 +224,9 @@ export class EvaluatorTuitionFeeEditComponent implements OnChanges, OnDestroy {
     if (row.semester) {
       this.loadCoursesForSemester(row.semester);
     }
+    this.editForm.markAsPristine();
+    this.submitted = false;
+    this.errorMessage = null;
   }
 }
 

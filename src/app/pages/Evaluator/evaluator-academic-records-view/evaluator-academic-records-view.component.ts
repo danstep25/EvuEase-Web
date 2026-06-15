@@ -89,6 +89,10 @@ export class EvaluatorAcademicRecordsViewComponent implements OnChanges, OnDestr
     return this.curriculumTerms.length > 0;
   }
 
+  get usesCurriculumRoadmap(): boolean {
+    return this.profile?.usesCurriculumRoadmap ?? false;
+  }
+
   setTab(tab: RecordsTab): void {
     this.activeTab = tab;
   }
@@ -117,6 +121,8 @@ export class EvaluatorAcademicRecordsViewComponent implements OnChanges, OnDestr
   onCloseMigrateCurriculum(reload = false): void {
     this.showMigrateCurriculumDialog = false;
     if (reload && this.selectedStudentId) {
+      this.viewMode = 'term';
+      this.activeTab = 'academic-records';
       this.loadStudentData(this.selectedStudentId);
     }
   }
@@ -138,6 +144,22 @@ export class EvaluatorAcademicRecordsViewComponent implements OnChanges, OnDestr
 
   isFailedRemark(remarks: AcademicRecordRemark): boolean {
     return remarks === 'FAILED';
+  }
+
+  isNotTakenRemark(remarks: AcademicRecordRemark): boolean {
+    return remarks === 'NOT TAKEN';
+  }
+
+  isPendingRemark(remarks: AcademicRecordRemark): boolean {
+    return remarks === 'PENDING';
+  }
+
+  isIncompleteRemark(remarks: AcademicRecordRemark): boolean {
+    return remarks === 'INCOMPLETE';
+  }
+
+  takenUnits(courses: readonly { units: number; isNotTaken?: boolean }[]): number {
+    return courses.filter((c) => !c.isNotTaken).reduce((sum, c) => sum + c.units, 0);
   }
 
   trackSemester(_index: number, block: AcademicRecordSemesterBlock): string {
