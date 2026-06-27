@@ -73,12 +73,43 @@ export class EvaluatorAcademicRecordsViewComponent implements OnChanges, OnDestr
   }
 
   get curriculumTermPairs(): readonly (readonly AcademicRecordCurriculumTermBlock[])[] {
-    const terms = this.curriculumTerms;
-    const pairs: AcademicRecordCurriculumTermBlock[][] = [];
-    for (let i = 0; i < terms.length; i += 2) {
-      pairs.push([...terms.slice(i, i + 2)]);
+    const bucket = new Map<string, { first?: AcademicRecordCurriculumTermBlock; second?: AcademicRecordCurriculumTermBlock }>();
+
+    for (const term of this.curriculumTerms) {
+      const parts = term.label.split(' - ');
+      const yearLevel = parts[0]?.trim() || term.label;
+      const semester = parts.slice(1).join(' - ').trim();
+      const isSecondSemester = /\b2\s*nd\b|\bsecond\b/i.test(semester);
+
+      if (!bucket.has(yearLevel)) {
+        bucket.set(yearLevel, {});
+      }
+
+      const entry = bucket.get(yearLevel)!;
+      if (isSecondSemester) {
+        entry.second = term;
+      } else {
+        entry.first = term;
+      }
     }
-    return pairs;
+
+    const sortedYears = [...bucket.keys()].sort((a, b) => {
+      const yearA = Number(a.match(/(\d+)/)?.[1] ?? 99);
+      const yearB = Number(b.match(/(\d+)/)?.[1] ?? 99);
+      return yearA - yearB;
+    });
+
+    return sortedYears.map((yearLevel) => {
+      const entry = bucket.get(yearLevel)!;
+      const row: AcademicRecordCurriculumTermBlock[] = [];
+      if (entry.first) {
+        row.push(entry.first);
+      }
+      if (entry.second) {
+        row.push(entry.second);
+      }
+      return row;
+    });
   }
 
   get hasTermRecords(): boolean {
@@ -159,6 +190,10 @@ export class EvaluatorAcademicRecordsViewComponent implements OnChanges, OnDestr
   }
 
   takenUnits(courses: readonly { units: number; isNotTaken?: boolean }[]): number {
+    return courses.filter((c) => !c.isNotTaken).reduce((sum, c) => sum + c.units, 0);
+  }
+
+  takenCurriculumUnits(courses: readonly AcademicRecordCurriculumCourseRow[]): number {
     return courses.filter((c) => !c.isNotTaken).reduce((sum, c) => sum + c.units, 0);
   }
 

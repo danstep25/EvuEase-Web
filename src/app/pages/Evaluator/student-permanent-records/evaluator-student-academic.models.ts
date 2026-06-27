@@ -30,6 +30,9 @@ export interface AcademicRecordCurriculumCourseRow {
   readonly subjectDescription: string;
   readonly prerequisite: string;
   readonly units: number;
+  readonly grade?: string;
+  readonly remarks?: AcademicRecordRemark;
+  readonly isNotTaken?: boolean;
 }
 
 export interface AcademicRecordCurriculumTermBlock {
@@ -46,6 +49,7 @@ export interface StudentAcademicRecordProfile {
   readonly program: string;
   readonly currentCurriculum: string;
   readonly currentCurriculumCode?: string;
+  readonly currentTermLabel: string;
   readonly termSemesters: readonly AcademicRecordSemesterBlock[];
   readonly curriculumTerms: readonly AcademicRecordCurriculumTermBlock[];
   readonly usesCurriculumRoadmap: boolean;

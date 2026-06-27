@@ -18,6 +18,7 @@ export interface LookupResponse {
   id: number;
   value: string;
   displayText?: string;
+  numericValue?: number;
 }
 
 @Injectable({
@@ -56,16 +57,22 @@ export class LookupService extends HttpBaseService {
             return [];
           }
           return lookups.map(lookup => {
-            const row = lookup as LookupResponse & { Value?: string; DisplayText?: string; Id?: number };
+            const row = lookup as LookupResponse & {
+              Value?: string;
+              DisplayText?: string;
+              Id?: number;
+              NumericValue?: number;
+            };
             const value = (row.value ?? row.Value ?? '').toString();
             const displayText = row.displayText ?? row.DisplayText;
             const id = row.id ?? row.Id ?? 0;
+            const completionYears = row.numericValue ?? row.NumericValue ?? 0;
             const parts = displayText?.split(' - ') || [value, ''];
             return {
               programId: id,
               programCode: value,
               programTitle: parts.length > 1 ? parts[1] : '',
-              programCompletionYears: 0,
+              programCompletionYears: completionYears,
               programTotalUnits: null,
               programStatus: '',
               createdAt: null,

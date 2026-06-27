@@ -148,8 +148,8 @@
               <p class="mt-1 text-sm text-red-600">
                 @if (formControls.cash?.errors?.['required']) {
                   Cash Amount is required
-                } @else if (formControls.cash?.errors?.['min']) {
-                  Cash Amount must be at least 0
+                } @else if (formControls.cash?.errors?.['nonNegativeAmount'] || formControls.cash?.errors?.['min']) {
+                  Amount cannot be negative
                 }
               </p>
             }
@@ -172,8 +172,8 @@
               <p class="mt-1 text-sm text-red-600">
                 @if (formControls.lowMonthlyPayment?.errors?.['required']) {
                   Low Monthly Payment is required
-                } @else if (formControls.lowMonthlyPayment?.errors?.['min']) {
-                  Low Monthly Payment must be at least 0
+                } @else if (formControls.lowMonthlyPayment?.errors?.['nonNegativeAmount'] || formControls.lowMonthlyPayment?.errors?.['min']) {
+                  Amount cannot be negative
                 }
               </p>
             }

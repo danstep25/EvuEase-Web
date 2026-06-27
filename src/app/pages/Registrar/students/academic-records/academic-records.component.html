@@ -28,16 +28,63 @@
           <p class="records-head__curriculum">Curriculum: {{ curriculumLabel }}</p>
         }
         <p class="records-head__note">
-          @if (usesCurriculumPlan) {
-            Subjects are listed by curriculum year and semester. Rows with grades come from class roster; subjects not yet taken are shown as placeholders.
+          @if (viewMode === 'curriculum') {
+            @if (usesCurriculumPlan) {
+              Subjects are listed by curriculum year and semester. Rows with grades come from class roster; subjects not yet taken are shown as placeholders.
+            } @else {
+              Grouped by academic term from class roster. Grades and remarks follow Grade Roster rules (e.g. numeric ≤ 3.0 = PASSED).
+            }
           } @else {
-            Grouped by academic term from class roster. Grades and remarks follow Grade Roster rules (e.g. numeric ≤ 3.0 = PASSED).
+            Showing enrollments for the previous term
+            @if (previousTermLabel) {
+              ({{ previousTermLabel }}).
+            } @else {
+              .
+            }
           }
         </p>
       </div>
+      <div class="records-head__actions">
+        <div class="records-view-toggle" role="group" aria-label="Academic records view">
+          <button
+            type="button"
+            class="records-view-btn"
+            [class.records-view-btn--active]="viewMode === 'term'"
+            (click)="setViewMode('term')"
+          >
+            <svg class="records-view-btn__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.75"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            Term
+          </button>
+          <button
+            type="button"
+            class="records-view-btn"
+            [class.records-view-btn--active]="viewMode === 'curriculum'"
+            (click)="setViewMode('curriculum')"
+          >
+            <svg class="records-view-btn__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.75"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+            Curriculum
+          </button>
+        </div>
+      </div>
     </header>
 
-    @if (usesCurriculumPlan) {
+    @if (viewMode === 'curriculum' && usesCurriculumPlan) {
       <div class="records-legend" aria-label="Academic records legend">
         <span class="records-legend__item records-legend__item--taken">Taken / enrolled</span>
         <span class="records-legend__item records-legend__item--pending">Grade pending</span>
@@ -51,36 +98,56 @@
     @if (curriculumLoadWarning) {
       <p class="records-banner" role="status">{{ curriculumLoadWarning }}</p>
     }
+    @if (viewMode === 'term' && currentTermWarning) {
+      <p class="records-banner" role="status">{{ currentTermWarning }}</p>
+    }
 
     <div class="records-body">
-      @for (pair of semesterPairs; track pair.schoolYearKey) {
-        <div class="semester-pair-row">
-          @if (pair.left) {
-            <ng-container
-              [ngTemplateOutlet]="semesterBlock"
-              [ngTemplateOutletContext]="{ $implicit: pair.left, sid: 'sem-l-' + $index }"
-            />
-          } @else {
-            <div class="semester-slot semester-slot--empty" aria-hidden="true"></div>
-          }
-          @if (pair.right) {
-            <ng-container
-              [ngTemplateOutlet]="semesterBlock"
-              [ngTemplateOutletContext]="{ $implicit: pair.right, sid: 'sem-r-' + $index }"
-            />
-          } @else {
-            <div class="semester-slot semester-slot--empty" aria-hidden="true"></div>
-          }
-        </div>
-      }
-      @for (block of semesterFullWidth; track block.rawAcademicTerm) {
-        <ng-container
-          [ngTemplateOutlet]="semesterBlock"
-          [ngTemplateOutletContext]="{ $implicit: block, sid: 'sem-fw-' + $index }"
-        />
-      }
-      @if (semesterPairs.length === 0 && semesterFullWidth.length === 0) {
-        <p class="records-empty">No academic records to display.</p>
+      @if (viewMode === 'term') {
+        @if (recentTermBlock) {
+          <ng-container
+            [ngTemplateOutlet]="semesterBlock"
+            [ngTemplateOutletContext]="{ $implicit: recentTermBlock, sid: 'recent-term' }"
+          />
+        } @else {
+          <p class="records-empty">
+            @if (previousTermLabel) {
+              No academic records to display for {{ previousTermLabel }}.
+            } @else {
+              No academic records to display for the previous term.
+            }
+          </p>
+        }
+      } @else {
+        @for (pair of overallSemesterPairs; track pair.schoolYearKey) {
+          <div class="semester-pair-row">
+            @if (pair.left) {
+              <ng-container
+                [ngTemplateOutlet]="semesterBlock"
+                [ngTemplateOutletContext]="{ $implicit: pair.left, sid: 'sem-l-' + $index }"
+              />
+            } @else {
+              <div class="semester-slot semester-slot--empty" aria-hidden="true"></div>
+            }
+            @if (pair.right) {
+              <ng-container
+                [ngTemplateOutlet]="semesterBlock"
+                [ngTemplateOutletContext]="{ $implicit: pair.right, sid: 'sem-r-' + $index }"
+              />
+            } @else {
+              <div class="semester-slot semester-slot--empty" aria-hidden="true"></div>
+            }
+          </div>
+        }
+        @for (block of overallSemesterFullWidth; track block.rawAcademicTerm) {
+          <ng-container
+            [ngTemplateOutlet]="semesterBlock"
+            [ngTemplateOutletContext]="{ $implicit: block, sid: 'sem-fw-' + $index }"
+          />
+        }
+        @if (!hasCurriculumRecords) {
+          <p class="records-empty">No academic records to display.</p>
+        }
       }
     </div>
 
@@ -179,14 +246,14 @@
               }
               <tr class="grades-table__footer-row">
                 <td colspan="2" class="grades-table__footer-label">
-                  @if (usesCurriculumPlan) {
+                  @if (viewMode === 'curriculum' && usesCurriculumPlan) {
                     Units (taken / planned)
                   } @else {
                     Total Units
                   }
                 </td>
                 <td class="grades-table__num grades-table__footer-units">
-                  @if (usesCurriculumPlan) {
+                  @if (viewMode === 'curriculum' && usesCurriculumPlan) {
                     {{ takenUnits(block.courses) }} / {{ totalUnits(block.courses) }}
                   } @else {
                     {{ totalUnits(block.courses) }}

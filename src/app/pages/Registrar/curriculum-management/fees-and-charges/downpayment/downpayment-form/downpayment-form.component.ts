@@ -18,6 +18,7 @@ import { Program } from '../../../../../../core/models/program.model';
 import { LookupService } from '../../../../../../shared/services/lookup.service';
 import { FormDiscardService } from '../../../../../../shared/services/form-discard.service';
 import { attemptFormClose, validateFormForSubmit } from '../../../../../../shared/utils/form-state.util';
+import { feePercentFieldValidators } from '../../../../../../shared/validators/app-validators';
 import { Subject } from 'rxjs';
 import { take, takeUntil } from 'rxjs/operators';
 
@@ -142,10 +143,7 @@ export class DownpaymentFormComponent implements OnChanges, OnDestroy {
       programCode: [initialCode, [Validators.required, Validators.maxLength(32), this.duplicateProgramCodeValidator()]],
       programTitle: [initialTitle, [Validators.required, Validators.maxLength(200)]],
       batch: [d?.batch ?? String(new Date().getFullYear()), [Validators.required, Validators.maxLength(32)]],
-      downpaymentPercent: [
-        d?.downpaymentPercent ?? 0,
-        [Validators.required, Validators.min(0), Validators.max(100)]
-      ],
+      downpaymentPercent: [d?.downpaymentPercent ?? 0, feePercentFieldValidators()],
       effectiveSchoolYear: [d?.effectiveSchoolYear ?? '', [Validators.required, Validators.maxLength(64)]]
     });
     this.syncProgramTitleFromCode();

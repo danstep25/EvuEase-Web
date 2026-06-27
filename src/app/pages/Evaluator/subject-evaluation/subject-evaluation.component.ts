@@ -1,6 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
 import { SearchableSelectComponent } from '../../../shared/components/searchable-select/searchable-select.component';
 import { SearchableSelectOption } from '../../../shared/components/searchable-select/searchable-select-option.model';
 import { EvaluatorAcademicRecordsViewComponent } from '../evaluator-academic-records-view/evaluator-academic-records-view.component';
@@ -10,9 +12,11 @@ import { SubjectEvaluationChargeSlipPreviewComponent } from '../subject-evaluati
 import { StudentPermanentRecordsService } from '../student-permanent-records/student-permanent-records.service';
 import { SubjectEvaluationService } from './subject-evaluation.service';
 import {
+  allSelectedElectiveSlotsHaveChoices,
   buildUnitsSummary,
   computeSuggestedUnitsSelected,
   getCurrentTermSuggestedCourses,
+  groupSuggestedSubjectsByYearTerm,
   pickDefaultSelectionIds,
   subjectSelectionExceedsLimit
 } from './subject-evaluation.mapper';
@@ -23,11 +27,18 @@ import type {
   SubjectEvaluationStudentSummary,
   SubjectEvaluationUpcomingTerm,
   SubjectSelectionSuggestedRow,
-  SubjectSelectionViewMode
+  SubjectSelectionViewMode,
+  SubjectSelectionYearTermGroup
 } from './subject-evaluation.models';
 import type { AddSubjectCatalogItem } from './subject-evaluation.models';
 
 type SubjectEvaluationStep = 1 | 2 | 3 | 4;
+
+interface SubjectEvaluationStudentQuery {
+  readonly term: string;
+  readonly programFilter: string;
+  readonly yearLevelFilter: string;
+}
 
 @Component({
   selector: 'app-subject-evaluation',
@@ -44,9 +55,11 @@ type SubjectEvaluationStep = 1 | 2 | 3 | 4;
   templateUrl: './subject-evaluation.component.html',
   styleUrl: './subject-evaluation.component.scss'
 })
-export class SubjectEvaluationComponent implements OnInit {
+export class SubjectEvaluationComponent implements OnInit, OnDestroy {
   private readonly subjectEvaluationService = inject(SubjectEvaluationService);
   private readonly studentRecordsService = inject(StudentPermanentRecordsService);
+  private readonly destroy$ = new Subject<void>();
+  private readonly studentQuery$ = new Subject<SubjectEvaluationStudentQuery>();
 
   readonly workflowTitle = 'Subject Evaluation';
   readonly academicRecordsTitle = 'Student Permanent Records';
@@ -74,6 +87,8 @@ export class SubjectEvaluationComponent implements OnInit {
   programFilter = 'all';
   yearLevelFilter = 'all';
   selectedStudentId: string | null = null;
+  studentOptions: SearchableSelectOption[] = [];
+  studentSearchTerm = '';
 
   selectedStudentSummary: SubjectEvaluationStudentSummary | null = null;
   finishedSubjects: readonly SubjectEvaluationFinishedSubjectRow[] = [];
@@ -83,12 +98,13 @@ export class SubjectEvaluationComponent implements OnInit {
     allTermCourses: [] as readonly SubjectSelectionSuggestedRow[]
   };
 
-  subjectSelectionViewMode: SubjectSelectionViewMode = 'all';
+  subjectSelectionViewMode: SubjectSelectionViewMode = 'current';
   showAddSubjectDialog = false;
   showConfirmAddSubjectDialog = false;
   confirmAddSubjectCourseCode = '';
   suggestedSelectedIds = new Set<string>();
   suggestedManuallyUncheckedIds = new Set<string>();
+  electiveSelections = new Map<string, string>();
   chargeSlipPreview: ChargeSlipPreview | null = null;
 
   academicRecordsStudentOptions: SearchableSelectOption[] = [];
@@ -98,12 +114,35 @@ export class SubjectEvaluationComponent implements OnInit {
   private extraSuggestedRows: SubjectSelectionSuggestedRow[] = [];
 
   ngOnInit(): void {
+    this.studentQuery$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(
+          (previous, current) =>
+            previous.term === current.term &&
+            previous.programFilter === current.programFilter &&
+            previous.yearLevelFilter === current.yearLevelFilter
+        ),
+        switchMap((query) =>
+          this.subjectEvaluationService.searchStudentOptions(
+            query.term,
+            query.programFilter,
+            query.yearLevelFilter
+          )
+        ),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((options) => {
+        this.studentOptions = options;
+      });
+
     this.subjectEvaluationService.loadInitialData().subscribe({
       next: (data) => {
         this.upcomingTerm = data.upcomingTerm;
         this.programFilterOptions = data.programFilterOptions;
         this.yearLevelFilterOptions = data.yearLevelFilterOptions;
         this.isLoadingInitial = false;
+        this.refreshStudentOptions();
       },
       error: () => {
         this.isLoadingInitial = false;
@@ -117,8 +156,14 @@ export class SubjectEvaluationComponent implements OnInit {
     });
   }
 
-  get studentOptions(): SearchableSelectOption[] {
-    return this.subjectEvaluationService.getStudentOptions(this.programFilter, this.yearLevelFilter);
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onStudentSearchChange(term: string): void {
+    this.studentSearchTerm = term;
+    this.refreshStudentOptions();
   }
 
   get hasFinishedSubjects(): boolean {
@@ -172,12 +217,32 @@ export class SubjectEvaluationComponent implements OnInit {
     return pool;
   }
 
+  get suggestedSubjectsByYearTerm(): readonly SubjectSelectionYearTermGroup[] {
+    return groupSuggestedSubjectsByYearTerm(this.suggestedSubjectsForView);
+  }
+
   get hasSuggestedSubjectsForView(): boolean {
     return this.suggestedSubjectsForView.length > 0;
   }
 
   get canProceedFromStep3(): boolean {
-    return !this.subjectSelectionExceedsLimit && this.suggestedSelectedIds.size > 0;
+    return (
+      !this.subjectSelectionExceedsLimit &&
+      this.suggestedSelectedIds.size > 0 &&
+      allSelectedElectiveSlotsHaveChoices(
+        this.allSuggestedCourses,
+        this.suggestedSelectedIds,
+        this.electiveSelections
+      )
+    );
+  }
+
+  get hasIncompleteElectiveSelections(): boolean {
+    return !allSelectedElectiveSlotsHaveChoices(
+      this.allSuggestedCourses,
+      this.suggestedSelectedIds,
+      this.electiveSelections
+    );
   }
 
   get upcomingTermLabel(): string {
@@ -203,11 +268,13 @@ export class SubjectEvaluationComponent implements OnInit {
   onProgramFilterChange(value: string): void {
     this.programFilter = value;
     this.syncSelectedStudent();
+    this.refreshStudentOptions();
   }
 
   onYearLevelFilterChange(value: string): void {
     this.yearLevelFilter = String(value);
     this.syncSelectedStudent();
+    this.refreshStudentOptions();
   }
 
   onSelectedStudentChange(studentId: string | null): void {
@@ -242,17 +309,19 @@ export class SubjectEvaluationComponent implements OnInit {
   onCancel(): void {
     this.programFilter = 'all';
     this.yearLevelFilter = 'all';
+    this.studentSearchTerm = '';
     this.selectedStudentId = null;
     this.selectedStudentSummary = null;
     this.finishedSubjects = [];
     this.chargeSlipPreview = null;
     this.currentStep = 1;
     this.showFullAcademicRecords = false;
-    this.subjectSelectionViewMode = 'all';
+    this.subjectSelectionViewMode = 'current';
     this.showAddSubjectDialog = false;
     this.closeConfirmAddSubjectDialog();
     this.resetSuggestedSelections();
     this.extraSuggestedRows = [];
+    this.refreshStudentOptions();
   }
 
   onBack(): void {
@@ -262,14 +331,14 @@ export class SubjectEvaluationComponent implements OnInit {
     }
     if (this.currentStep === 3) {
       this.currentStep = 2;
-      this.subjectSelectionViewMode = 'all';
+      this.subjectSelectionViewMode = 'current';
       this.showAddSubjectDialog = false;
       this.closeConfirmAddSubjectDialog();
       return;
     }
     if (this.currentStep === 4) {
       this.currentStep = 3;
-      this.subjectSelectionViewMode = 'all';
+      this.subjectSelectionViewMode = 'current';
       this.chargeSlipPreview = null;
     }
   }
@@ -284,7 +353,7 @@ export class SubjectEvaluationComponent implements OnInit {
     }
     if (this.currentStep === 2) {
       this.ensureSuggestedSelectionsInitialized();
-      this.subjectSelectionViewMode = 'all';
+      this.subjectSelectionViewMode = 'current';
       this.currentStep = 3;
       return;
     }
@@ -329,8 +398,37 @@ export class SubjectEvaluationComponent implements OnInit {
     return row.id;
   }
 
+  trackYearTermGroup(_index: number, group: SubjectSelectionYearTermGroup): string {
+    return group.yearTerm;
+  }
+
   isSuggestedSubjectSelected(row: SubjectSelectionSuggestedRow): boolean {
     return this.suggestedSelectedIds.has(row.id);
+  }
+
+  isElectiveSlotRow(row: SubjectSelectionSuggestedRow): boolean {
+    return !!row.isElectiveSlot;
+  }
+
+  getElectiveSelection(row: SubjectSelectionSuggestedRow): string {
+    return this.electiveSelections.get(row.id) ?? '';
+  }
+
+  onElectiveSelectionChange(row: SubjectSelectionSuggestedRow, courseCode: string): void {
+    const next = new Map(this.electiveSelections);
+    if (courseCode) {
+      next.set(row.id, courseCode);
+      if (!this.suggestedSelectedIds.has(row.id)) {
+        this.selectSuggestedSubject(row.id);
+      }
+    } else {
+      next.delete(row.id);
+    }
+    this.electiveSelections = next;
+  }
+
+  electiveOptionLabel(option: { courseCode: string; subjectDescription: string }): string {
+    return `${option.courseCode} — ${option.subjectDescription}`;
   }
 
   onSuggestedSubjectToggle(row: SubjectSelectionSuggestedRow, checked: boolean): void {
@@ -342,11 +440,19 @@ export class SubjectEvaluationComponent implements OnInit {
         return;
       }
       this.selectSuggestedSubject(row.id);
+      if (row.isElectiveSlot && row.eligibleElectives?.length === 1) {
+        this.onElectiveSelectionChange(row, row.eligibleElectives[0].courseCode);
+      }
       return;
     }
 
     this.deselectSuggestedSubject(row.id);
     this.suggestedManuallyUncheckedIds.add(row.id);
+    if (row.isElectiveSlot) {
+      const next = new Map(this.electiveSelections);
+      next.delete(row.id);
+      this.electiveSelections = next;
+    }
   }
 
   onConfirmAddSubjectDialog(): void {
@@ -413,7 +519,8 @@ export class SubjectEvaluationComponent implements OnInit {
         this.selectedStudentId,
         this.allSuggestedCourses,
         selectedIds,
-        this.subjectSelectionState.currentYearTerm
+        this.subjectSelectionState.currentYearTerm,
+        this.electiveSelections
       )
       .subscribe({
         next: (preview) => {
@@ -457,6 +564,7 @@ export class SubjectEvaluationComponent implements OnInit {
   private resetSuggestedSelections(): void {
     this.suggestedSelectedIds = new Set();
     this.suggestedManuallyUncheckedIds = new Set();
+    this.electiveSelections = new Map();
     this.suggestedSelectionStudentId = null;
     this.closeConfirmAddSubjectDialog();
   }
@@ -469,6 +577,14 @@ export class SubjectEvaluationComponent implements OnInit {
     if (!stillVisible) {
       this.onSelectedStudentChange(null);
     }
+  }
+
+  private refreshStudentOptions(): void {
+    this.studentQuery$.next({
+      term: this.studentSearchTerm,
+      programFilter: this.programFilter,
+      yearLevelFilter: this.yearLevelFilter
+    });
   }
 }
 

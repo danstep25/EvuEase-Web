@@ -6,6 +6,7 @@ import { SyTerm } from '../../../../../../core/models/sy-term.model';
 import { LookupService } from '../../../../../../shared/services/lookup.service';
 import { FormDiscardService } from '../../../../../../shared/services/form-discard.service';
 import { attemptFormClose, validateFormForSubmit } from '../../../../../../shared/utils/form-state.util';
+import { feeAmountFieldValidators } from '../../../../../../shared/validators/app-validators';
 import { Semester } from '../../../enums/semester.enum';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -100,8 +101,8 @@ export class MiscellaneousFeeFormComponent implements OnInit, OnChanges, OnDestr
       batch: [this.miscellaneousFee?.batch || currentYear.toString(), [Validators.required]],
       semester: [this.miscellaneousFee?.semester || null, [Validators.required]],
       miscellaneousFee: [this.miscellaneousFee?.miscellaneousFee || '', [Validators.required, Validators.maxLength(255)]],
-      cash: [this.miscellaneousFee?.cash ?? 0.0, [Validators.required, Validators.min(0)]],
-      lowMonthlyPayment: [this.miscellaneousFee?.lowMonthlyPayment ?? 0.0, [Validators.required, Validators.min(0)]]
+      cash: [this.miscellaneousFee?.cash ?? 0.0, feeAmountFieldValidators()],
+      lowMonthlyPayment: [this.miscellaneousFee?.lowMonthlyPayment ?? 0.0, feeAmountFieldValidators()]
     });
     this.miscellaneousFeeForm.markAsPristine();
     this.errorMessage = null;

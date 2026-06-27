@@ -9,6 +9,11 @@ import { FormDiscardService } from '../../../../shared/services/form-discard.ser
 import { attemptFormClose, validateFormForSubmit } from '../../../../shared/utils/form-state.util';
 import { unitFieldValidators } from '../../../../shared/validators/app-validators';
 import { normalizeUnitValue } from '../../../../shared/utils/unit-value.util';
+import {
+  isElectiveSlotCourse,
+  resolveElectiveOptionFlag,
+  resolveElectiveSlotFlag
+} from '../../../../shared/utils/elective-subject.util';
 import { YearLevel } from '../enums/year-level.enum';
 import { Semester } from '../enums/semester.enum';
 import { Subject, takeUntil, distinctUntilChanged } from 'rxjs';
@@ -277,6 +282,8 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
     const initialYear = c?.courseYearLevel ?? pf?.courseYearLevel ?? YearLevel.Year1;
     const initialSem = c?.courseSemester ?? pf?.courseSemester ?? Semester.First;
     const initialDesc = c?.description ?? pf?.description ?? '';
+    const initialElectiveSlot = c?.isElectiveSlot ?? resolveElectiveSlotFlag(initialTitle, initialCourseCode, null);
+    const initialElectiveOption = c?.isElectiveOption ?? resolveElectiveOptionFlag(initialElectiveSlot, null);
 
     this.courseForm = this.fb.group({
       curriculumCode: [initialCurriculumCode, [Validators.required]],
@@ -288,7 +295,9 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
       courseYearLevel: [initialYear, [Validators.required]],
       courseSemester: [initialSem, [Validators.required]],
       prerequisites: [initialPrerequisite],
-      description: [initialDesc]
+      description: [initialDesc],
+      isElectiveSlot: [initialElectiveSlot],
+      isElectiveOption: [initialElectiveOption]
     });
 
     const programIdControl = this.courseForm.get('programId');
@@ -344,6 +353,49 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
 
     this.courseForm.markAsPristine();
     this.errorMessage = null;
+    this.bindElectiveFlagSync();
+  }
+
+  private bindElectiveFlagSync(): void {
+    const slotControl = this.courseForm.get('isElectiveSlot');
+    const optionControl = this.courseForm.get('isElectiveOption');
+    const titleControl = this.courseForm.get('courseTitle');
+    const codeControl = this.courseForm.get('courseCode');
+
+    slotControl?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((isSlot: boolean) => {
+      if (isSlot && optionControl?.value) {
+        optionControl.setValue(false, { emitEvent: false });
+      }
+    });
+
+    optionControl?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((isOption: boolean) => {
+      if (isOption && slotControl?.value) {
+        slotControl.setValue(false, { emitEvent: false });
+      }
+    });
+
+    titleControl?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.syncDetectedElectiveSlotFlag();
+    });
+
+    codeControl?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.syncDetectedElectiveSlotFlag();
+    });
+  }
+
+  private syncDetectedElectiveSlotFlag(): void {
+    const title = String(this.courseForm.get('courseTitle')?.value ?? '');
+    const code = String(this.courseForm.get('courseCode')?.value ?? '');
+    const slotControl = this.courseForm.get('isElectiveSlot');
+    const optionControl = this.courseForm.get('isElectiveOption');
+
+    if (!slotControl || optionControl?.value) {
+      return;
+    }
+
+    if (isElectiveSlotCourse(title, code)) {
+      slotControl.setValue(true, { emitEvent: false });
+    }
   }
 
   onClose(): void {
@@ -366,7 +418,9 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
       courseYearLevel: YearLevel.Year1,
       courseSemester: Semester.First,
       prerequisites: null,
-      description: ''
+      description: '',
+      isElectiveSlot: false,
+      isElectiveOption: false
     });
     this.courseForm.markAsPristine();
     this.submitted = false;
@@ -435,7 +489,9 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
           ? formValue.courseComponent.join(', ') 
           : formValue.courseComponent || '',
         prerequisites: formValue.prerequisites || null,
-        description: formValue.description || ''
+        description: formValue.description || '',
+        isElectiveSlot: !!formValue.isElectiveSlot,
+        isElectiveOption: !!formValue.isElectiveOption && !formValue.isElectiveSlot
       };
       this.save.emit(updateCourseData);
     } else {
@@ -451,7 +507,9 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
           ? formValue.courseComponent.join(', ') 
           : formValue.courseComponent || '',
         prerequisites: formValue.prerequisites || null,
-        description: formValue.description || ''
+        description: formValue.description || '',
+        isElectiveSlot: !!formValue.isElectiveSlot,
+        isElectiveOption: !!formValue.isElectiveOption && !formValue.isElectiveSlot
       };
       this.save.emit(createCourseData);
     }
@@ -468,7 +526,9 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
       courseYearLevel: this.courseForm.get('courseYearLevel'),
       courseSemester: this.courseForm.get('courseSemester'),
       prerequisites: this.courseForm.get('prerequisites'),
-      description: this.courseForm.get('description')
+      description: this.courseForm.get('description'),
+      isElectiveSlot: this.courseForm.get('isElectiveSlot'),
+      isElectiveOption: this.courseForm.get('isElectiveOption')
     };
   }
 

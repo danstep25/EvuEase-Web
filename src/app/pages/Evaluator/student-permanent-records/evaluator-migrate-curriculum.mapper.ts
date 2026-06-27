@@ -1,7 +1,7 @@
 import { Course } from '../../../core/models/course.model';
 import { Curricula } from '../../../core/models/curricula.model';
 import { StudentClassEnrollmentRow } from '../../../core/models/student-enrollments.model';
-import { buildCurriculumTermBlocks } from './evaluator-student-academic.mapper';
+import { buildCurriculumTermBlocks } from '../../Registrar/students/academic-records-curriculum.mapper';
 import {
   isEnrollmentFailed,
   isEnrollmentPassed,
@@ -34,6 +34,11 @@ function num(raw: Record<string, unknown>, camel: string, pascal: string): numbe
   return v != null && v !== '' ? Number(v) : 0;
 }
 
+function bool(raw: Record<string, unknown>, camel: string, pascal: string): boolean {
+  const v = raw[camel] ?? raw[pascal];
+  return v === true || v === 'true' || v === 1 || v === '1';
+}
+
 export function mapCourseFromApi(raw: unknown): Course {
   const r = raw as Record<string, unknown>;
   return {
@@ -51,7 +56,9 @@ export function mapCourseFromApi(raw: unknown): Course {
     courseComponent: str(r, 'courseComponent', 'CourseComponent') || undefined,
     prerequisites: str(r, 'prerequisites', 'Prerequisites') || undefined,
     description: str(r, 'description', 'Description') || undefined,
-    courseHasPrerequisites: num(r, 'courseHasPrerequisites', 'CourseHasPrerequisites')
+    courseHasPrerequisites: num(r, 'courseHasPrerequisites', 'CourseHasPrerequisites'),
+    isElectiveSlot: bool(r, 'isElectiveSlot', 'IsElectiveSlot'),
+    isElectiveOption: bool(r, 'isElectiveOption', 'IsElectiveOption')
   };
 }
 

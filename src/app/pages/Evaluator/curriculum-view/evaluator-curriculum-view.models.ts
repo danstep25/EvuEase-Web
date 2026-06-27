@@ -31,6 +31,12 @@ export interface EvaluatorCurriculumProgramCard {
   readonly activeCount: number;
 }
 
+export interface EvaluatorCourseProgramCard {
+  readonly programCode: string;
+  readonly courseCount: number;
+  readonly versionCount: number;
+}
+
 export interface EvaluatorTableViewCurriculumOption extends EvaluatorCurriculumRow {
   versionSuffix: string;
 }

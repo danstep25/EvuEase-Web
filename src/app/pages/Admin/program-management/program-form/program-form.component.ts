@@ -4,8 +4,6 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Program, CreateProgramRequest, UpdateProgramRequest } from '../../../../core/models/program.model';
 import { FormDiscardService } from '../../../../shared/services/form-discard.service';
 import { attemptFormClose, validateFormForSubmit } from '../../../../shared/utils/form-state.util';
-import { unitFieldValidators } from '../../../../shared/validators/app-validators';
-import { normalizeUnitValue } from '../../../../shared/utils/unit-value.util';
 
 @Component({
   selector: 'app-program-form',
@@ -58,7 +56,6 @@ export class ProgramFormComponent implements OnInit, OnChanges {
       programCode: [this.program?.programCode || '', [Validators.required, Validators.maxLength(50)]],
       programTitle: [this.program?.programTitle || '', [Validators.required, Validators.maxLength(200)]],
       programCompletionYears: [this.program?.programCompletionYears || 4, [Validators.required, Validators.min(1), Validators.max(10)]],
-      programTotalUnits: [this.program?.programTotalUnits ?? 0, unitFieldValidators()],
       programStatus: [this.program?.programStatus || 'active', [Validators.required]]
     });
     this.programForm.markAsPristine();
@@ -78,7 +75,6 @@ export class ProgramFormComponent implements OnInit, OnChanges {
       programCode: '',
       programTitle: '',
       programCompletionYears: 4,
-      programTotalUnits: 0,
       programStatus: 'active'
     });
     this.programForm.markAsPristine();
@@ -99,6 +95,7 @@ export class ProgramFormComponent implements OnInit, OnChanges {
     this.isSubmitting = true;
 
     const formValue = this.programForm.value;
+    const programTotalUnits = this.program?.programTotalUnits ?? null;
     
     if (this.isEditMode) {
       if (!this.program) {
@@ -111,7 +108,7 @@ export class ProgramFormComponent implements OnInit, OnChanges {
         programCode: formValue.programCode,
         programTitle: formValue.programTitle,
         programCompletionYears: formValue.programCompletionYears,
-        programTotalUnits: normalizeUnitValue(formValue.programTotalUnits),
+        programTotalUnits,
         programStatus: formValue.programStatus
       };
       this.save.emit(updateProgramData);
@@ -120,7 +117,7 @@ export class ProgramFormComponent implements OnInit, OnChanges {
         programCode: formValue.programCode,
         programTitle: formValue.programTitle,
         programCompletionYears: formValue.programCompletionYears,
-        programTotalUnits: normalizeUnitValue(formValue.programTotalUnits),
+        programTotalUnits,
         programStatus: formValue.programStatus
       };
       this.save.emit(createProgramData);
@@ -132,7 +129,6 @@ export class ProgramFormComponent implements OnInit, OnChanges {
       programCode: this.programForm.get('programCode'),
       programTitle: this.programForm.get('programTitle'),
       programCompletionYears: this.programForm.get('programCompletionYears'),
-      programTotalUnits: this.programForm.get('programTotalUnits'),
       programStatus: this.programForm.get('programStatus')
     };
   }

@@ -19,28 +19,16 @@
     </div>
 
     @if (!readOnly) {
-      <div class="flex items-center gap-2 shrink-0">
-      <button
-        type="button"
-        (click)="onBatchUploadClick()"
-        class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 rounded-lg font-medium transition-colors duration-200 shadow-sm"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-        </svg>
-        <span>Batch Upload</span>
-      </button>
       <button
         type="button"
         (click)="onAddCourseClick()"
-        class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 shadow-sm"
+        class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 shadow-sm shrink-0"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
         </svg>
         <span>Add Course</span>
       </button>
-      </div>
     }
   </div>
 
@@ -56,24 +44,31 @@
         (ngModelChange)="onProgramFilterChange($event)"
         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
       >
-        <option [value]="null">All Programs</option>
+        <option [ngValue]="null">All Programs</option>
         @for (program of programs; track program.programId) {
-          <option [value]="program.programId">{{ program.programCode }} - {{ program.programTitle }}</option>
+          <option [ngValue]="program.programId">{{ program.programCode }} - {{ program.programTitle }}</option>
         }
       </select>
     </div>
 
     
     <div>
-      <label class="block text-sm font-semibold text-gray-700 mb-2">Filter by Pre-requisite(s)</label>
+      <label class="block text-sm font-semibold text-gray-700 mb-2">Filter by Curriculum</label>
       <select
-        [ngModel]="selectedPrerequisiteFilter"
-        (ngModelChange)="onPrerequisiteFilterChange($event)"
+        [ngModel]="selectedCurriculumFilter"
+        (ngModelChange)="onCurriculumFilterChange($event)"
         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+        [disabled]="!selectedProgramFilter || isLoadingCurricula"
       >
-        <option [value]="null">All</option>
-        @for (prerequisite of getUniquePrerequisites(); track prerequisite) {
-          <option [value]="prerequisite">{{ prerequisite }}</option>
+        <option [ngValue]="null">All Curricula</option>
+        @if (isLoadingCurricula) {
+          <option [ngValue]="null" disabled>Loading...</option>
+        } @else {
+          @for (curriculum of curricula; track curriculum.curriculumCode) {
+            <option [ngValue]="curriculum.curriculumCode">
+              {{ curriculum.version ? curriculum.version + ' (' + (curriculum.programCode || curriculum.curriculumCode) + ')' : curriculum.curriculumCode }}
+            </option>
+          }
         }
       </select>
     </div>

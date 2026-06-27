@@ -18,11 +18,17 @@ import {
 } from '../../../../core/models/academic-records.model';
 import { StudentClassEnrollmentRow } from '../../../../core/models/student-enrollments.model';
 import { StudentsService } from '../students.service';
+import { SchoolYearTermService } from '../../school-year-term/school-year-term.service';
 import {
   buildCourseEnrollmentHistory,
   buildSemesterLayoutRows,
-  groupEnrollmentsIntoSemesterBlocks
+  formatConfiguredTermLabel,
+  groupEnrollmentsIntoSemesterBlocks,
+  resolvePreviousTerm,
+  selectConfiguredTermSemesterBlock
 } from '../student-enrollments.mapper';
+
+type RecordsViewMode = 'term' | 'curriculum';
 
 @Component({
   selector: 'app-academic-records',
@@ -35,6 +41,7 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly studentsService = inject(StudentsService);
+  private readonly schoolYearTermService = inject(SchoolYearTermService);
   private readonly curriculumResolution = inject(EvaluatorCurriculumResolutionService);
   private readonly destroy$ = new Subject<void>();
 
@@ -48,13 +55,14 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
   curriculumLabel: string | null = null;
   curriculumLoadWarning: string | null = null;
   usesCurriculumPlan = false;
+  viewMode: RecordsViewMode = 'term';
 
-  semesters: AcademicRecordSemesterBlock[] = [];
-  
-  semesterPairs: SemesterLayoutPair[] = [];
-  
-  semesterFullWidth: AcademicRecordSemesterBlock[] = [];
-  
+  recentTermBlock: AcademicRecordSemesterBlock | null = null;
+  previousTermLabel: string | null = null;
+  currentTermWarning: string | null = null;
+  overallSemesterPairs: SemesterLayoutPair[] = [];
+  overallSemesterFullWidth: AcademicRecordSemesterBlock[] = [];
+
   private enrollmentRows: StudentClassEnrollmentRow[] = [];
 
   courseHistoryOpen = false;
@@ -91,11 +99,15 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
     this.recordsLoadError = null;
     this.curriculumLabel = null;
     this.curriculumLoadWarning = null;
+    this.currentTermWarning = null;
     this.usesCurriculumPlan = false;
+    this.viewMode = 'term';
     this.student = null;
-    this.semesters = [];
-    this.semesterPairs = [];
-    this.semesterFullWidth = [];
+    this.recentTermBlock = null;
+    this.previousTermLabel = null;
+    this.currentTermWarning = null;
+    this.overallSemesterPairs = [];
+    this.overallSemesterFullWidth = [];
     this.enrollmentRows = [];
     this.closeCourseHistory();
 
@@ -120,7 +132,8 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
                   courses: []
                 })
               )
-            )
+            ),
+            currentTerm: this.schoolYearTermService.getCurrentSyTerm().pipe(catchError(() => of(null)))
           })
         ),
         takeUntil(this.destroy$),
@@ -129,7 +142,7 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe({
-        next: ({ student, overview, curriculum }) => {
+        next: ({ student, overview, curriculum, currentTerm }) => {
           this.student = student;
           const enrollments = overview?.enrollments ?? [];
           this.enrollmentRows = enrollments;
@@ -139,12 +152,44 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
             ? buildCurriculumDisplayLabel(curriculumCode, curriculum.curricula)
             : null;
 
+          const enrollmentBlocks = groupEnrollmentsIntoSemesterBlocks(enrollments);
+          const schoolYear = currentTerm?.syYear?.trim() ?? '';
+          const semester = currentTerm?.sySemester?.trim() ?? '';
+
+          if (schoolYear && semester) {
+            const previousTerm = resolvePreviousTerm(schoolYear, semester);
+            if (!previousTerm) {
+              this.previousTermLabel = null;
+              this.recentTermBlock = null;
+              this.currentTermWarning =
+                'Could not determine the previous term from the configured current school year and semester.';
+            } else {
+              this.previousTermLabel = formatConfiguredTermLabel(
+                previousTerm.schoolYear,
+                previousTerm.semester
+              );
+              this.recentTermBlock = selectConfiguredTermSemesterBlock(
+                enrollmentBlocks,
+                previousTerm.schoolYear,
+                previousTerm.semester
+              );
+              if (!this.recentTermBlock) {
+                this.currentTermWarning = `No enrollments found for the previous term (${this.previousTermLabel}).`;
+              }
+            }
+          } else {
+            this.previousTermLabel = null;
+            this.recentTermBlock = null;
+            this.currentTermWarning =
+              'No current school year and semester are configured. Set them on the Registrar Dashboard.';
+          }
+
           if (curriculum.courses.length > 0) {
             this.usesCurriculumPlan = true;
             const merged = mergeCurriculumWithEnrollments([...curriculum.courses], enrollments);
             const layout = buildCurriculumSemesterLayoutRows(merged.blocks);
-            this.semesterPairs = layout.pairs;
-            this.semesterFullWidth = [...layout.fullWidthBlocks, ...merged.extraEnrollments];
+            this.overallSemesterPairs = layout.pairs;
+            this.overallSemesterFullWidth = [...layout.fullWidthBlocks, ...merged.extraEnrollments];
           } else if (overview) {
             if (curriculumCode) {
               this.curriculumLoadWarning =
@@ -153,10 +198,9 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
               this.curriculumLoadWarning =
                 'No curriculum is assigned to this student. Showing class roster enrollments only.';
             }
-            this.semesters = groupEnrollmentsIntoSemesterBlocks(enrollments);
-            const layout = buildSemesterLayoutRows(this.semesters);
-            this.semesterPairs = layout.pairs;
-            this.semesterFullWidth = layout.fullWidthBlocks;
+            const layout = buildSemesterLayoutRows(enrollmentBlocks);
+            this.overallSemesterPairs = layout.pairs;
+            this.overallSemesterFullWidth = layout.fullWidthBlocks;
           }
         },
         error: () => {
@@ -175,6 +219,14 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
       return `${num} · ${name}`;
     }
     return 'Grades from class roster enrollments';
+  }
+
+  setViewMode(mode: RecordsViewMode): void {
+    this.viewMode = mode;
+  }
+
+  get hasCurriculumRecords(): boolean {
+    return this.overallSemesterPairs.length > 0 || this.overallSemesterFullWidth.length > 0;
   }
 
   totalUnits(courses: AcademicRecordCourseRow[]): number {

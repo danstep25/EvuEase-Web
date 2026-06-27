@@ -77,7 +77,7 @@ export class SchoolYearTermFormComponent implements OnInit, OnChanges, OnDestroy
       syEndDate: [this.syTerm?.syEndDate || '', [Validators.required]],
       syEnrollmentStart: [this.syTerm?.syEnrollmentStart || '', [Validators.required]],
       syEnrollmentEnd: [this.syTerm?.syEnrollmentEnd || '', [Validators.required]],
-      syStatus: [this.syTerm?.syStatus || 'Active', [Validators.required]]
+      syStatus: [this.syTerm?.syStatus || 'Inactive', [Validators.required]]
     });
     this.syTermForm.markAsPristine();
     this.errorMessage = null;
@@ -117,7 +117,7 @@ export class SchoolYearTermFormComponent implements OnInit, OnChanges, OnDestroy
         syEndDate: '',
         syEnrollmentStart: '',
         syEnrollmentEnd: '',
-        syStatus: 'Active'
+        syStatus: 'Inactive'
       });
       if (this.syTermForm.get('syCode')?.disabled) {
         this.syTermForm.get('syCode')?.enable();

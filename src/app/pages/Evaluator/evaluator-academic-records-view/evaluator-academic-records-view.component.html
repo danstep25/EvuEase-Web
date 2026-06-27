@@ -254,9 +254,23 @@
                 }
               </div>
             } @else {
-              <p class="earv__empty">No academic records to display for this student.</p>
+              <p class="earv__empty">
+                No academic records to display for this student's current term
+                @if (profile?.currentTermLabel) {
+                  ({{ profile.currentTermLabel }}).
+                } @else {
+                  .
+                }
+              </p>
             }
           } @else {
+            @if (usesCurriculumRoadmap) {
+              <div class="earv__legend" aria-label="Curriculum records legend">
+                <span class="earv__legend-item earv__legend-item--taken">Taken / enrolled</span>
+                <span class="earv__legend-item earv__legend-item--pending">Grade pending</span>
+                <span class="earv__legend-item earv__legend-item--not-taken">Not yet taken</span>
+              </div>
+            }
             @if (hasCurriculumRecords) {
               <div class="earv__curriculum-grid">
                 @for (pair of curriculumTermPairs; track trackCurriculumPair($index)) {
@@ -272,11 +286,15 @@
                                 <th scope="col">Subject Description</th>
                                 <th scope="col">Pre-requisite(s)</th>
                                 <th scope="col">Units</th>
+                                @if (usesCurriculumRoadmap) {
+                                  <th scope="col">Grade</th>
+                                  <th scope="col">Status</th>
+                                }
                               </tr>
                             </thead>
                             <tbody>
                               @for (row of term.courses; track trackCurriculumCourse($index, row)) {
-                                <tr>
+                                <tr [class.earv__row--not-taken]="row.isNotTaken">
                                   <td class="earv__cell-code">{{ row.courseCode }}</td>
                                   <td>{{ row.subjectDescription }}</td>
                                   <td class="earv__cell-prereq">
@@ -287,13 +305,46 @@
                                     }
                                   </td>
                                   <td class="earv__cell-units">{{ row.units }}</td>
+                                  @if (usesCurriculumRoadmap) {
+                                    <td class="earv__cell-center">{{ row.grade ?? '—' }}</td>
+                                    <td class="earv__cell-center">
+                                      @if (row.remarks && isFailedRemark(row.remarks)) {
+                                        <span class="earv__remarks earv__remarks--failed">{{ row.remarks }}</span>
+                                      } @else if (row.remarks && isPassedRemark(row.remarks)) {
+                                        <span class="earv__remarks earv__remarks--passed">{{ row.remarks }}</span>
+                                      } @else if (row.remarks && isNotTakenRemark(row.remarks)) {
+                                        <span class="earv__remarks earv__remarks--not-taken">{{ row.remarks }}</span>
+                                      } @else if (row.remarks && isPendingRemark(row.remarks)) {
+                                        <span class="earv__remarks earv__remarks--pending">{{ row.remarks }}</span>
+                                      } @else if (row.remarks && isIncompleteRemark(row.remarks)) {
+                                        <span class="earv__remarks earv__remarks--incomplete">{{ row.remarks }}</span>
+                                      } @else {
+                                        {{ row.remarks ?? '—' }}
+                                      }
+                                    </td>
+                                  }
                                 </tr>
                               }
                             </tbody>
                             <tfoot>
                               <tr>
-                                <td colspan="3" class="earv__total-label">Total Units</td>
-                                <td class="earv__total-value earv__total-value--units">{{ term.totalUnits }}</td>
+                                <td colspan="3" class="earv__total-label">
+                                  @if (usesCurriculumRoadmap) {
+                                    Units (taken / planned)
+                                  } @else {
+                                    Total Units
+                                  }
+                                </td>
+                                <td class="earv__total-value earv__total-value--units">
+                                  @if (usesCurriculumRoadmap) {
+                                    {{ takenCurriculumUnits(term.courses) }} / {{ term.totalUnits }}
+                                  } @else {
+                                    {{ term.totalUnits }}
+                                  }
+                                </td>
+                                @if (usesCurriculumRoadmap) {
+                                  <td colspan="2"></td>
+                                }
                               </tr>
                             </tfoot>
                           </table>

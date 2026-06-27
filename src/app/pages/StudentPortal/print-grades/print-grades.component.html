@@ -1,0 +1,47 @@
+<div class="evaluator-page">
+  <header class="evaluator-page__header sp-no-print">
+    <h1 class="evaluator-page__title">Print Grades</h1>
+    <p class="evaluator-page__subtitle">Generate a printable copy of your grade report.</p>
+    <div class="sp-actions">
+      <button type="button" class="sp-btn" (click)="onPrint()">Print Grade Report</button>
+    </div>
+  </header>
+
+  @if (isLoading) {
+    <p class="sp-empty">Loading grade report…</p>
+  } @else {
+    <div class="evaluator-surface evaluator-surface--padded" id="student-grade-report">
+      <h2 class="evaluator-surface__title">Student Grade Report</h2>
+      <p class="evaluator-page__subtitle">EvalEase Student Portal</p>
+      <p><strong>Name:</strong> {{ studentName }}</p>
+      <p><strong>Student No.:</strong> {{ studentNumber }}</p>
+      <p><strong>Program / Year:</strong> {{ programYearLevel }}</p>
+      <p><strong>Cumulative GPA:</strong> {{ cumulativeGpa ?? '—' }}</p>
+
+      <div class="sp-table-wrap" style="margin-top: 1rem">
+        <table class="sp-data-table">
+          <thead>
+            <tr>
+              <th scope="col">Term</th>
+              <th scope="col" class="sp-data-table__th--center">Course Code</th>
+              <th scope="col">Subject</th>
+              <th scope="col" class="sp-data-table__th--center">Units</th>
+              <th scope="col" class="sp-data-table__th--center">Grade</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows; track row.enrollmentId) {
+              <tr>
+                <td>{{ row.academicTerm }}</td>
+                <td class="sp-data-table__cell-code">{{ row.courseCode }}</td>
+                <td>{{ row.courseTitle }}</td>
+                <td class="sp-data-table__cell--center">{{ row.units }}</td>
+                <td class="sp-data-table__cell--center">{{ row.officialGrade || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

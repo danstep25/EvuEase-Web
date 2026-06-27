@@ -124,6 +124,11 @@
             @if (formControls.syStatus?.invalid && formControls.syStatus?.touched) {
               <p class="mt-1 text-sm text-red-600">Status is required</p>
             }
+            @if (formControls.syStatus?.value === 'Active') {
+              <p class="mt-1 text-sm text-amber-600">
+                Only one school year and term can be active at a time. Saving will deactivate the current active term.
+              </p>
+            }
           </div>
         </div>
 

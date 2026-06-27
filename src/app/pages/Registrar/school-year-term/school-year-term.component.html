@@ -190,3 +190,10 @@
   (cancel)="onCancelDelete()"
 ></app-confirmation-modal>
 
+<app-confirmation-modal
+  [isOpen]="showActivateConfirmation"
+  [config]="activateConfirmationConfig"
+  (confirm)="onConfirmActivate()"
+  (cancel)="onCancelActivate()"
+></app-confirmation-modal>
+

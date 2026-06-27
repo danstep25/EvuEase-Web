@@ -6,6 +6,7 @@ import { SyTerm } from '../../../../../../core/models/sy-term.model';
 import { LookupService } from '../../../../../../shared/services/lookup.service';
 import { FormDiscardService } from '../../../../../../shared/services/form-discard.service';
 import { attemptFormClose, validateFormForSubmit } from '../../../../../../shared/utils/form-state.util';
+import { feeAmountFieldValidators } from '../../../../../../shared/validators/app-validators';
 import { Semester } from '../../../enums/semester.enum';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -100,8 +101,8 @@ export class OtherSchoolFeeFormComponent implements OnInit, OnChanges, OnDestroy
       batch: [this.otherSchoolFee?.batch || currentYear.toString(), [Validators.required]],
       semester: [this.otherSchoolFee?.semester || null, [Validators.required]],
       schoolFee: [this.otherSchoolFee?.schoolFee || '', [Validators.required, Validators.maxLength(255)]],
-      cash: [this.otherSchoolFee?.cash ?? 0.0, [Validators.required, Validators.min(0)]],
-      lowMonthlyPayment: [this.otherSchoolFee?.lowMonthlyPayment ?? 0.0, [Validators.required, Validators.min(0)]]
+      cash: [this.otherSchoolFee?.cash ?? 0.0, feeAmountFieldValidators()],
+      lowMonthlyPayment: [this.otherSchoolFee?.lowMonthlyPayment ?? 0.0, feeAmountFieldValidators()]
     });
     this.otherSchoolFeeForm.markAsPristine();
     this.errorMessage = null;

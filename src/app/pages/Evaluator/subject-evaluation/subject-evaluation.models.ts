@@ -1,3 +1,11 @@
+import type { ElectiveOptionChoice } from '../../../shared/utils/elective-subject.util';
+
+export interface SubjectSelectionYearTermGroup {
+  readonly yearTerm: string;
+  readonly label: string;
+  readonly rows: readonly SubjectSelectionSuggestedRow[];
+}
+
 export interface SubjectEvaluationUpcomingTerm {
   readonly schoolYearTerm: string;
   readonly enrollmentPeriod: string;
@@ -33,6 +41,8 @@ export interface SubjectSelectionSuggestedRow {
   readonly units: number;
   readonly component: string;
   readonly yearTerm: string;
+  readonly isElectiveSlot?: boolean;
+  readonly eligibleElectives?: readonly ElectiveOptionChoice[];
 }
 
 export interface SubjectSelectionUnitsSummary {

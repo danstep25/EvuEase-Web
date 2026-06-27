@@ -38,6 +38,24 @@ export interface SemesterLayoutPair {
   right: AcademicRecordSemesterBlock | null;
 }
 
+export interface AcademicRecordCurriculumCourseRow {
+  courseCode: string;
+  subjectDescription: string;
+  prerequisite: string;
+  units: number;
+}
+
+export interface AcademicRecordCurriculumTermBlock {
+  label: string;
+  courses: AcademicRecordCurriculumCourseRow[];
+  totalUnits: number;
+}
+
+export interface CurriculumTermLayoutPair {
+  left: AcademicRecordCurriculumTermBlock | null;
+  right: AcademicRecordCurriculumTermBlock | null;
+}
+
 
 export interface CourseEnrollmentHistoryRow {
   termLabel: string;

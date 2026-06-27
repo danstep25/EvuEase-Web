@@ -51,15 +51,24 @@ export class SearchableSelectComponent implements OnChanges {
   @Input() isLoading = false;
   @Input() emptyText = 'No students match your search.';
   @Input() selectedId: string | null = null;
+  /** When true, options are already filtered by the parent (e.g. server-side search). */
+  @Input() externalFilter = false;
 
   @Output() readonly selectedIdChange = new EventEmitter<string | null>();
+  @Output() readonly searchTextChange = new EventEmitter<string>();
 
   isOpen = false;
   searchText = '';
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['selectedId'] || changes['options']) {
+    if (changes['selectedId']) {
       this.syncDisplayFromSelection();
+      return;
+    }
+    if (changes['options']) {
+      if (this.selectedId || !this.isOpen) {
+        this.syncDisplayFromSelection();
+      }
     }
   }
 
@@ -72,6 +81,9 @@ export class SearchableSelectComponent implements OnChanges {
 
   get filteredOptions(): SearchableSelectOption[] {
     const q = this.searchText.trim().toLowerCase();
+    if (this.externalFilter && q.length >= 2) {
+      return this.options;
+    }
     if (!q) {
       return this.options;
     }
@@ -133,6 +145,7 @@ export class SearchableSelectComponent implements OnChanges {
         this.hideSearchIcon && this.optionDisplayInline && !!this.selectedOption;
       if (!keepFilterText) {
         this.searchText = '';
+        this.searchTextChange.emit('');
       }
     }
   }
@@ -141,6 +154,7 @@ export class SearchableSelectComponent implements OnChanges {
     if (!this.isOpen) {
       this.isOpen = true;
     }
+    this.searchTextChange.emit(this.searchText);
   }
 
   selectOption(option: SearchableSelectOption, event?: MouseEvent): void {
@@ -164,6 +178,7 @@ export class SearchableSelectComponent implements OnChanges {
         this.hideSearchIcon && this.optionDisplayInline && !!this.selectedOption;
       if (!keepFilterText) {
         this.searchText = '';
+        this.searchTextChange.emit('');
       }
       queueMicrotask(() => this.filterInput?.nativeElement?.focus());
     } else {

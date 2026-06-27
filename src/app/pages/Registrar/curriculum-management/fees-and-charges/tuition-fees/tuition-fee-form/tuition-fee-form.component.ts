@@ -7,7 +7,7 @@ import { Course } from '../../../../../../core/models/course.model';
 import { LookupService } from '../../../../../../shared/services/lookup.service';
 import { FormDiscardService } from '../../../../../../shared/services/form-discard.service';
 import { attemptFormClose, validateFormForSubmit } from '../../../../../../shared/utils/form-state.util';
-import { unitFieldValidators } from '../../../../../../shared/validators/app-validators';
+import { unitFieldValidators, feeAmountFieldValidators } from '../../../../../../shared/validators/app-validators';
 import { normalizeUnitValue } from '../../../../../../shared/utils/unit-value.util';
 import { CourseService } from '../../../course.service';
 import { Semester } from '../../../enums/semester.enum';
@@ -119,8 +119,8 @@ export class TuitionFeeFormComponent implements OnInit, OnChanges, OnDestroy {
       courseTitle: [this.tuitionFee?.courseTitle || '', [Validators.required, Validators.maxLength(255)]],
       component: [this.tuitionFee?.component || null, [Validators.required]],
       units: [this.tuitionFee?.units || null, unitFieldValidators({ min: 0.5, max: 10 })],
-      cash: [this.tuitionFee?.cash ?? 0.00, [Validators.required, Validators.min(0)]],
-      lowMonthlyPayment: [this.tuitionFee?.lowMonthlyPayment ?? 0.00, [Validators.required, Validators.min(0)]]
+      cash: [this.tuitionFee?.cash ?? 0.00, feeAmountFieldValidators()],
+      lowMonthlyPayment: [this.tuitionFee?.lowMonthlyPayment ?? 0.00, feeAmountFieldValidators()]
     });
 
     this.setupFormValueChanges();

@@ -2,6 +2,18 @@ export const API_URL = {
   auth: {
     login: '/Auth/Login'
   },
+  studentPortal: {
+    login: '/StudentPortal/Login',
+    me: '/StudentPortal/Me',
+    dashboard: '/StudentPortal/dashboard',
+    enrollments: '/StudentPortal/enrollments',
+    pendingSubjects: '/StudentPortal/pending-subjects',
+    changePassword: '/StudentPortal/change-password',
+    passwordResetRequest: '/StudentPortal/password-reset-request',
+    passwordResetRequests: '/StudentPortal/password-reset-requests',
+    resolvePasswordReset: (id: number | string) => `/StudentPortal/password-reset-requests/${id}/resolve`,
+    rejectPasswordReset: (id: number | string) => `/StudentPortal/password-reset-requests/${id}/reject`
+  },
   user: {
     base: '/User',
     getAll: '/User',
@@ -112,6 +124,14 @@ export const API_URL = {
     create: '/Downpayment/new',
     update: (id: string) => `/Downpayment/${id}`,
     delete: (id: string) => `/Downpayment/${id}`
+  },
+  paymentScheme: {
+    base: '/PaymentScheme',
+    getAll: '/PaymentScheme',
+    getById: (id: string) => `/PaymentScheme/${id}`,
+    create: '/PaymentScheme/new',
+    update: (id: string) => `/PaymentScheme/${id}`,
+    delete: (id: string) => `/PaymentScheme/${id}`
   },
   creditRequest: {
     base: '/CreditRequest',

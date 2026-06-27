@@ -1,0 +1,122 @@
+@if (isOpen) {
+  <div class="ps-form-backdrop" role="presentation">
+    <div class="ps-form-panel" (click)="$event.stopPropagation()">
+      <div class="ps-form-head">
+        <h2 class="ps-form-title">{{ title }}</h2>
+        <button type="button" class="ps-form-close" (click)="onClose()" aria-label="Close">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      @if (isLoadingSyTerms || !form) {
+        <div class="ps-form-body ps-form-body--loading">Loading…</div>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="ps-form-body">
+          @if (errorMessage) {
+            <div class="ps-form-error">{{ errorMessage }}</div>
+          }
+
+          <div class="ps-form-grid">
+            <div class="ps-field">
+              <label for="ps-schoolYear">School Year <span class="req">*</span></label>
+              <select
+                id="ps-schoolYear"
+                formControlName="schoolYear"
+                class="ps-input ps-input--select"
+                [class.ps-input--invalid]="form.get('schoolYear')?.invalid && form.get('schoolYear')?.touched"
+              >
+                <option [ngValue]="null">Select school year</option>
+                @for (y of schoolYears; track y) {
+                  <option [value]="y">{{ y }}</option>
+                }
+              </select>
+              @if (form.get('schoolYear')?.errors?.['duplicateCombo'] && form.get('schoolYear')?.touched) {
+                <p class="ps-field-hint ps-field-hint--error">
+                  A payment scheme already exists for this school year and semester.
+                </p>
+              }
+            </div>
+
+            <div class="ps-field">
+              <label for="ps-semester">Semester <span class="req">*</span></label>
+              <select
+                id="ps-semester"
+                formControlName="semester"
+                class="ps-input ps-input--select"
+                [class.ps-input--invalid]="form.get('semester')?.invalid && form.get('semester')?.touched"
+              >
+                <option [ngValue]="null">Select semester</option>
+                @for (s of semesters; track s) {
+                  <option [value]="s">{{ s }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="ps-field ps-field--full">
+            <label for="ps-description">Description</label>
+            <input
+              id="ps-description"
+              type="text"
+              formControlName="description"
+              class="ps-input"
+              placeholder="Optional description"
+            />
+          </div>
+
+          <div class="ps-schedule">
+            <h3 class="ps-schedule__title">Installment Schedule</h3>
+
+            <div formArrayName="installments" class="ps-schedule__list">
+              @for (row of installments.controls; track $index; let i = $index) {
+                <div class="ps-schedule-row" [formGroupName]="i">
+                  <span class="ps-schedule-row__label">{{ installmentLabel(i) }}</span>
+                  <div class="ps-date-field">
+                    <input
+                      [id]="'ps-date-' + i"
+                      type="date"
+                      formControlName="dueDate"
+                      class="ps-date-field__input"
+                      [class.ps-date-field__input--invalid]="row.get('dueDate')?.invalid && row.get('dueDate')?.touched"
+                    />
+                    <svg class="ps-date-field__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  @if (installments.length > 1) {
+                    <button
+                      type="button"
+                      class="ps-schedule-row__remove"
+                      (click)="removeInstallment(i)"
+                      aria-label="Remove installment"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+
+            <button type="button" class="ps-schedule__add" (click)="addInstallment()">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Add Installment
+            </button>
+          </div>
+
+          <div class="ps-form-actions">
+            <button type="submit" class="ps-btn ps-btn--primary" [disabled]="isSubmitting">
+              {{ isSubmitting ? 'Saving…' : 'Save Scheme' }}
+            </button>
+            <button type="button" class="ps-btn ps-btn--secondary" (click)="onClose()">Cancel</button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+}

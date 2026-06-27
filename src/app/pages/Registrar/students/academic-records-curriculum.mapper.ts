@@ -1,10 +1,18 @@
 import { Course } from '../../../core/models/course.model';
 import {
   AcademicRecordCourseRow,
+  AcademicRecordCurriculumTermBlock,
   AcademicRecordSemesterBlock,
+  CurriculumTermLayoutPair,
   SemesterLayoutPair
 } from '../../../core/models/academic-records.model';
 import { StudentClassEnrollmentRow } from '../../../core/models/student-enrollments.model';
+import {
+  buildCurriculumTermLabel,
+  filterCurriculumStructureCourses,
+  normalizeCurriculumSemester,
+  normalizeCurriculumYearLevel
+} from '../../../shared/utils/curriculum-course-term.util';
 import {
   buildRetakeByEnrollmentId,
   compareAcademicTermChronological,
@@ -52,14 +60,14 @@ function semesterSlotKind(semester: string): 'first' | 'second' | 'other' {
 }
 
 function buildCurriculumTermKey(course: Course): CurriculumTermKey {
-  const yearLevel = course.courseYearLevel?.trim() || '—';
-  const semester = course.courseSemester?.trim() || '—';
+  const yearLevel = normalizeCurriculumYearLevel(course.courseYearLevel);
+  const semester = normalizeCurriculumSemester(course.courseSemester);
   return {
     yearLevel,
     semester,
     sortYear: yearLevelSortKey(yearLevel),
     sortSemester: semesterSortKey(semester),
-    label: `${yearLevel} - ${semester}`,
+    label: buildCurriculumTermLabel(course.courseYearLevel, course.courseSemester),
     rawKey: `${yearLevel}|${semester}`
   };
 }
@@ -155,7 +163,8 @@ export function mergeCurriculumWithEnrollments(
   courses: Course[],
   enrollments: StudentClassEnrollmentRow[]
 ): { blocks: AcademicRecordSemesterBlock[]; extraEnrollments: AcademicRecordSemesterBlock[] } {
-  if (courses.length === 0) {
+  const structureCourses = filterCurriculumStructureCourses(courses);
+  if (structureCourses.length === 0) {
     return { blocks: [], extraEnrollments: [] };
   }
 
@@ -164,7 +173,7 @@ export function mergeCurriculumWithEnrollments(
   const curriculumCodes = new Set<string>();
 
   const termMap = new Map<string, { key: CurriculumTermKey; courses: Course[] }>();
-  for (const course of courses) {
+  for (const course of structureCourses) {
     const key = buildCurriculumTermKey(course);
     const code = course.courseCode?.trim().toLowerCase() ?? '';
     if (code) {
@@ -283,4 +292,84 @@ export function buildCurriculumSemesterLayoutRows(blocks: AcademicRecordSemester
   });
 
   return { pairs, fullWidthBlocks: fullWidth };
+}
+
+export function buildCurriculumTermBlocks(courses: Course[]): AcademicRecordCurriculumTermBlock[] {
+  const byTerm = new Map<string, Course[]>();
+
+  for (const course of filterCurriculumStructureCourses(courses)) {
+    const label = buildCurriculumTermLabel(course.courseYearLevel, course.courseSemester);
+    const list = byTerm.get(label) ?? [];
+    list.push(course);
+    byTerm.set(label, list);
+  }
+
+  return [...byTerm.entries()]
+    .sort(([a], [b]) => {
+      const yearA = a.split(' - ')[0] ?? '';
+      const yearB = b.split(' - ')[0] ?? '';
+      const yearCmp = yearLevelSortKey(yearA) - yearLevelSortKey(yearB);
+      if (yearCmp !== 0) {
+        return yearCmp;
+      }
+      const semA = a.split(' - ').slice(1).join(' - ');
+      const semB = b.split(' - ').slice(1).join(' - ');
+      return semesterSortKey(semA) - semesterSortKey(semB);
+    })
+    .map(([label, termCourses]) => {
+      const rows = termCourses.map((course) => ({
+        courseCode: course.courseCode,
+        subjectDescription: course.courseTitle,
+        prerequisite: course.prerequisites?.trim() || 'None',
+        units: course.courseTotalUnits
+      }));
+      return {
+        label,
+        courses: rows,
+        totalUnits: rows.reduce((sum, row) => sum + row.units, 0)
+      };
+    });
+}
+
+export function buildCurriculumTermLayoutPairs(
+  terms: AcademicRecordCurriculumTermBlock[]
+): CurriculumTermLayoutPair[] {
+  const bucket = new Map<string, { first?: AcademicRecordCurriculumTermBlock; second?: AcademicRecordCurriculumTermBlock }>();
+  const fullWidth: AcademicRecordCurriculumTermBlock[] = [];
+
+  for (const term of terms) {
+    const parts = term.label.split(' - ');
+    const yearLevel = parts[0]?.trim() || term.label;
+    const semester = parts.slice(1).join(' - ').trim();
+    const slot = semesterSlotKind(semester);
+
+    if (slot === 'first' || slot === 'second') {
+      if (!bucket.has(yearLevel)) {
+        bucket.set(yearLevel, {});
+      }
+      const entry = bucket.get(yearLevel)!;
+      if (slot === 'first') {
+        entry.first = term;
+      } else {
+        entry.second = term;
+      }
+    } else {
+      fullWidth.push(term);
+    }
+  }
+
+  const sortedYears = [...bucket.keys()].sort(
+    (a, b) => yearLevelSortKey(a) - yearLevelSortKey(b)
+  );
+
+  const pairs: CurriculumTermLayoutPair[] = sortedYears.map((yearLevel) => ({
+    left: bucket.get(yearLevel)?.first ?? null,
+    right: bucket.get(yearLevel)?.second ?? null
+  }));
+
+  for (const term of fullWidth) {
+    pairs.push({ left: term, right: null });
+  }
+
+  return pairs;
 }

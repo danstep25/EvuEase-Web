@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { unsavedChangesGuard } from './core/guards/unsaved-changes.guard';
+import { studentPortalGuard, studentPortalGuestGuard } from './pages/StudentPortal/guards/student-portal.guard';
 
 export const routes: Routes = [
   {
@@ -84,6 +85,13 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/Registrar/students/students.component').then(m => m.StudentsComponent)
       },
       {
+        path: 'portal-password-resets',
+        loadComponent: () =>
+          import('./pages/Registrar/portal-password-resets/portal-password-resets.component').then(
+            (m) => m.PortalPasswordResetsComponent
+          )
+      },
+      {
         path: 'archive',
         loadComponent: () => import('./pages/Registrar/archive/archive.component').then(m => m.ArchiveComponent)
       },
@@ -162,6 +170,85 @@ export const routes: Routes = [
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full'
+      }
+    ]
+  },
+  {
+    path: 'student_portal',
+    children: [
+      {
+        path: 'login',
+        canActivate: [studentPortalGuestGuard],
+        loadComponent: () =>
+          import('./pages/StudentPortal/login/login.component').then((m) => m.StudentPortalLoginComponent)
+      },
+      {
+        path: 'reset-password',
+        canActivate: [studentPortalGuestGuard],
+        loadComponent: () =>
+          import('./pages/StudentPortal/reset-password/reset-password.component').then(
+            (m) => m.StudentPortalResetPasswordComponent
+          )
+      },
+      {
+        path: '',
+        loadComponent: () =>
+          import('./pages/StudentPortal/base/base.component').then((m) => m.StudentPortalBaseComponent),
+        canActivate: [studentPortalGuard],
+        children: [
+          {
+            path: 'dashboard',
+            loadComponent: () =>
+              import('./pages/StudentPortal/dashboard/dashboard.component').then(
+                (m) => m.StudentPortalDashboardComponent
+              )
+          },
+          {
+            path: 'my-subjects',
+            loadComponent: () =>
+              import('./pages/StudentPortal/my-subjects/my-subjects.component').then(
+                (m) => m.StudentPortalMySubjectsComponent
+              )
+          },
+          {
+            path: 'grade-history',
+            loadComponent: () =>
+              import('./pages/StudentPortal/grade-history/grade-history.component').then(
+                (m) => m.StudentPortalGradeHistoryComponent
+              )
+          },
+          {
+            path: 'pending-subjects',
+            loadComponent: () =>
+              import('./pages/StudentPortal/pending-subjects/pending-subjects.component').then(
+                (m) => m.StudentPortalPendingSubjectsComponent
+              )
+          },
+          {
+            path: 'print-grades',
+            loadComponent: () =>
+              import('./pages/StudentPortal/print-grades/print-grades.component').then(
+                (m) => m.StudentPortalPrintGradesComponent
+              )
+          },
+          {
+            path: 'profile',
+            loadComponent: () =>
+              import('./pages/StudentPortal/profile/profile.component').then((m) => m.StudentPortalProfileComponent)
+          },
+          {
+            path: 'change-password',
+            loadComponent: () =>
+              import('./pages/StudentPortal/change-password/change-password.component').then(
+                (m) => m.StudentPortalChangePasswordComponent
+              )
+          },
+          {
+            path: '',
+            redirectTo: 'dashboard',
+            pathMatch: 'full'
+          }
+        ]
       }
     ]
   },

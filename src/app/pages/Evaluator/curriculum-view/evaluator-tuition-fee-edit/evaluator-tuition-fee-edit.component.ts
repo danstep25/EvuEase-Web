@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { feeAmountFieldValidators } from '../../../../shared/validators/app-validators';
 import { Subject, takeUntil } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { UpdateTuitionFeeRequest } from '../../../../core/models/tuition-fee.model';
@@ -69,9 +70,9 @@ export class EvaluatorTuitionFeeEditComponent implements OnChanges, OnDestroy {
     courseTitle: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     component: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     units: new FormControl<number | null>(null, { validators: unitFieldValidators({ min: 0.5 }) }),
-    cash: new FormControl<number | null>(null, { validators: [Validators.required, Validators.min(0)] }),
-    lowMonthlyPayment: new FormControl<number | null>(null, {
-      validators: [Validators.required, Validators.min(0)]
+    cash: new FormControl<number | null>(0, { validators: feeAmountFieldValidators() }),
+    lowMonthlyPayment: new FormControl<number | null>(0, {
+      validators: feeAmountFieldValidators()
     })
   });
 

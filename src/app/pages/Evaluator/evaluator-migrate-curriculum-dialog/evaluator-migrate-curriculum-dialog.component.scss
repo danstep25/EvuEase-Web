@@ -22,6 +22,7 @@
   flex-direction: column;
   width: 100%;
   max-width: 72rem;
+  height: calc(100dvh - 3rem);
   max-height: calc(100dvh - 3rem);
   min-height: 0;
   margin: auto 0;
@@ -92,7 +93,7 @@
 }
 
 .emcd__body {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
@@ -365,6 +366,7 @@
   border-radius: 8px 8px 0 0;
   background: #0d214f;
   color: #fff;
+  overflow: hidden;
 }
 
 .emcd__structure-title {
@@ -384,12 +386,13 @@
 .emcd__structure {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .emcd__term-list {
   display: flex;
   flex-direction: column;
+  border-radius: 0 0 8px 8px;
 }
 
 .emcd__term {
@@ -476,6 +479,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.65rem;
   padding: 0 1rem 1rem;
+  overflow: visible;
 }
 
 .emcd__course-card {
@@ -774,7 +778,12 @@
 
 @media (max-width: 640px) {
   .emcd__overlay {
-    padding: 1rem;
+    padding: 0.75rem;
+  }
+
+  .emcd__dialog {
+    height: calc(100dvh - 1.5rem);
+    max-height: calc(100dvh - 1.5rem);
   }
 
   .emcd__header {

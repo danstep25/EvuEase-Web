@@ -81,8 +81,33 @@ export class EvaluatorStudentAcademicService {
       )
     }).pipe(
       switchMap(({ student, overview }) =>
-        this.curriculumResolutionService.resolveCurriculumContext(student).pipe(
-          map(({ courses }) => buildAcademicPlan([...courses], overview.enrollments))
+        forkJoin({
+          student: of(student),
+          overview: of(overview),
+          program: this.programService
+            .getPrograms({ ...BULK_PAGE, searchTerm: student.programCode })
+            .pipe(
+              map((res) =>
+                (res.data ?? []).find(
+                  (item) =>
+                    item.programCode.trim().toLowerCase() === student.programCode.trim().toLowerCase()
+                ) ?? null
+              ),
+              catchError(() => of(null))
+            )
+        }).pipe(
+          switchMap(({ student: loadedStudent, overview: loadedOverview, program }) =>
+            this.curriculumResolutionService.resolveCurriculumContext(loadedStudent).pipe(
+              map(({ courses }) =>
+                buildAcademicPlan(
+                  [...courses],
+                  loadedOverview.enrollments,
+                  loadedStudent.yearLevel,
+                  program?.programCompletionYears
+                )
+              )
+            )
+          )
         )
       ),
       catchError(() => of(null))
@@ -179,14 +204,14 @@ export class EvaluatorStudentAcademicService {
             catchError(() => of(EMPTY_ENROLLMENT_OVERVIEW))
           ),
           newCourses: this.courseService
-            .getCourses({
+            .getAllCoursesForCurriculum({
               ...BULK_PAGE,
               curriculumCode: code,
               ...(migrateBundle.programId != null ? { programId: migrateBundle.programId } : {})
             })
             .pipe(
-              map((res) =>
-                (res.data ?? []).map(mapCourseFromApi).filter((c) => !!c.courseCode.trim())
+              map((courses) =>
+                courses.map(mapCourseFromApi).filter((c) => !!c.courseCode.trim())
               ),
               catchError(() => of([]))
             )

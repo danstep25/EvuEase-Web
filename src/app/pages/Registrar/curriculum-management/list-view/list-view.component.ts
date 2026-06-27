@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Course } from '../../../../core/models/course.model';
 import { Program } from '../../../../core/models/program.model';
+import { Curricula } from '../../../../core/models/curricula.model';
 import { YearLevel } from '../enums/year-level.enum';
 import { Semester } from '../enums/semester.enum';
 import { BasePaginationHandler } from '../../../../shared/handlers/base-pagination.handler';
@@ -22,7 +23,9 @@ export class ListViewComponent extends BasePaginationHandler implements OnInit, 
   @Input() isLoadingCourses: boolean = false;
   @Input() courseSearchTerm: string = '';
   @Input() selectedProgramFilter: number | null = null;
-  @Input() selectedPrerequisiteFilter: string | null = null;
+  @Input() selectedCurriculumFilter: string | null = null;
+  @Input() curricula: Curricula[] = [];
+  @Input() isLoadingCurricula = false;
   @Input() selectedYearFilter: string = '';
   @Input() selectedSemesterFilter: string = '';
   
@@ -65,11 +68,10 @@ export class ListViewComponent extends BasePaginationHandler implements OnInit, 
 
   @Output() searchTermChange = new EventEmitter<string>();
   @Output() programFilterChange = new EventEmitter<number | null>();
-  @Output() prerequisiteFilterChange = new EventEmitter<string | null>();
+  @Output() curriculumFilterChange = new EventEmitter<string | null>();
   @Output() yearFilterChange = new EventEmitter<string>();
   @Output() semesterFilterChange = new EventEmitter<string>();
   @Output() addCourse = new EventEmitter<void>();
-  @Output() batchUpload = new EventEmitter<void>();
   @Output() editCourse = new EventEmitter<Course>();
   @Output() deleteCourse = new EventEmitter<Course>();
   @Output() pageChange = new EventEmitter<{ page: number; reset: boolean }>();
@@ -90,17 +92,17 @@ export class ListViewComponent extends BasePaginationHandler implements OnInit, 
     this.pageChange.emit({ page: this.currentPage, reset: true });
   }
 
-  onProgramFilterChange(value: number | null): void {
-    this.selectedProgramFilter = value;
+  onProgramFilterChange(value: number | string | null): void {
+    this.selectedProgramFilter = this.coerceProgramId(value);
     this.resetToFirstPage();
-    this.programFilterChange.emit(value);
+    this.programFilterChange.emit(this.selectedProgramFilter);
     this.pageChange.emit({ page: this.currentPage, reset: true });
   }
 
-  onPrerequisiteFilterChange(value: string | null): void {
-    this.selectedPrerequisiteFilter = value;
+  onCurriculumFilterChange(value: string | null): void {
+    this.selectedCurriculumFilter = value;
     this.resetToFirstPage();
-    this.prerequisiteFilterChange.emit(value);
+    this.curriculumFilterChange.emit(value);
     this.pageChange.emit({ page: this.currentPage, reset: true });
   }
 
@@ -120,10 +122,6 @@ export class ListViewComponent extends BasePaginationHandler implements OnInit, 
 
   onAddCourseClick(): void {
     this.addCourse.emit();
-  }
-
-  onBatchUploadClick(): void {
-    this.batchUpload.emit();
   }
 
   onEditCourseClick(course: Course): void {
@@ -150,17 +148,15 @@ export class ListViewComponent extends BasePaginationHandler implements OnInit, 
     }
   }
 
-  getUniquePrerequisites(): string[] {
-    const prerequisitesSet = new Set<string>();
-    this.courses.forEach(course => {
-      if (course.prerequisites && course.prerequisites.trim() !== '' && course.prerequisites !== 'None') {
-        prerequisitesSet.add(course.prerequisites);
-      }
-    });
-    return Array.from(prerequisitesSet).sort();
+  protected loadData(): void {
   }
 
-  protected loadData(): void {
+  private coerceProgramId(value: number | string | null): number | null {
+    if (value === null || value === undefined || value === '' || value === 'null') {
+      return null;
+    }
+    const parsed = typeof value === 'number' ? value : parseInt(String(value), 10);
+    return Number.isNaN(parsed) ? null : parsed;
   }
 }
 

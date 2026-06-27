@@ -14,6 +14,8 @@ export interface Course {
   prerequisites?: string;
   description?: string;
   courseHasPrerequisites: number;
+  isElectiveSlot?: boolean;
+  isElectiveOption?: boolean;
   status?: string;
   createdAt?: string | null;
   updatedAt?: string | null;
@@ -30,6 +32,8 @@ export interface CreateCourseRequest {
   courseComponent?: string;
   prerequisites?: string;
   description?: string;
+  isElectiveSlot?: boolean;
+  isElectiveOption?: boolean;
 }
 
 export interface UpdateCourseRequest {
@@ -43,5 +47,7 @@ export interface UpdateCourseRequest {
   courseComponent?: string;
   prerequisites?: string;
   description?: string;
+  isElectiveSlot?: boolean;
+  isElectiveOption?: boolean;
 }
 

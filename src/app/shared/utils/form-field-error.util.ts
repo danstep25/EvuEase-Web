@@ -34,8 +34,17 @@ export function firstValidationMessage(errors: ValidationErrors | null | undefin
     const e = errors['phoneTooLong'] as { maxDigits: number };
     return `Phone number cannot exceed ${e.maxDigits} digits.`;
   }
+  if (errors['nonNegativeAmount']) {
+    return 'Amount cannot be negative.';
+  }
+  if (errors['invalidAmount']) {
+    return 'Enter a valid amount.';
+  }
   if (errors['min']) {
     const e = errors['min'] as { min: number; actual: number };
+    if (e.min === 0) {
+      return 'Amount cannot be negative.';
+    }
     return `Value must be at least ${e.min}.`;
   }
   if (errors['max']) {

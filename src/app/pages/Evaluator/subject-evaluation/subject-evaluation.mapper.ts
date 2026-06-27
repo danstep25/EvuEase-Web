@@ -14,7 +14,13 @@ import {
   parseOfficialGradeToNumber
 } from '../../Registrar/students/student-enrollments.mapper';
 import { buildCurriculumDisplayLabel } from '../../Registrar/students/student-curriculum.mapper';
-import { mapCourseFromApi } from '../student-permanent-records/evaluator-migrate-curriculum.mapper';
+import {
+  ElectiveOptionChoice,
+  isElectiveOptionCourse,
+  isElectiveSlotCourse,
+  mapCourseToElectiveOption
+} from '../../../shared/utils/elective-subject.util';
+import { studentYearTermToCurriculumTermLabel } from '../../../shared/utils/student-year-level.util';
 import type {
   AddSubjectCatalogItem,
   ChargeSlipFeeRow,
@@ -27,7 +33,8 @@ import type {
   SubjectEvaluationUpcomingTerm,
   SubjectSelectionState,
   SubjectSelectionSuggestedRow,
-  SubjectSelectionUnitsSummary
+  SubjectSelectionUnitsSummary,
+  SubjectSelectionYearTermGroup
 } from './subject-evaluation.models';
 
 const DEFAULT_UNIT_LIMIT = 23;
@@ -287,8 +294,12 @@ export function mapFinishedSubjects(
     });
 }
 
-function mapCourseToSuggestedRow(course: Course): SubjectSelectionSuggestedRow {
+function mapCourseToSuggestedRow(
+  course: Course,
+  electiveOptions: readonly ElectiveOptionChoice[]
+): SubjectSelectionSuggestedRow {
   const yearTerm = toYearTermKey(course.courseYearLevel ?? '', course.courseSemester ?? '');
+  const isElectiveSlot = !!course.isElectiveSlot || isElectiveSlotCourse(course.courseTitle, course.courseCode);
   return {
     id: `${course.courseCode}-${yearTerm}`,
     courseCode: course.courseCode,
@@ -296,20 +307,82 @@ function mapCourseToSuggestedRow(course: Course): SubjectSelectionSuggestedRow {
     prerequisite: course.prerequisites?.trim() || 'None',
     units: course.courseTotalUnits ?? 0,
     component: course.courseComponent?.trim() || 'Lecture',
-    yearTerm
+    yearTerm,
+    isElectiveSlot,
+    eligibleElectives: isElectiveSlot ? electiveOptions : undefined
   };
+}
+
+export function resolveSelectionRowsForChargeSlip(
+  rows: readonly SubjectSelectionSuggestedRow[],
+  selectedIds: readonly string[],
+  electiveSelections: ReadonlyMap<string, string>
+): SubjectSelectionSuggestedRow[] {
+  return rows
+    .filter((row) => selectedIds.includes(row.id))
+    .map((row) => {
+      if (!row.isElectiveSlot) {
+        return row;
+      }
+
+      const chosenCode = electiveSelections.get(row.id);
+      const chosen = row.eligibleElectives?.find((option) => option.courseCode === chosenCode);
+      if (!chosen) {
+        return row;
+      }
+
+      return {
+        ...row,
+        courseCode: chosen.courseCode,
+        subjectDescription: chosen.subjectDescription,
+        units: chosen.units,
+        component: chosen.component,
+        prerequisite: chosen.prerequisite
+      };
+    });
+}
+
+export function allSelectedElectiveSlotsHaveChoices(
+  rows: readonly SubjectSelectionSuggestedRow[],
+  selectedIds: ReadonlySet<string>,
+  electiveSelections: ReadonlyMap<string, string>
+): boolean {
+  for (const row of rows) {
+    if (!row.isElectiveSlot || !selectedIds.has(row.id)) {
+      continue;
+    }
+    const choice = electiveSelections.get(row.id)?.trim();
+    if (!choice) {
+      return false;
+    }
+    const valid = row.eligibleElectives?.some((option) => option.courseCode === choice);
+    if (!valid) {
+      return false;
+    }
+  }
+  return true;
 }
 
 export function buildSubjectSelectionState(
   student: Student,
   courses: readonly Course[],
-  enrollments: readonly StudentClassEnrollmentRow[]
+  enrollments: readonly StudentClassEnrollmentRow[],
+  electiveOptionPool: readonly Course[] = []
 ): SubjectSelectionState {
   const passed = passedCourseCodes(enrollments);
   const currentYearTerm = parseStudentCurrentYearTerm(student.yearLevel);
 
-  const eligible = courses
-    .map(mapCourseToSuggestedRow)
+  const poolSource = electiveOptionPool.length > 0
+    ? electiveOptionPool
+    : courses.filter((course) => isElectiveOptionCourse(course));
+  const electiveOptions = poolSource.map(mapCourseToElectiveOption);
+
+  const curriculumCourses = courses.filter(
+    (course) => !isElectiveOptionCourse(course) && !course.isElectiveOption
+  );
+
+  const eligible = curriculumCourses
+    .map((course) => mapCourseToSuggestedRow(course, electiveOptions))
     .filter((row) => {
       const codeKey = normalizeCode(row.courseCode);
       if (passed.has(codeKey)) {
@@ -335,6 +408,44 @@ export function getCurrentTermSuggestedCourses(
   return state.allTermCourses.filter((row) => row.yearTerm === state.currentYearTerm);
 }
 
+function compareYearTermKeys(a: string, b: string): number {
+  const parse = (key: string): { year: number; sem: number } => {
+    const match = key.trim().match(/^(\d)Y([12])$/i);
+    if (!match) {
+      return { year: 99, sem: 99 };
+    }
+    return { year: Number(match[1]), sem: Number(match[2]) };
+  };
+
+  const left = parse(a);
+  const right = parse(b);
+  if (left.year !== right.year) {
+    return left.year - right.year;
+  }
+  return left.sem - right.sem;
+}
+
+export function groupSuggestedSubjectsByYearTerm(
+  rows: readonly SubjectSelectionSuggestedRow[]
+): readonly SubjectSelectionYearTermGroup[] {
+  const byTerm = new Map<string, SubjectSelectionSuggestedRow[]>();
+
+  for (const row of rows) {
+    const key = row.yearTerm.trim().toUpperCase() || '1Y1';
+    const list = byTerm.get(key) ?? [];
+    list.push(row);
+    byTerm.set(key, list);
+  }
+
+  return [...byTerm.entries()]
+    .sort(([left], [right]) => compareYearTermKeys(left, right))
+    .map(([yearTerm, termRows]) => ({
+      yearTerm,
+      label: studentYearTermToCurriculumTermLabel(yearTerm),
+      rows: [...termRows].sort((left, right) => left.courseCode.localeCompare(right.courseCode))
+    }));
+}
+
 export function pickDefaultSelectionIds(
   state: SubjectSelectionState,
   unitLimit = state.limits.unitLimit
@@ -343,6 +454,9 @@ export function pickDefaultSelectionIds(
   const selected: string[] = [];
   let total = 0;
   for (const row of pool) {
+    if (row.isElectiveSlot) {
+      continue;
+    }
     if (total + row.units > unitLimit) {
       continue;
     }
@@ -383,7 +497,10 @@ export function buildAddSubjectCatalog(
   return courses
     .filter((c) => {
       const key = normalizeCode(c.courseCode);
-      return key && !passed.has(key) && !excluded.has(key);
+      if (!key || passed.has(key) || excluded.has(key)) {
+        return false;
+      }
+      return !c.isElectiveSlot && !isElectiveSlotCourse(c.courseTitle, c.courseCode);
     })
     .map((c) => ({
       courseCode: c.courseCode,
@@ -465,9 +582,10 @@ export function buildChargeSlipPreview(
   miscellaneousFees: readonly MiscellaneousFee[],
   downpayments: readonly Downpayment[],
   currentYearTerm: string,
-  effectiveCurriculumCode?: string | null
+  effectiveCurriculumCode?: string | null,
+  electiveSelections: ReadonlyMap<string, string> = new Map()
 ): ChargeSlipPreview {
-  const selected = selectionRows.filter((r) => selectedIds.includes(r.id));
+  const selected = resolveSelectionRowsForChargeSlip(selectionRows, selectedIds, electiveSelections);
   const tuitionByCode = new Map(
     tuitionFees.map((t) => [normalizeCode(t.courseCode), t])
   );

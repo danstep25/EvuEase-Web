@@ -47,6 +47,14 @@ export class SchoolYearTermComponent extends BasePaginationHandler implements On
     confirmText: 'Confirm',
     cancelText: 'Cancel'
   };
+  showActivateConfirmation = false;
+  pendingSyTermData: CreateSyTermRequest | UpdateSyTermRequest | null = null;
+  activateConfirmationConfig: ConfirmationModalConfig = {
+    title: 'Set as Active Term',
+    message: '',
+    confirmText: 'Set Active',
+    cancelText: 'Cancel'
+  };
 
   ngOnInit(): void {
     this.searchForm = this.fb.group({
@@ -176,6 +184,59 @@ export class SchoolYearTermComponent extends BasePaginationHandler implements On
   }
 
   onSaveSyTerm(syTermData: CreateSyTermRequest | UpdateSyTermRequest): void {
+    if (syTermData.syStatus !== 'Active') {
+      this.performSave(syTermData);
+      return;
+    }
+
+    if (this.syTermFormComponent) {
+      this.syTermFormComponent.setSubmitting(true);
+    }
+
+    this.syTermService.getCurrentSyTerm().subscribe({
+      next: (current) => {
+        const isSameTerm = !!this.selectedSyTerm && current.syId === this.selectedSyTerm.syId;
+        if (isSameTerm) {
+          this.performSave(syTermData);
+          return;
+        }
+
+        this.pendingSyTermData = syTermData;
+        this.activateConfirmationConfig = {
+          title: 'Set as Active Term',
+          message:
+            `Only one school year and term can be active at a time.\n\n` +
+            `"${current.syYear} · ${current.sySemester}" will be deactivated and ` +
+            `"${syTermData.syYear} · ${syTermData.sySemester}" will become the active term.`,
+          confirmText: 'Set Active',
+          cancelText: 'Cancel'
+        };
+        this.showActivateConfirmation = true;
+        if (this.syTermFormComponent) {
+          this.syTermFormComponent.setSubmitting(false);
+        }
+      },
+      error: () => {
+        this.performSave(syTermData);
+      }
+    });
+  }
+
+  onConfirmActivate(): void {
+    const syTermData = this.pendingSyTermData;
+    this.showActivateConfirmation = false;
+    this.pendingSyTermData = null;
+    if (syTermData) {
+      this.performSave(syTermData);
+    }
+  }
+
+  onCancelActivate(): void {
+    this.showActivateConfirmation = false;
+    this.pendingSyTermData = null;
+  }
+
+  private performSave(syTermData: CreateSyTermRequest | UpdateSyTermRequest): void {
     if (this.syTermFormComponent) {
       this.syTermFormComponent.setSubmitting(true);
     }

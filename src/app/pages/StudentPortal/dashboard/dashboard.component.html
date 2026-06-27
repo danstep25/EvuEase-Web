@@ -1,0 +1,68 @@
+<div class="evaluator-page">
+  <header class="evaluator-page__header">
+    <h1 class="evaluator-page__title">Dashboard</h1>
+    <p class="evaluator-page__subtitle">Overview of your academic progress.</p>
+  </header>
+
+  @if (isLoading) {
+    <p class="sp-empty">Loading dashboard…</p>
+  } @else if (errorMessage) {
+    <p class="sp-empty">{{ errorMessage }}</p>
+  } @else if (dashboard) {
+    @if (dashboard.hasPendingPasswordReset) {
+      <div class="sp-alert" role="status">
+        Your password reset request is pending review by the registrar.
+      </div>
+    }
+
+    <section class="stats-grid">
+      <article class="stat-card">
+        <div class="stat-content">
+          <p class="stat-label">Program &amp; Year</p>
+          <p class="stat-value stat-value--text">{{ dashboard.programYearLevel }}</p>
+        </div>
+      </article>
+      <article class="stat-card">
+        <div class="stat-content">
+          <p class="stat-label">Current Term Subjects</p>
+          <p class="stat-value">{{ dashboard.currentTermSubjects }}</p>
+        </div>
+      </article>
+      <article class="stat-card">
+        <div class="stat-content">
+          <p class="stat-label">Completed Subjects</p>
+          <p class="stat-value">{{ dashboard.completedSubjects }}</p>
+        </div>
+      </article>
+      <article class="stat-card">
+        <div class="stat-content">
+          <p class="stat-label">Pending Subjects</p>
+          <p class="stat-value">{{ dashboard.pendingSubjects }}</p>
+        </div>
+      </article>
+      <article class="stat-card">
+        <div class="stat-content">
+          <p class="stat-label">Units Completed</p>
+          <p class="stat-value">{{ dashboard.totalUnitsCompleted }}</p>
+        </div>
+      </article>
+      <article class="stat-card">
+        <div class="stat-content">
+          <p class="stat-label">Cumulative GPA</p>
+          <p class="stat-value">{{ dashboard.cumulativeGpa ?? '—' }}</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="evaluator-surface evaluator-surface--padded">
+      <h2 class="evaluator-surface__title">Student Information</h2>
+      <p><strong>Curriculum:</strong> {{ dashboard.curriculumCode || '—' }}</p>
+      <p><strong>Enrollment Status:</strong> {{ dashboard.enrollmentStatus }}</p>
+      <div class="sp-actions">
+        <a class="sp-btn" routerLink="/student_portal/my-subjects">View My Subjects</a>
+        <a class="sp-btn sp-btn--secondary" routerLink="/student_portal/pending-subjects">View Pending</a>
+        <a class="sp-btn sp-btn--secondary" routerLink="/student_portal/print-grades">Print Grades</a>
+      </div>
+    </section>
+  }
+</div>

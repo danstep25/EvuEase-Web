@@ -86,3 +86,37 @@ export function studentYearTermFilterOptions(): { value: string; label: string }
     ...STUDENT_YEAR_TERM_OPTIONS.map((level) => ({ value: level, label: level }))
   ];
 }
+
+export function studentYearTermToCurriculumTermLabel(raw: string | null | undefined): string {
+  const normalized = normalizeStudentYearTerm(raw);
+  const match = normalized.match(/^(\d)Y([12])$/i);
+  if (!match) {
+    return 'Year 1 - 1st Semester';
+  }
+
+  const semesterLabel = match[2] === '2' ? '2nd Semester' : '1st Semester';
+  return `Year ${match[1]} - ${semesterLabel}`;
+}
+
+function normalizeTermLabel(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+export function curriculumTermLabelMatchesStudentYearTerm(
+  termLabel: string,
+  studentYearLevel: string | null | undefined
+): boolean {
+  const expected = studentYearTermToCurriculumTermLabel(studentYearLevel);
+  const stripSuffix = (label: string) => label.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  return normalizeTermLabel(stripSuffix(termLabel)) === normalizeTermLabel(expected);
+}
+
+export function enrollmentMatchesStudentYearTerm(
+  enrollmentYearLevel: string | null | undefined,
+  studentYearLevel: string | null | undefined
+): boolean {
+  return (
+    normalizeStudentYearTerm(enrollmentYearLevel).toLowerCase() ===
+    normalizeStudentYearTerm(studentYearLevel).toLowerCase()
+  );
+}

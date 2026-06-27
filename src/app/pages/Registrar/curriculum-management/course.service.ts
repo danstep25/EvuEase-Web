@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { Observable, EMPTY, of, throwError } from 'rxjs';
+import { catchError, expand, map, reduce } from 'rxjs/operators';
 import { Course, CreateCourseRequest, UpdateCourseRequest } from '../../../core/models/course.model';
 import { PaginatedResponse } from '../../../core/models/api-response.model';
 import { BaseResponse } from '../../../core/models/base-response.model';
@@ -25,6 +25,8 @@ export interface CoursePaginationParams {
   yearLevel?: string;
   semester?: string;
   hasPrerequisites?: boolean;
+  isElectiveSlot?: boolean;
+  isElectiveOption?: boolean;
 }
 
 @Injectable({
@@ -61,9 +63,34 @@ export class CourseService extends HttpBaseService {
       if (params.hasPrerequisites !== undefined && params.hasPrerequisites !== null) {
         queryParams.HasPrerequisites = params.hasPrerequisites;
       }
+      if (params.isElectiveSlot !== undefined && params.isElectiveSlot !== null) {
+        queryParams.IsElectiveSlot = params.isElectiveSlot;
+      }
+      if (params.isElectiveOption !== undefined && params.isElectiveOption !== null) {
+        queryParams.IsElectiveOption = params.isElectiveOption;
+      }
     }
     
     return this.getPaginated<Course>(API_URL.course.getAll, queryParams, 'result');
+  }
+
+  getAllCoursesForCurriculum(params: CoursePaginationParams & { curriculumCode: string }): Observable<Course[]> {
+    const pageSize = params.PageSize ?? 500;
+    const baseParams = { ...params, PageSize: pageSize };
+
+    return this.getCourses({ ...baseParams, PageIndex: 1 }).pipe(
+      expand((response) => {
+        const page = response.pagination?.page ?? 1;
+        const totalPages = response.pagination?.totalPages ?? 1;
+        if (page >= totalPages) {
+          return EMPTY;
+        }
+        return this.getCourses({ ...baseParams, PageIndex: page + 1 });
+      }),
+      map((response) => (response.success && response.data ? response.data : [])),
+      reduce((accumulated, pageCourses) => accumulated.concat(pageCourses), [] as Course[]),
+      catchError(() => of([]))
+    );
   }
 
   getCourseById(code: string): Observable<Course> {

@@ -76,6 +76,17 @@
               step="0.01"
               [class.dp-input--invalid]="form.get('downpaymentPercent')?.invalid && form.get('downpaymentPercent')?.touched"
             />
+            @if (form.get('downpaymentPercent')?.invalid && form.get('downpaymentPercent')?.touched) {
+              <p class="dp-field-hint dp-field-hint--error">
+                @if (form.get('downpaymentPercent')?.errors?.['required']) {
+                  Downpayment % is required
+                } @else if (form.get('downpaymentPercent')?.errors?.['nonNegativeAmount'] || form.get('downpaymentPercent')?.errors?.['min']) {
+                  Downpayment % cannot be negative
+                } @else if (form.get('downpaymentPercent')?.errors?.['max']) {
+                  Downpayment % cannot exceed 100
+                }
+              </p>
+            }
           </div>
           <div class="dp-field dp-field--full">
             <label for="dp-sy">Effective school year <span class="req">*</span></label>

@@ -106,7 +106,8 @@ export class AddStudentComponent implements OnInit, OnDestroy, CanComponentDeact
     email: ['', [Validators.email, Validators.maxLength(200)]],
     currentYearLevel: ['1Y1', Validators.required],
     academicStatus: ['Active', Validators.required],
-    isTransferee: [false]
+    isTransferee: [false],
+    portalPassword: ['', [Validators.minLength(6)]]
   });
 
   ngOnInit(): void {
@@ -391,7 +392,8 @@ export class AddStudentComponent implements OnInit, OnDestroy, CanComponentDeact
         contactNumber: v.contactNumber.trim() || null,
         email: v.email.trim() || null,
         gender: v.gender || null,
-        birthdate: v.birthdate || null
+        birthdate: v.birthdate || null,
+        portalPassword: v.portalPassword?.trim() || null
       };
 
       this.isSubmitting = true;
@@ -428,7 +430,8 @@ export class AddStudentComponent implements OnInit, OnDestroy, CanComponentDeact
       contactNumber: v.contactNumber.trim() || null,
       email: v.email.trim() || null,
       gender: v.gender || null,
-      birthdate: v.birthdate || null
+      birthdate: v.birthdate || null,
+      portalPassword: v.portalPassword?.trim() || null
     };
 
     this.isSubmitting = true;

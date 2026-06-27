@@ -311,6 +311,26 @@
               <p class="field-error" id="email-error" role="alert">{{ fieldError(formControls.email) }}</p>
             }
           </div>
+
+          <div>
+            <label for="portalPassword" class="field-label">Student Portal Password</label>
+            <input
+              id="portalPassword"
+              type="password"
+              formControlName="portalPassword"
+              class="field-control"
+              autocomplete="new-password"
+              placeholder="Optional — used for student portal login"
+              [class.border-red-500]="showFieldError(formControls.portalPassword)"
+              [attr.aria-describedby]="'portalPassword-help'"
+            />
+            <p class="field-help" id="portalPassword-help">
+              Optional. Minimum 6 characters. Leave blank to skip portal access{{ isEditMode ? ' or to keep the current password' : '' }}.
+            </p>
+            @if (showFieldError(formControls.portalPassword)) {
+              <p class="field-error" id="portalPassword-error" role="alert">{{ fieldError(formControls.portalPassword) }}</p>
+            }
+          </div>
         </div>
       </section>
 

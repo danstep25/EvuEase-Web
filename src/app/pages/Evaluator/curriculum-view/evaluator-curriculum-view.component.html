@@ -248,265 +248,321 @@
       }
     }
   } @else if (activeTab === 'courses') {
-    <div class="curriculum-view__courses-stack">
-      <div class="curriculum-view__panel curriculum-view__panel--view-mode">
-        <div class="curriculum-view__view-mode-copy">
-          <h2 class="curriculum-view__view-mode-title">View Mode</h2>
-          <p class="curriculum-view__view-mode-hint">Choose how you want to view courses.</p>
-        </div>
-        <div class="curriculum-view__view-mode-toggles" role="group" aria-label="Course view mode">
-          <button
-            type="button"
-            class="curriculum-view__mode-toggle"
-            [class.curriculum-view__mode-toggle--active]="courseViewMode === 'list'"
-            (click)="setCourseViewMode('list')"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-            </svg>
-            List View
-          </button>
-          <button
-            type="button"
-            class="curriculum-view__mode-toggle"
-            [class.curriculum-view__mode-toggle--active]="courseViewMode === 'table'"
-            (click)="setCourseViewMode('table')"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-            Curriculum Table View
-          </button>
-        </div>
+    <div class="curriculum-view__search-card">
+      <div class="curriculum-view__search-field">
+        <svg class="curriculum-view__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+        <input
+          type="search"
+          class="curriculum-view__search-input"
+          [placeholder]="courseSearchPlaceholder()"
+          [formControl]="courseSearchControl"
+          autocomplete="off"
+        />
       </div>
+    </div>
 
-      @if (courseViewMode === 'list') {
-        <div class="curriculum-view__panel curriculum-view__panel--filters">
-          <div class="curriculum-view__course-search">
-            <div class="curriculum-view__search-field">
-              <svg class="curriculum-view__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+    @if (!selectedCourseProgram) {
+      @if (isLoadingCourseProgramCards) {
+        <div class="curriculum-view__empty curriculum-view__empty--programs">Loading programs...</div>
+      } @else if (filteredCourseProgramCards.length === 0) {
+        <div class="curriculum-view__empty curriculum-view__empty--programs">No programs match your search.</div>
+      } @else {
+        <div class="curriculum-view__program-grid" role="list">
+          @for (card of filteredCourseProgramCards; track card.programCode) {
+            <article class="curriculum-view__program-card" role="listitem">
+              <div class="curriculum-view__program-card-body">
+                <div class="curriculum-view__program-icon-wrap" aria-hidden="true">
+                  <svg class="curriculum-view__program-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.75"
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                    />
+                  </svg>
+                </div>
+                <h3 class="curriculum-view__program-code">{{ card.programCode }}</h3>
+                <p class="curriculum-view__program-meta curriculum-view__program-meta--courses">
+                  {{ courseCountLabel(card.courseCount) }}
+                </p>
+                <p class="curriculum-view__program-meta curriculum-view__program-meta--course-versions">
+                  {{ courseVersionCountLabel(card.versionCount) }}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="curriculum-view__program-card-action"
+                (click)="openCourseProgram(card.programCode)"
+              >
+                <span>View Courses</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </article>
+          }
+        </div>
+      }
+    } @else {
+      <div class="curriculum-view__course-detail-card">
+        <button type="button" class="curriculum-view__back-link" (click)="backToCourseProgramCards()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Programs
+        </button>
+
+        <div class="curriculum-view__course-detail-header">
+          <div class="curriculum-view__course-detail-icon-wrap" aria-hidden="true">
+            <svg class="curriculum-view__course-detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.75"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
+            </svg>
+          </div>
+          <div class="curriculum-view__course-detail-heading">
+            <h2 class="curriculum-view__course-detail-title">{{ selectedCourseProgram }}</h2>
+            <p class="curriculum-view__course-detail-meta">{{ courseProgramSummary() }}</p>
+          </div>
+        </div>
+
+        <div class="curriculum-view__course-toolbar">
+          <div class="curriculum-view__course-version-field">
+            <label class="curriculum-view__course-version-label" for="ecv-course-version">Curriculum Version:</label>
+            <select
+              id="ecv-course-version"
+              class="curriculum-view__course-version-select"
+              [formControl]="courseFilterCurriculum"
+              [disabled]="isLoadingCourseFilterCurricula"
+            >
+              <option value="">-- Select a Version --</option>
+              @if (isLoadingCourseFilterCurricula) {
+                <option value="" disabled>Loading...</option>
+              } @else {
+                @for (curriculum of courseFilterCurricula; track curriculum.curriculumCode) {
+                  <option [value]="curriculum.curriculumCode">{{ courseFilterCurriculumLabel(curriculum) }}</option>
+                }
+              }
+            </select>
+          </div>
+
+          <div class="curriculum-view__segment-toggles" role="group" aria-label="Course view mode">
+            <button
+              type="button"
+              class="curriculum-view__segment-toggle"
+              [class.curriculum-view__segment-toggle--active]="courseViewMode === 'table'"
+              (click)="setCourseViewMode('table')"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Grid
+            </button>
+            <button
+              type="button"
+              class="curriculum-view__segment-toggle"
+              [class.curriculum-view__segment-toggle--active]="courseViewMode === 'list'"
+              (click)="setCourseViewMode('list')"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+              List
+            </button>
+          </div>
+        </div>
+
+        @if (!hasCourseCurriculumVersionSelected) {
+          <div class="curriculum-view__course-empty">
+            <div class="curriculum-view__course-empty-icon-wrap" aria-hidden="true">
+              <svg class="curriculum-view__course-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  stroke-width="1.5"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
                 />
               </svg>
-              <input
-                type="search"
-                class="curriculum-view__search-input"
-                [placeholder]="courseSearchPlaceholder()"
-                [formControl]="courseSearchControl"
-                autocomplete="off"
-              />
             </div>
+            <p class="curriculum-view__course-empty-title">Select a curriculum version to view courses</p>
+            <p class="curriculum-view__course-empty-hint">Use the selector above to choose a version</p>
           </div>
-          <div class="curriculum-view__filters-grid">
-            <div class="curriculum-view__filter-field">
-              <label class="curriculum-view__filter-label" for="ecv-filter-program">Filter by Program</label>
-              <select id="ecv-filter-program" class="curriculum-view__select" [formControl]="courseFilterProgram">
-                @for (opt of programFilterOptions; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              </select>
-            </div>
-            <div class="curriculum-view__filter-field">
-              <label class="curriculum-view__filter-label" for="ecv-filter-prereq">Filter by Pre-requisite(s)</label>
-              <select id="ecv-filter-prereq" class="curriculum-view__select" [formControl]="courseFilterPrereq">
-                @for (opt of prereqFilterOptions; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              </select>
-            </div>
-            <div class="curriculum-view__filter-field">
-              <label class="curriculum-view__filter-label" for="ecv-filter-year">Filter by Year</label>
-              <select id="ecv-filter-year" class="curriculum-view__select" [formControl]="courseFilterYear">
-                @for (opt of yearFilterOptions; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              </select>
-            </div>
-            <div class="curriculum-view__filter-field">
-              <label class="curriculum-view__filter-label" for="ecv-filter-sem">Filter by Semester</label>
-              <select id="ecv-filter-sem" class="curriculum-view__select" [formControl]="courseFilterSemester">
-                @for (opt of semesterFilterOptions; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="curriculum-view__table-card">
-          @if (isLoadingCourses) {
-            <div class="curriculum-view__empty">Loading courses...</div>
-          } @else if (filteredCourses.length === 0) {
-            <div class="curriculum-view__empty">No courses match your filters.</div>
-          } @else {
-            <div class="curriculum-view__table-scroll">
-              <table class="curriculum-view__table curriculum-view__table--courses curriculum-view__table--courses-list">
-                <colgroup>
-                  <col class="curriculum-view__col-curriculum" />
-                  <col class="curriculum-view__col-program" />
-                  <col class="curriculum-view__col-code" />
-                  <col class="curriculum-view__col-title" />
-                  <col class="curriculum-view__col-component" />
-                  <col class="curriculum-view__col-units" />
-                  <col class="curriculum-view__col-prereq" />
-                  <col class="curriculum-view__col-yearsem" />
-                  <col class="curriculum-view__col-desc" />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th scope="col" class="curriculum-view__th-curriculum">Curriculum</th>
-                    <th scope="col" class="curriculum-view__th-program">Program</th>
-                    <th scope="col" class="curriculum-view__th-code">Course code</th>
-                    <th scope="col" class="curriculum-view__th-title">Course title</th>
-                    <th scope="col" class="curriculum-view__th-component">Component</th>
-                    <th scope="col" class="curriculum-view__th-units">Units</th>
-                    <th scope="col" class="curriculum-view__th-prereq">Pre-requisite(s)</th>
-                    <th scope="col" class="curriculum-view__th-yearsem">Year/Sem</th>
-                    <th scope="col" class="curriculum-view__th-desc">Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (row of filteredCourses; track row.id) {
+        } @else if (courseViewMode === 'list') {
+          <div class="curriculum-view__table-card curriculum-view__table-card--nested">
+            @if (isLoadingCourses) {
+              <div class="curriculum-view__empty">Loading courses...</div>
+            } @else if (filteredCourses.length === 0) {
+              <div class="curriculum-view__empty">No courses match your search.</div>
+            } @else {
+              <div class="curriculum-view__table-scroll">
+                <table class="curriculum-view__table curriculum-view__table--courses curriculum-view__table--courses-list">
+                  <colgroup>
+                    <col class="curriculum-view__col-code" />
+                    <col class="curriculum-view__col-title" />
+                    <col class="curriculum-view__col-component" />
+                    <col class="curriculum-view__col-units" />
+                    <col class="curriculum-view__col-prereq" />
+                    <col class="curriculum-view__col-yearsem" />
+                    <col class="curriculum-view__col-desc" />
+                  </colgroup>
+                  <thead>
                     <tr>
-                      <td class="curriculum-view__cell-curriculum">{{ row.curriculum }}</td>
-                      <td class="curriculum-view__cell-program">{{ row.program }}</td>
-                      <td class="curriculum-view__cell-code">{{ row.courseCode }}</td>
-                      <td class="curriculum-view__cell-title">{{ row.courseTitle }}</td>
-                      <td class="curriculum-view__cell-component">{{ row.component }}</td>
-                      <td class="curriculum-view__cell-units">{{ row.units }}</td>
-                      <td class="curriculum-view__cell-prereq">{{ row.prerequisite }}</td>
-                      <td class="curriculum-view__cell-yearsem">{{ row.yearSem }}</td>
-                      <td class="curriculum-view__cell-desc">
-                        <span class="curriculum-view__cell-desc-inner" [title]="row.description">{{ row.description }}</span>
-                      </td>
+                      <th scope="col" class="curriculum-view__th-code">Course code</th>
+                      <th scope="col" class="curriculum-view__th-title">Course title</th>
+                      <th scope="col" class="curriculum-view__th-component">Component</th>
+                      <th scope="col" class="curriculum-view__th-units">Units</th>
+                      <th scope="col" class="curriculum-view__th-prereq">Pre-requisite(s)</th>
+                      <th scope="col" class="curriculum-view__th-yearsem">Year/Sem</th>
+                      <th scope="col" class="curriculum-view__th-desc">Description</th>
                     </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          }
-        </div>
-      } @else {
-        <div class="curriculum-view__panel curriculum-view__panel--table-selectors">
-          <div class="curriculum-view__selectors-grid">
-            <div class="curriculum-view__filter-field">
-              <label class="curriculum-view__filter-label" for="ecv-table-program">Select Program</label>
-              <select id="ecv-table-program" class="curriculum-view__select" [formControl]="tableViewProgram">
-                <option value="">-- Select a Program --</option>
-                @for (option of tableViewProgramSelectOptions; track option.value) {
-                  <option [value]="option.value">{{ option.label }}</option>
-                }
-              </select>
-            </div>
-            <div class="curriculum-view__filter-field">
-              <label class="curriculum-view__filter-label" for="ecv-table-curriculum">Select Curriculum Version</label>
-              <select id="ecv-table-curriculum" class="curriculum-view__select" [formControl]="tableViewCurriculum">
-                <option value="">-- Select a Curriculum --</option>
-                @for (curriculum of tableViewCurriculumOptions; track curriculum.id) {
-                  <option [value]="curriculum.curriculumId">
-                    {{ tableViewCurriculumDropdownLabel(curriculum) }}
-                  </option>
-                }
-              </select>
-            </div>
-          </div>
-        </div>
-
-        @if (hasTableViewCurriculumSelected && isLoadingTableViewCourses) {
-          <div class="curriculum-view__panel curriculum-view__table-placeholder">
-            <p class="curriculum-view__table-placeholder-text">Loading curriculum courses...</p>
-          </div>
-        } @else if (hasTableViewCurriculumSelected && tableViewCourses.length === 0) {
-          <div class="curriculum-view__panel curriculum-view__table-placeholder">
-            <p class="curriculum-view__table-placeholder-text">No courses found for the selected curriculum.</p>
-          </div>
-        } @else if (hasTableViewCurriculumSelected) {
-          <div class="curriculum-view__panel curriculum-view__curriculum-summary">
-            <h2 class="curriculum-view__curriculum-summary-title">{{ getTableViewProgramTitle() }}</h2>
-            <div class="curriculum-view__curriculum-summary-meta">
-              <p class="curriculum-view__curriculum-summary-line">
-                <span class="curriculum-view__curriculum-summary-label">Program Code:</span>
-                <span class="curriculum-view__curriculum-summary-value">{{ tableViewResolvedProgramCode }}</span>
-              </p>
-              <p class="curriculum-view__curriculum-summary-line">
-                <span class="curriculum-view__curriculum-summary-label">Curriculum Version:</span>
-                <span class="curriculum-view__curriculum-summary-value">{{ tableViewCurriculumVersionDisplay() }}</span>
-              </p>
-              <p class="curriculum-view__curriculum-summary-line">
-                <span class="curriculum-view__curriculum-summary-label">Total Units:</span>
-                <span class="curriculum-view__curriculum-summary-value">{{ getTableViewHeaderTotalUnits() }}</span>
-                <span class="curriculum-view__curriculum-summary-sep" aria-hidden="true">|</span>
-                <span class="curriculum-view__curriculum-summary-label">Duration:</span>
-                <span class="curriculum-view__curriculum-summary-value">{{ getTableViewCompletionYears() }} Years</span>
-              </p>
-            </div>
-          </div>
-
-          @for (year of getTableViewSortedYears(); track year) {
-            <section class="curriculum-view__year-block">
-              <h3 class="curriculum-view__year-bar">{{ getTableViewYearHeading(year) }}</h3>
-              <div class="curriculum-view__semester-grid">
-                @for (semester of tableViewSemesters; track semester) {
-                  @let semesterCourses = getTableViewSemesterCourses(year, semester);
-                  <div class="curriculum-view__semester-card">
-                    <div class="curriculum-view__semester-card-header">{{ semester }}</div>
-                    <div class="curriculum-view__semester-table-scroll">
-                      <table class="curriculum-view__curriculum-table">
-                        <thead>
-                          <tr>
-                            <th scope="col" class="curriculum-view__matrix-th-code">Course code</th>
-                            <th scope="col" class="curriculum-view__matrix-th-desc">Subject description</th>
-                            <th scope="col" class="curriculum-view__matrix-th-component">Component</th>
-                            <th scope="col" class="curriculum-view__matrix-th-prereq">Pre-requisite(s)</th>
-                            <th scope="col" class="curriculum-view__matrix-th-units">Units</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          @for (course of semesterCourses; track course.id) {
-                            <tr>
-                              <td class="curriculum-view__matrix-code">{{ course.courseCode }}</td>
-                              <td class="curriculum-view__matrix-desc">{{ course.courseTitle }}</td>
-                              <td class="curriculum-view__matrix-component">{{ course.component || '—' }}</td>
-                              <td class="curriculum-view__matrix-prereq">
-                                <em>{{ tableViewPrerequisiteDisplay(course.prerequisite) }}</em>
-                              </td>
-                              <td class="curriculum-view__matrix-units">{{ course.units }}</td>
-                            </tr>
-                          }
-                          <tr class="curriculum-view__matrix-total-row">
-                            <td colspan="4"><strong>Total Units</strong></td>
-                            <td class="curriculum-view__matrix-units">{{ getTableViewSemesterUnits(semesterCourses) }}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                }
+                  </thead>
+                  <tbody>
+                    @for (row of filteredCourses; track row.id) {
+                      <tr>
+                        <td class="curriculum-view__cell-code">{{ row.courseCode }}</td>
+                        <td class="curriculum-view__cell-title">{{ row.courseTitle }}</td>
+                        <td class="curriculum-view__cell-component">{{ row.component }}</td>
+                        <td class="curriculum-view__cell-units">{{ row.units }}</td>
+                        <td class="curriculum-view__cell-prereq">{{ row.prerequisite }}</td>
+                        <td class="curriculum-view__cell-yearsem">{{ row.yearSem }}</td>
+                        <td class="curriculum-view__cell-desc">
+                          <span class="curriculum-view__cell-desc-inner" [title]="row.description">{{ row.description }}</span>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
               </div>
-            </section>
-          }
-
-          <div class="curriculum-view__curriculum-stats">
-            <div class="curriculum-view__curriculum-stat">
-              <div class="curriculum-view__curriculum-stat-value">{{ getTableViewTotalCourses() }}</div>
-              <div class="curriculum-view__curriculum-stat-label">Total Courses</div>
-            </div>
-            <div class="curriculum-view__curriculum-stat">
-              <div class="curriculum-view__curriculum-stat-value">{{ getTableViewFooterTotalUnits() }}</div>
-              <div class="curriculum-view__curriculum-stat-label">Total Units</div>
-            </div>
-            <div class="curriculum-view__curriculum-stat">
-              <div class="curriculum-view__curriculum-stat-value">{{ getTableViewCompletionYears() }}</div>
-              <div class="curriculum-view__curriculum-stat-label">Years to Complete</div>
-            </div>
+              @if (courseListTotalPages > 1) {
+                <div class="curriculum-view__pagination">
+                  <p class="curriculum-view__pagination-summary">
+                    Showing {{ getCourseListDisplayRange() }} courses
+                  </p>
+                  <div class="curriculum-view__pagination-actions">
+                    <button
+                      type="button"
+                      class="curriculum-view__pagination-btn"
+                      [disabled]="courseListCurrentPage === 1 || isLoadingCourses"
+                      (click)="onCourseListPreviousPage()"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      type="button"
+                      class="curriculum-view__pagination-btn"
+                      [disabled]="courseListCurrentPage === courseListTotalPages || isLoadingCourses"
+                      (click)="onCourseListNextPage()"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              }
+            }
           </div>
+        } @else {
+          @if (isLoadingTableViewCourses) {
+            <div class="curriculum-view__course-empty curriculum-view__course-empty--loading">
+              <p class="curriculum-view__course-empty-title">Loading curriculum courses...</p>
+            </div>
+          } @else if (tableViewCourses.length === 0) {
+            <div class="curriculum-view__course-empty">
+              <p class="curriculum-view__course-empty-title">No courses found for the selected curriculum version.</p>
+            </div>
+          } @else {
+            <div class="curriculum-view__curriculum-summary curriculum-view__curriculum-summary--nested">
+              <h3 class="curriculum-view__curriculum-summary-title">{{ getTableViewProgramTitle() }}</h3>
+              <div class="curriculum-view__curriculum-summary-meta">
+                <p class="curriculum-view__curriculum-summary-line">
+                  <span class="curriculum-view__curriculum-summary-label">Program Code:</span>
+                  <span class="curriculum-view__curriculum-summary-value">{{ tableViewResolvedProgramCode }}</span>
+                </p>
+                <p class="curriculum-view__curriculum-summary-line">
+                  <span class="curriculum-view__curriculum-summary-label">Curriculum Version:</span>
+                  <span class="curriculum-view__curriculum-summary-value">{{ tableViewCurriculumVersionDisplay() }}</span>
+                </p>
+                <p class="curriculum-view__curriculum-summary-line">
+                  <span class="curriculum-view__curriculum-summary-label">Total Units:</span>
+                  <span class="curriculum-view__curriculum-summary-value">{{ getTableViewHeaderTotalUnits() }}</span>
+                  <span class="curriculum-view__curriculum-summary-sep" aria-hidden="true">|</span>
+                  <span class="curriculum-view__curriculum-summary-label">Duration:</span>
+                  <span class="curriculum-view__curriculum-summary-value">{{ getTableViewCompletionYears() }} Years</span>
+                </p>
+              </div>
+            </div>
+
+            @for (year of getTableViewSortedYears(); track year) {
+              <section class="curriculum-view__year-block">
+                <h3 class="curriculum-view__year-bar">{{ getTableViewYearHeading(year) }}</h3>
+                <div class="curriculum-view__semester-grid">
+                  @for (semester of tableViewSemesters; track semester) {
+                    @let semesterCourses = getTableViewSemesterCourses(year, semester);
+                    <div class="curriculum-view__semester-card">
+                      <div class="curriculum-view__semester-card-header">{{ semester }}</div>
+                      <div class="curriculum-view__semester-table-scroll">
+                        <table class="curriculum-view__curriculum-table">
+                          <thead>
+                            <tr>
+                              <th scope="col" class="curriculum-view__matrix-th-code">Course code</th>
+                              <th scope="col" class="curriculum-view__matrix-th-desc">Subject description</th>
+                              <th scope="col" class="curriculum-view__matrix-th-component">Component</th>
+                              <th scope="col" class="curriculum-view__matrix-th-prereq">Pre-requisite(s)</th>
+                              <th scope="col" class="curriculum-view__matrix-th-units">Units</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (course of semesterCourses; track course.id) {
+                              <tr>
+                                <td class="curriculum-view__matrix-code">{{ course.courseCode }}</td>
+                                <td class="curriculum-view__matrix-desc">{{ course.courseTitle }}</td>
+                                <td class="curriculum-view__matrix-component">{{ course.component || '—' }}</td>
+                                <td class="curriculum-view__matrix-prereq">
+                                  <em>{{ tableViewPrerequisiteDisplay(course.prerequisite) }}</em>
+                                </td>
+                                <td class="curriculum-view__matrix-units">{{ course.units }}</td>
+                              </tr>
+                            }
+                            <tr class="curriculum-view__matrix-total-row">
+                              <td colspan="4"><strong>Total Units</strong></td>
+                              <td class="curriculum-view__matrix-units">{{ getTableViewSemesterUnits(semesterCourses) }}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </section>
+            }
+
+            <div class="curriculum-view__curriculum-stats">
+              <div class="curriculum-view__curriculum-stat">
+                <div class="curriculum-view__curriculum-stat-value">{{ getTableViewTotalCourses() }}</div>
+                <div class="curriculum-view__curriculum-stat-label">Total Courses</div>
+              </div>
+              <div class="curriculum-view__curriculum-stat">
+                <div class="curriculum-view__curriculum-stat-value">{{ getTableViewFooterTotalUnits() }}</div>
+                <div class="curriculum-view__curriculum-stat-label">Total Units</div>
+              </div>
+              <div class="curriculum-view__curriculum-stat">
+                <div class="curriculum-view__curriculum-stat-value">{{ getTableViewCompletionYears() }}</div>
+                <div class="curriculum-view__curriculum-stat-label">Years to Complete</div>
+              </div>
+            </div>
+          }
         }
-      }
-    </div>
+      </div>
+    }
   } @else {
     <div class="curriculum-view__fees-stack">
       <div class="curriculum-view__tabs-bar curriculum-view__tabs-bar--fee-sub">

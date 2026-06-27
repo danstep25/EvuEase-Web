@@ -48,7 +48,6 @@
             <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">PROGRAM CODE</th>
             <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">PROGRAM TITLE</th>
             <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">YEARS</th>
-            <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">TOTAL UNITS</th>
             <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">STATUS</th>
             <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">ACTIONS</th>
           </tr>
@@ -58,7 +57,7 @@
         <tbody>
           @if (isLoading) {
             <tr>
-              <td colspan="6" class="py-8 text-center text-gray-500">
+              <td colspan="5" class="py-8 text-center text-gray-500">
                 <div class="flex items-center justify-center">
                   <svg class="animate-spin h-5 w-5 mr-3 text-purple-600" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -70,7 +69,7 @@
             </tr>
           } @else if (programs.length === 0) {
             <tr>
-              <td colspan="6" class="py-8 text-center text-gray-500">
+              <td colspan="5" class="py-8 text-center text-gray-500">
                 No programs found
               </td>
             </tr>
@@ -92,12 +91,6 @@
                   {{ program.programCompletionYears || 'N/A' }}
                 </td>
 
-                
-                <td class="py-4 px-4 text-gray-700">
-                  {{ program.programTotalUnits || 'N/A' }}
-                </td>
-
-                
                 <td class="py-4 px-4">
                   <span [class]="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + getStatusBadgeClass(program.programStatus)">
                     {{ getStatusText(program) }}

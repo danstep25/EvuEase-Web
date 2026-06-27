@@ -64,6 +64,13 @@ export const REGISTRAR_NAV_MENU: NavItem[] = [
     roles: ['Registrar']
   },
   { 
+    label: 'Portal Password Resets', 
+    route: 'portal-password-resets', 
+    icon: 'lock',
+    module: 'students',
+    roles: ['Registrar']
+  },
+  { 
     label: 'Faculty Center', 
     route: 'faculty-center', 
     icon: 'bar-chart',

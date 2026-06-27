@@ -14,8 +14,8 @@ export interface Student {
   contactNumber?: string | null;
   email?: string | null;
   gender?: string | null;
-  
   birthdate?: string | null;
+  hasPortalAccess?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -27,7 +27,6 @@ export interface StudentFilters {
   status?: string | null;
   searchTerm?: string | null;
 }
-
 
 export interface CreateStudentRequest {
   studentNumber: string;
@@ -43,10 +42,9 @@ export interface CreateStudentRequest {
   contactNumber?: string | null;
   email?: string | null;
   gender?: string | null;
-  
   birthdate?: string | null;
+  portalPassword?: string | null;
 }
-
 
 export interface UpdateStudentRequest {
   id: number;
@@ -64,7 +62,5 @@ export interface UpdateStudentRequest {
   email?: string | null;
   gender?: string | null;
   birthdate?: string | null;
+  portalPassword?: string | null;
 }
-
-
-

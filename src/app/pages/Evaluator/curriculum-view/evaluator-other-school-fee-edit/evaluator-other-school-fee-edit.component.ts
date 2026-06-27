@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { feeAmountFieldValidators } from '../../../../shared/validators/app-validators';
 import { Subject, takeUntil } from 'rxjs';
 import { UpdateOtherSchoolFeeRequest } from '../../../../core/models/other-school-fee.model';
 import { LookupService } from '../../../../shared/services/lookup.service';
@@ -60,9 +61,9 @@ export class EvaluatorOtherSchoolFeeEditComponent implements OnChanges, OnDestro
       nonNullable: true,
       validators: [Validators.required, Validators.maxLength(255)]
     }),
-    cash: new FormControl<number | null>(null, { validators: [Validators.required, Validators.min(0)] }),
-    lowMonthlyPayment: new FormControl<number | null>(null, {
-      validators: [Validators.required, Validators.min(0)]
+    cash: new FormControl<number | null>(0, { validators: feeAmountFieldValidators() }),
+    lowMonthlyPayment: new FormControl<number | null>(0, {
+      validators: feeAmountFieldValidators()
     })
   });
 

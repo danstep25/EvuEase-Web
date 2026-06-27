@@ -1,12 +1,14 @@
 import type {
   EvaluatorCourseDetailRow,
   EvaluatorCourseFilterOption,
+  EvaluatorCourseProgramCard,
   EvaluatorCourseSemesterLabel,
   EvaluatorCurriculumProgramCard,
   EvaluatorCurriculumRow,
   EvaluatorTableViewCurriculumOption
 } from './evaluator-curriculum-view.models';
 import type { Curricula } from '../../../core/models/curricula.model';
+import type { Course } from '../../../core/models/course.model';
 import { CurriculumStatus } from '../../Registrar/curriculum-management/enums/curriculum-status.enum';
 
 export const EVALUATOR_COURSE_PREREQ_FILTER = {
@@ -144,6 +146,25 @@ export function buildProgramCards(curricula: Curricula[]): EvaluatorCurriculumPr
       activeCount: stats.activeCount
     }))
     .sort((a, b) => a.programCode.localeCompare(b.programCode));
+}
+
+export function buildCourseProgramCards(curricula: Curricula[], courses: Course[]): EvaluatorCourseProgramCard[] {
+  const versionCards = buildProgramCards(curricula);
+  const courseCounts = new Map<string, number>();
+
+  for (const course of courses) {
+    const code = course.programCode?.trim();
+    if (!code) {
+      continue;
+    }
+    courseCounts.set(code, (courseCounts.get(code) ?? 0) + 1);
+  }
+
+  return versionCards.map((card) => ({
+    programCode: card.programCode,
+    courseCount: courseCounts.get(card.programCode) ?? 0,
+    versionCount: card.versionCount
+  }));
 }
 
 export function curriculaForProgram(

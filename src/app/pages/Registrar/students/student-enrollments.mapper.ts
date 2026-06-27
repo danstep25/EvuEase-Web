@@ -141,6 +141,97 @@ export function compareAcademicTermChronological(a: string, b: string): number {
   return a.trim().localeCompare(b.trim(), undefined, { numeric: true, sensitivity: 'base' });
 }
 
+function normalizeSchoolYear(value: string): string {
+  return value.trim().replace(/^sy\s+/i, '').trim();
+}
+
+function normalizeSemesterLabel(value: string): string {
+  return value
+    .trim()
+    .replace(/\bterm\b/gi, 'Semester')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function labelsMatch(left: string, right: string): boolean {
+  return (
+    left.localeCompare(right, undefined, { sensitivity: 'base' }) === 0
+  );
+}
+
+export function academicTermMatchesConfiguredPeriod(
+  academicTerm: string,
+  schoolYear: string,
+  semester: string
+): boolean {
+  const parsed = parseSchoolYearAndSemester(academicTerm);
+  return (
+    labelsMatch(normalizeSchoolYear(parsed.schoolYear), normalizeSchoolYear(schoolYear)) &&
+    labelsMatch(normalizeSemesterLabel(parsed.semester), normalizeSemesterLabel(semester))
+  );
+}
+
+export function formatConfiguredTermLabel(schoolYear: string, semester: string): string {
+  const year = normalizeSchoolYear(schoolYear);
+  const sem = normalizeSemesterLabel(semester);
+  if (!year && !sem) {
+    return '—';
+  }
+  if (!year) {
+    return sem;
+  }
+  if (!sem) {
+    return year;
+  }
+  return `${year} - ${sem}`;
+}
+
+function previousSchoolYear(schoolYear: string): string | null {
+  const normalized = normalizeSchoolYear(schoolYear);
+  const match = normalized.match(/^(\d{4})\s*-\s*(\d{4})$/);
+  if (!match) {
+    return null;
+  }
+
+  const startYear = Number(match[1]);
+  const endYear = Number(match[2]);
+  if (!Number.isFinite(startYear) || !Number.isFinite(endYear)) {
+    return null;
+  }
+
+  return `${startYear - 1}-${endYear - 1}`;
+}
+
+export function resolvePreviousTerm(
+  schoolYear: string,
+  semester: string
+): { schoolYear: string; semester: string } | null {
+  const year = normalizeSchoolYear(schoolYear);
+  const sem = normalizeSemesterLabel(semester);
+  if (!year || !sem) {
+    return null;
+  }
+
+  const slot = semesterSlotKind(sem);
+  if (slot === 'first') {
+    const priorYear = previousSchoolYear(year);
+    if (!priorYear) {
+      return null;
+    }
+    return { schoolYear: priorYear, semester: '2nd Semester' };
+  }
+
+  if (slot === 'second') {
+    return { schoolYear: year, semester: '1st Semester' };
+  }
+
+  if (sem.toLowerCase().includes('summer')) {
+    return { schoolYear: year, semester: '2nd Semester' };
+  }
+
+  return null;
+}
+
 
 export function buildSemesterLayoutRows(blocks: AcademicRecordSemesterBlock[]): {
   pairs: SemesterLayoutPair[];
@@ -334,4 +425,28 @@ export function groupEnrollmentsIntoSemesterBlocks(
     });
     return { label: formatAcademicTermBanner(label), rawAcademicTerm: label, courses };
   });
+}
+
+export function selectConfiguredTermSemesterBlock(
+  blocks: AcademicRecordSemesterBlock[],
+  schoolYear: string,
+  semester: string
+): AcademicRecordSemesterBlock | null {
+  const configuredYear = normalizeSchoolYear(schoolYear);
+  const configuredSemester = normalizeSemesterLabel(semester);
+  if (!configuredYear || !configuredSemester) {
+    return null;
+  }
+
+  const match = blocks.find((block) =>
+    academicTermMatchesConfiguredPeriod(block.rawAcademicTerm, configuredYear, configuredSemester)
+  );
+  if (!match) {
+    return null;
+  }
+
+  return {
+    ...match,
+    label: formatConfiguredTermLabel(configuredYear, configuredSemester)
+  };
 }

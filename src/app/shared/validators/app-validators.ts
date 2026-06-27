@@ -67,6 +67,34 @@ export function maxDecimalPlaces(maxPlaces: number): ValidatorFn {
   };
 }
 
+export function nonNegativeAmountValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+    if (value == null || value === '') {
+      return null;
+    }
+
+    const amount = Number(value);
+    if (Number.isNaN(amount)) {
+      return { invalidAmount: true };
+    }
+
+    if (amount < 0) {
+      return { nonNegativeAmount: true };
+    }
+
+    return null;
+  };
+}
+
+export function feeAmountFieldValidators(): ValidatorFn[] {
+  return [Validators.required, nonNegativeAmountValidator()];
+}
+
+export function feePercentFieldValidators(maxPercent = 100): ValidatorFn[] {
+  return [Validators.required, nonNegativeAmountValidator(), Validators.max(maxPercent)];
+}
+
 export function unitFieldValidators(options?: {
   required?: boolean;
   min?: number;

@@ -5,6 +5,7 @@ import { Course } from '../../../core/models/course.model';
 import { Curricula } from '../../../core/models/curricula.model';
 import { Student } from '../../../core/models/student.model';
 import { SORT_DEFAULTS } from '../../../shared/constants/sort.constant';
+import { filterCurriculumStructureCourses } from '../../../shared/utils/curriculum-course-term.util';
 import { ProgramService } from '../../Admin/program-management/program.service';
 import { CourseService } from '../../Registrar/curriculum-management/course.service';
 import { CurriculumManagementService } from '../../Registrar/curriculum-management/curriculum-management.service';
@@ -71,12 +72,17 @@ export class EvaluatorCurriculumResolutionService {
           });
         }
 
-        return this.courseService.getCourses({ ...BULK_PAGE, curriculumCode }).pipe(
-          map((res) => ({
+        return this.courseService
+          .getAllCoursesForCurriculum({
+            ...BULK_PAGE,
+            curriculumCode
+          })
+          .pipe(
+          map((courses) => ({
             programCurricula,
             curricula,
             curriculumCode,
-            courses: res.data ?? []
+            courses: filterCurriculumStructureCourses(courses)
           })),
           catchError(() =>
             of({

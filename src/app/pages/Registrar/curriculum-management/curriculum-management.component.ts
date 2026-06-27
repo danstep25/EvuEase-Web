@@ -9,16 +9,27 @@ import { BadgeUtil } from '../../../shared/utils/badge.util';
 import { BasePaginationHandler } from '../../../shared/handlers/base-pagination.handler';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { ConfirmationModalComponent, ConfirmationModalConfig } from '../../../shared/components/confirmation-modal/confirmation-modal.component';
-import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, of, Subject, takeUntil } from 'rxjs';
+import {
+  buildProgramCards,
+  curriculaForProgram
+} from '../../Evaluator/curriculum-view/evaluator-curriculum-view.utils';
+import { mapCurriculaToRow } from '../../Evaluator/curriculum-view/evaluator-curriculum-view.mapper';
+import type {
+  EvaluatorCurriculumProgramCard,
+  EvaluatorCurriculumRow
+} from '../../Evaluator/curriculum-view/evaluator-curriculum-view.models';
 import { CurriculaFormComponent } from './curricula-form/curricula-form.component';
 import { CourseFormComponent } from './course-form/course-form.component';
 import { ListViewComponent } from './list-view/list-view.component';
 import { CurriculumTableViewComponent } from './curriculum-table-view/curriculum-table-view.component';
 import { CurriculumManagementService } from './curriculum-management.service';
+import { ProgramService } from '../../Admin/program-management/program.service';
 import { TuitionFeesComponent } from './fees-and-charges/tuition-fees/tuition-fees.component';
 import { OtherSchoolFeesComponent } from './fees-and-charges/other-school-fees/other-school-fees.component';
 import { MiscellaneousFeesComponent } from './fees-and-charges/miscellaneous-fees/miscellaneous-fees.component';
 import { DownpaymentsComponent } from './fees-and-charges/downpayment/downpayments.component';
+import { PaymentSchemesComponent } from './fees-and-charges/payment-scheme/payment-schemes.component';
 import { CourseBatchUploadModalComponent } from './course-batch-upload-modal.component';
 import { CourseService } from './course.service';
 import { Course, CreateCourseRequest, UpdateCourseRequest } from '../../../core/models/course.model';
@@ -36,17 +47,30 @@ import {
   ClassListPdfCoursePrefillPayload
 } from '../../../shared/models/class-list-pdf-course-prefill.model';
 import { CLASS_LIST_PDF_COURSE_PREFILL_STORAGE_KEY } from '../../../shared/constants/class-list-pdf-prefill.constant';
+import { resolveCurriculumCompletionYears } from '../../../shared/utils/curriculum-completion.util';
+
+const BULK_LIST_PARAMS = {
+  PageIndex: 1,
+  PageSize: 500,
+  SortDirection: SORT_DEFAULTS.DIRECTION,
+  SortKey: ''
+} as const;
 
 @Component({
   selector: 'app-curriculum-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, CurriculaFormComponent, CourseFormComponent, ConfirmationModalComponent, ListViewComponent, CurriculumTableViewComponent, TuitionFeesComponent, OtherSchoolFeesComponent, MiscellaneousFeesComponent, DownpaymentsComponent, CourseBatchUploadModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, CurriculaFormComponent, CourseFormComponent, ConfirmationModalComponent, ListViewComponent, CurriculumTableViewComponent, TuitionFeesComponent, OtherSchoolFeesComponent, MiscellaneousFeesComponent, DownpaymentsComponent, PaymentSchemesComponent, CourseBatchUploadModalComponent],
   templateUrl: './curriculum-management.component.html',
-  styleUrl: './curriculum-management.component.scss'
+  styleUrls: [
+    './curriculum-management.component.scss',
+    '../../Evaluator/curriculum-view/evaluator-curriculum-view.component.scss',
+    '../../Evaluator/curriculum-view/evaluator-curriculum-fees.scss'
+  ]
 })
 export class CurriculumManagementComponent extends BasePaginationHandler implements OnInit, OnDestroy {
   private readonly curriculaService = inject(CurriculumManagementService);
   private readonly courseService = inject(CourseService);
+  private readonly programService = inject(ProgramService);
   private readonly lookupService = inject(LookupService);
   private readonly fb = inject(FormBuilder);
   private readonly notificationService = inject(NotificationService);
@@ -65,6 +89,12 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
   activeFeeTab: FeeTab = FeeTab.TuitionFees;
   searchForm!: FormGroup;
   curricula: Curricula[] = [];
+  courseFilterCurricula: Curricula[] = [];
+  allCurriculaRaw: Curricula[] = [];
+  allCurricula: EvaluatorCurriculumRow[] = [];
+  curriculumProgramCards: EvaluatorCurriculumProgramCard[] = [];
+  selectedCurriculumProgram: string | null = null;
+  programCurriculumVersions: EvaluatorCurriculumRow[] = [];
   courses: Course[] = [];
   programs: Program[] = [];
   isLoading = false;
@@ -77,6 +107,7 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
   showCourseForm = false;
   selectedCourse: Course | null = null;
   showCourseBatchUploadModal = false;
+  tableViewReloadToken = 0;
   
   courseCreatePrefill: Partial<CreateCourseRequest> | null = null;
   showDeleteConfirmation = false;
@@ -87,7 +118,6 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
   selectedCurriculumFilter: string | null = null;
   selectedYearFilter: string = '';
   selectedSemesterFilter: string = '';
-  selectedPrerequisiteFilter: string | null = null;
   
   CurriculumTab = CurriculumTab;
   CourseViewMode = CourseViewMode;
@@ -113,9 +143,8 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
       takeUntil(this.destroy$)
     ).subscribe(searchTerm => {
       this.searchTerm = searchTerm || '';
-      this.resetToFirstPage();
-      if (this.activeTab === CurriculumTab.Curricula) {
-        this.loadCurricula();
+      if (this.activeTab !== CurriculumTab.Curricula) {
+        this.resetToFirstPage();
       }
     });
 
@@ -129,15 +158,21 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
   }
 
   loadPrograms(): void {
-    this.lookupService.getProgramsForDropdown().pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (programs: Program[]) => {
-        this.programs = programs;
-      },
-      error: () => {
-      }
-    });
+    this.programService
+      .getPrograms({
+        PageIndex: 1,
+        PageSize: 500,
+        SortDirection: SORT_DEFAULTS.DIRECTION,
+        SortKey: '',
+        searchTerm: ''
+      })
+      .pipe(
+        catchError(() => of(null)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((response) => {
+        this.programs = response?.success && response.data ? response.data : [];
+      });
   }
 
 
@@ -167,11 +202,6 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
     }
   }
 
-  onPrerequisiteFilterChange(): void {
-    this.resetToFirstPage();
-    this.loadCourses();
-  }
-
   onYearFilterChange(): void {
     this.resetToFirstPage();
     this.loadCourses();
@@ -188,14 +218,14 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
     this.loadCourses();
   }
 
-  onListViewProgramFilterChange(programId: number | null): void {
-    this.selectedProgramFilter = programId;
+  onListViewProgramFilterChange(programId: number | string | null): void {
+    this.selectedProgramFilter = this.normalizeProgramFilter(programId);
     this.onProgramFilterChange();
   }
 
-  onListViewPrerequisiteFilterChange(prerequisite: string | null): void {
-    this.selectedPrerequisiteFilter = prerequisite;
-    this.onPrerequisiteFilterChange();
+  onListViewCurriculumFilterChange(curriculumCode: string | null): void {
+    this.selectedCurriculumFilter = curriculumCode;
+    this.onCurriculumFilterChange();
   }
 
   onListViewYearFilterChange(year: string): void {
@@ -217,9 +247,8 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
     this.loadCourses();
   }
 
-  onTableViewProgramFilterChange(programId: number | null): void {
-    console.log('Parent - Table view program filter changed:', programId);
-    this.selectedProgramFilter = programId;
+  onTableViewProgramFilterChange(programId: number | string | null): void {
+    this.selectedProgramFilter = this.normalizeProgramFilter(programId);
     this.onProgramFilterChange();
   }
 
@@ -241,76 +270,118 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
         this.courses = [];
       }
     } else {
+      if (this.selectedProgramFilter) {
+        this.loadCurriculumVersionsForDropdown();
+      }
       this.loadCourses();
     }
   }
 
   private loadCurriculumVersionsForDropdown(): void {
-    console.log('loadCurriculumVersionsForDropdown called, selectedProgramFilter:', this.selectedProgramFilter);
-    
     if (!this.selectedProgramFilter) {
-      console.log('No program selected, clearing curricula');
-      this.curricula = [];
+      this.courseFilterCurricula = [];
       this.isLoadingCurricula = false;
       return;
     }
 
-    if (this.programs.length === 0) {
-      console.log('Programs not loaded, loading programs first...');
-      this.lookupService.getProgramsForDropdown().pipe(
-        takeUntil(this.destroy$)
-      ).subscribe({
-        next: (programs: Program[]) => {
-          console.log('Programs loaded, now loading curriculum versions');
-          this.programs = programs;
-          this.loadCurriculumVersionsWithProgramCode();
-        },
-        error: (error) => {
-          console.error('Error loading programs:', error);
-          this.curricula = [];
-          this.isLoadingCurricula = false;
-        }
-      });
-    } else {
-      console.log('Programs already loaded, loading curriculum versions directly');
-      this.loadCurriculumVersionsWithProgramCode();
-    }
-  }
-
-  private loadCurriculumVersionsWithProgramCode(): void {
-    if (!this.selectedProgramFilter) {
-      this.curricula = [];
+    const programId = this.normalizeProgramFilter(this.selectedProgramFilter);
+    if (!programId) {
+      this.courseFilterCurricula = [];
       this.isLoadingCurricula = false;
       return;
     }
 
-    const selectedProgram = this.programs.find(p => p.programId === this.selectedProgramFilter);
+    const selectedProgram = this.programs.find((p) => p.programId === programId);
     if (!selectedProgram?.programCode) {
-      console.warn('Program not found or missing programCode:', this.selectedProgramFilter);
-      this.curricula = [];
+      this.courseFilterCurricula = this.buildCourseFilterCurriculaFallback(programId);
       this.isLoadingCurricula = false;
       return;
     }
 
     this.isLoadingCurricula = true;
-    console.log(`Loading curriculum versions for program: ${selectedProgram.programCode}`);
-    console.log(`API Endpoint: /Lookup/curriculum-versions?programCode=${selectedProgram.programCode}`);
-    
-    this.lookupService.getCurriculumVersionsForDropdown(selectedProgram.programCode).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (curricula: Curricula[]) => {
-        console.log(`Loaded ${curricula.length} curriculum versions for program ${selectedProgram.programCode}`);
-        this.curricula = curricula || [];
+
+    this.lookupService
+      .getCurriculaForDropdown(programId)
+      .pipe(
+        catchError((error) => {
+          console.error('Error loading curriculum filter options:', error);
+          return of([] as Curricula[]);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((curricula) => {
+        const mapped = (curricula ?? []).map((row) => ({
+          ...row,
+          programId: row.programId || programId,
+          programCode: row.programCode || selectedProgram.programCode
+        }));
+
+        this.courseFilterCurricula =
+          mapped.length > 0 ? mapped : this.buildCourseFilterCurriculaFallback(programId, selectedProgram.programCode);
         this.isLoadingCurricula = false;
-      },
-      error: (error) => {
-        console.error('Error loading curriculum versions:', error);
-        this.curricula = [];
-        this.isLoadingCurricula = false;
-        this.notificationService.error('Error', 'Failed to load curriculum versions. Please try again.');
+      });
+  }
+
+  private normalizeProgramFilter(value: number | string | null | undefined): number | null {
+    if (value === null || value === undefined || value === '' || value === 'null') {
+      return null;
+    }
+    const parsed = typeof value === 'number' ? value : parseInt(String(value), 10);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+
+  private buildCourseFilterCurriculaFallback(programId: number, programCode?: string): Curricula[] {
+    const code = programCode?.trim().toUpperCase();
+    return this.allCurriculaRaw.filter((row) => {
+      if (row.programId === programId) {
+        return true;
       }
+      if (code && row.programCode?.trim().toUpperCase() === code) {
+        return true;
+      }
+      return false;
     });
+  }
+
+  private augmentCourseFilterCurriculaFromCourses(): void {
+    const programId = this.normalizeProgramFilter(this.selectedProgramFilter);
+    if (!programId) {
+      return;
+    }
+
+    const program = this.programs.find((p) => p.programId === programId);
+    const existing = new Set(this.courseFilterCurricula.map((row) => row.curriculumCode));
+    const additions: Curricula[] = [];
+
+    for (const course of this.courses) {
+      const code = course.curriculumCode?.trim();
+      if (!code || existing.has(code)) {
+        continue;
+      }
+      if (program?.programCode && course.programCode && course.programCode !== program.programCode) {
+        continue;
+      }
+
+      existing.add(code);
+      additions.push({
+        id: 0,
+        curriculumCode: code,
+        version: '',
+        programId,
+        programCode: course.programCode || program?.programCode || '',
+        programTitle: program?.programTitle || '',
+        syId: 0,
+        syYear: '',
+        effectiveDate: '',
+        curriculumStatus: '',
+        createdAt: null,
+        updatedAt: null
+      });
+    }
+
+    if (additions.length > 0) {
+      this.courseFilterCurricula = [...this.courseFilterCurricula, ...additions];
+    }
   }
 
   ngOnDestroy(): void {
@@ -404,9 +475,16 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
     this.activeTab = tab;
     if (tab === CurriculumTab.Curricula) {
       this.loadCurricula();
-    } else if (tab === CurriculumTab.Courses) {
+    } else {
+      this.selectedCurriculumProgram = null;
+      this.programCurriculumVersions = [];
+    }
+    if (tab === CurriculumTab.Courses) {
       this.loadPrograms();
-      if (this.viewMode === CourseViewMode.Table && this.selectedProgramFilter) {
+      if (this.allCurriculaRaw.length === 0) {
+        this.loadCurricula();
+      }
+      if (this.selectedProgramFilter) {
         this.loadCurriculumVersionsForDropdown();
       }
       this.loadCourses();
@@ -419,39 +497,120 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
 
   loadCurricula(): void {
     this.isLoading = true;
-    const params = {
-      PageIndex: this.currentPage,
-      PageSize: this.pageSize,
-      SortDirection: SORT_DEFAULTS.DIRECTION,
-      SortKey: '',
-      searchTerm: this.searchTerm || ''
-    };
-
-    this.curriculaService.getCurricula(params).subscribe({
-      next: (response: PaginatedResponse<Curricula>) => {
-        if (response.success && response.data) {
-          this.curricula = response.data;
-          if (response.pagination) {
-            this.updatePagination(
-              response.pagination.total,
-              response.pagination.totalPages,
-              response.pagination.page
-            );
-          }
-        } else {
-          this.curricula = [];
-          this.resetPagination();
+    this.curriculaService
+      .getCurricula({ ...BULK_LIST_PARAMS, searchTerm: '' })
+      .pipe(
+        catchError((error) => {
+          console.error('Error loading curricula:', error);
+          this.notificationService.error(
+            'Loading Failed',
+            error.userMessage || error.message || 'Failed to load curricula.'
+          );
+          return of(null);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((response: PaginatedResponse<Curricula> | null) => {
+        const raw = response?.success && response.data ? response.data : [];
+        this.allCurriculaRaw = raw;
+        this.curricula = raw;
+        const rows = raw.map(mapCurriculaToRow);
+        this.allCurricula = rows;
+        this.curriculumProgramCards = buildProgramCards(raw);
+        if (this.selectedCurriculumProgram) {
+          this.programCurriculumVersions = curriculaForProgram(rows, this.selectedCurriculumProgram);
+        }
+        if (this.selectedProgramFilter) {
+          this.loadCurriculumVersionsForDropdown();
         }
         this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading curricula:', error);
-        this.isLoading = false;
-        this.curricula = [];
-        this.resetPagination();
-        this.notificationService.error('Loading Failed', error.userMessage || error.message || 'Failed to load curricula.');
+      });
+  }
+
+  openProgramCurricula(programCode: string): void {
+    this.selectedCurriculumProgram = programCode;
+    this.programCurriculumVersions = curriculaForProgram(this.allCurricula, programCode);
+  }
+
+  backToProgramCards(): void {
+    this.selectedCurriculumProgram = null;
+    this.programCurriculumVersions = [];
+  }
+
+  get filteredProgramCards(): EvaluatorCurriculumProgramCard[] {
+    const q = (this.searchTerm ?? '').trim().toLowerCase();
+    if (!q) {
+      return [...this.curriculumProgramCards];
+    }
+    return this.curriculumProgramCards.filter((card) => {
+      if (card.programCode.toLowerCase().includes(q)) {
+        return true;
       }
+      return curriculaForProgram(this.allCurricula, card.programCode).some(
+        (row) =>
+          row.curriculumId.toLowerCase().includes(q) ||
+          row.version.toLowerCase().includes(q) ||
+          row.schoolYear.toLowerCase().includes(q)
+      );
     });
+  }
+
+  get filteredCurriculaVersions(): EvaluatorCurriculumRow[] {
+    const q = (this.searchTerm ?? '').trim().toLowerCase();
+    if (!q) {
+      return this.programCurriculumVersions;
+    }
+    return this.programCurriculumVersions.filter(
+      (row) =>
+        row.curriculumId.toLowerCase().includes(q) ||
+        row.version.toLowerCase().includes(q) ||
+        row.program.toLowerCase().includes(q) ||
+        row.schoolYear.toLowerCase().includes(q) ||
+        row.effectiveDate.toLowerCase().includes(q) ||
+        row.status.toLowerCase().includes(q)
+    );
+  }
+
+  get selectedProgramVersionCount(): number {
+    return this.programCurriculumVersions.length;
+  }
+
+  get selectedProgramActiveCount(): number {
+    return this.programCurriculumVersions.filter((row) => row.status === 'active').length;
+  }
+
+  programVersionCountLabel(count: number): string {
+    return `${count} version${count === 1 ? '' : 's'}`;
+  }
+
+  programActiveCountLabel(count: number): string {
+    return `${count} active`;
+  }
+
+  isActiveCurriculumRow(row: EvaluatorCurriculumRow): boolean {
+    return row.status === 'active';
+  }
+
+  curriculumRowStatusLabel(row: EvaluatorCurriculumRow): string {
+    return row.status === 'active' ? CurriculumStatus.Active : CurriculumStatus.Inactive;
+  }
+
+  private findCurriculaByRow(row: EvaluatorCurriculumRow): Curricula | undefined {
+    return this.allCurriculaRaw.find((item) => String(item.id) === row.id);
+  }
+
+  onEditCurriculaFromRow(row: EvaluatorCurriculumRow): void {
+    const curricula = this.findCurriculaByRow(row);
+    if (curricula) {
+      this.onEditCurricula(curricula);
+    }
+  }
+
+  onDeleteCurriculaFromRow(row: EvaluatorCurriculumRow): void {
+    const curricula = this.findCurriculaByRow(row);
+    if (curricula) {
+      this.onDeleteCurricula(curricula);
+    }
   }
 
   getStatusText(curricula: Curricula): string {
@@ -551,13 +710,14 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
 
   loadCourses(): void {
     this.isLoadingCourses = true;
+    const programId = this.normalizeProgramFilter(this.selectedProgramFilter);
     const params = {
       PageIndex: this.currentPage,
       PageSize: this.pageSize,
       SortDirection: SORT_DEFAULTS.DIRECTION,
       SortKey: '',
       searchTerm: this.courseSearchTerm || '',
-      programId: this.selectedProgramFilter || undefined,
+      programId: programId || undefined,
       curriculumCode: this.selectedCurriculumFilter || undefined,
       yearLevel: this.selectedYearFilter || undefined,
       semester: this.selectedSemesterFilter || undefined
@@ -566,15 +726,8 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
     this.courseService.getCourses(params).subscribe({
       next: (response: PaginatedResponse<Course>) => {
         if (response.success && response.data) {
-          let filteredCourses = response.data;
-          
-          if (this.selectedPrerequisiteFilter) {
-            filteredCourses = filteredCourses.filter(course => 
-              course.prerequisites === this.selectedPrerequisiteFilter
-            );
-          }
-          
-          this.courses = filteredCourses;
+          this.courses = response.data;
+          this.augmentCourseFilterCurriculaFromCourses();
           if (response.pagination) {
             this.updatePagination(
               response.pagination.total,
@@ -617,6 +770,7 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
 
   onCourseBatchImported(count: number): void {
     this.showCourseBatchUploadModal = false;
+    this.tableViewReloadToken++;
     this.loadCourses();
     this.notificationService.success(
       'Courses imported',
@@ -767,7 +921,11 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
 
   getSelectedCurriculum(): Curricula | null {
     if (!this.selectedCurriculumFilter) return null;
-    return this.curricula.find(c => c.curriculumCode === this.selectedCurriculumFilter) || null;
+    return (
+      this.courseFilterCurricula.find((c) => c.curriculumCode === this.selectedCurriculumFilter) ??
+      this.allCurriculaRaw.find((c) => c.curriculumCode === this.selectedCurriculumFilter) ??
+      null
+    );
   }
 
   getCoursesByYearAndSemester(): { [year: string]: { [semester: string]: Course[] } } {
@@ -821,7 +979,10 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
 
   getYearsToComplete(): number {
     const program = this.getSelectedProgram();
-    return program?.programCompletionYears || 0;
+    return resolveCurriculumCompletionYears({
+      programCompletionYears: program?.programCompletionYears,
+      courses: this.courses
+    });
   }
 
   getSortedYears(): string[] {
@@ -832,16 +993,6 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
 
   getSortedSemesters(): string[] {
     return ['1st Semester', '2nd Semester', 'Summer'];
-  }
-
-  getUniquePrerequisites(): string[] {
-    const prerequisitesSet = new Set<string>();
-    this.courses.forEach(course => {
-      if (course.prerequisites && course.prerequisites.trim() !== '' && course.prerequisites !== 'None') {
-        prerequisitesSet.add(course.prerequisites);
-      }
-    });
-    return Array.from(prerequisitesSet).sort();
   }
 }
 

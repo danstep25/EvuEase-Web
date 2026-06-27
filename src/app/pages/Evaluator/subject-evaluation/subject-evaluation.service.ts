@@ -87,6 +87,43 @@ export class SubjectEvaluationService {
     return filterStudents(this.cachedStudents, programFilter, yearLevelFilter).map(toStudentOption);
   }
 
+  searchStudentOptions(
+    searchTerm: string,
+    programFilter: string,
+    yearLevelFilter: string
+  ): Observable<SearchableSelectOption[]> {
+    const term = searchTerm.trim();
+    if (term.length < 2) {
+      return of(this.getStudentOptions(programFilter, yearLevelFilter));
+    }
+
+    return this.studentsService
+      .getStudents({
+        PageIndex: 1,
+        PageSize: 50,
+        SortDirection: SORT_DEFAULTS.DIRECTION,
+        SortKey: 'student_number',
+        searchTerm: term,
+        programCode: programFilter !== 'all' ? programFilter : '',
+        status: 'Active'
+      })
+      .pipe(
+        map((res) => {
+          this.mergeStudentsIntoCache(res.data ?? []);
+          return filterStudents(res.data ?? [], programFilter, yearLevelFilter).map(toStudentOption);
+        }),
+        catchError(() => of([]))
+      );
+  }
+
+  private mergeStudentsIntoCache(students: readonly Student[]): void {
+    for (const student of students) {
+      if (!this.cachedStudents.some((cached) => String(cached.id) === String(student.id))) {
+        this.cachedStudents.push(student);
+      }
+    }
+  }
+
   findStudent(studentId: string | null): Student | undefined {
     if (!studentId) {
       return undefined;
@@ -108,7 +145,8 @@ export class SubjectEvaluationService {
     studentId: string,
     selectionRows: readonly SubjectSelectionSuggestedRow[],
     selectedIds: readonly string[],
-    currentYearTerm: string
+    currentYearTerm: string,
+    electiveSelections: ReadonlyMap<string, string> = new Map()
   ): Observable<ChargeSlipPreview | null> {
     const student = this.findStudent(studentId);
     if (!student) {
@@ -135,7 +173,8 @@ export class SubjectEvaluationService {
               mf.data ?? [],
               dp.data ?? [],
               currentYearTerm,
-              resolvedCode
+              resolvedCode,
+              electiveSelections
             )
           )
         )
@@ -187,11 +226,17 @@ export class SubjectEvaluationService {
         map((raw) => mapStudentEnrollmentOverview(raw)),
         catchError(() => of(EMPTY_OVERVIEW))
       ),
-      curriculumContext: this.curriculumResolutionService.resolveCurriculumContext(student)
+      curriculumContext: this.curriculumResolutionService.resolveCurriculumContext(student),
+      electiveOptions: this.loadElectiveOptionsForStudent(student)
     }).pipe(
-      map(({ overview, curriculumContext }) => {
+      map(({ overview, curriculumContext, electiveOptions }) => {
         const courses = curriculumContext.courses.map(mapCourseFromApi);
-        const subjectSelection = buildSubjectSelectionState(student, courses, overview.enrollments);
+        const subjectSelection = buildSubjectSelectionState(
+          student,
+          courses,
+          overview.enrollments,
+          electiveOptions
+        );
         return {
           summary: buildStudentSummary(
             student,
@@ -203,6 +248,32 @@ export class SubjectEvaluationService {
         };
       }),
       catchError(() => of(null))
+    );
+  }
+
+  private loadElectiveOptionsForStudent(student: Student): Observable<import('../../../core/models/course.model').Course[]> {
+    const programCode = student.programCode?.trim();
+    if (!programCode) {
+      return of([]);
+    }
+
+    return this.programService.getPrograms({ ...BULK_PAGE, searchTerm: programCode }).pipe(
+      switchMap((programsRes) => {
+        const program = (programsRes.data ?? []).find(
+          (item) => item.programCode.trim().toLowerCase() === programCode.toLowerCase()
+        );
+        if (program?.programId == null) {
+          return of([]);
+        }
+
+        return this.courseService
+          .getCourses({ ...BULK_PAGE, programId: program.programId, isElectiveOption: true })
+          .pipe(
+            map((res) => (res.data ?? []).map(mapCourseFromApi)),
+            catchError(() => of([]))
+          );
+      }),
+      catchError(() => of([]))
     );
   }
 }
