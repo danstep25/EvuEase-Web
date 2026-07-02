@@ -45,7 +45,7 @@ export class StudentPortalResetPasswordComponent {
         this.submittedSuccess = true;
         this.notificationService.success(
           'Request submitted',
-          'The registrar will review your password reset request.'
+          'The administrator will review your password reset request.'
         );
       },
       error: (error) => {

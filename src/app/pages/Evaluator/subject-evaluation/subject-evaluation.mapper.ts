@@ -3,6 +3,7 @@ import { Curricula } from '../../../core/models/curricula.model';
 import { MiscellaneousFee } from '../../../core/models/miscellaneous-fee.model';
 import { OtherSchoolFee } from '../../../core/models/other-school-fee.model';
 import { Downpayment } from '../../../core/models/downpayment.model';
+import { PaymentScheme } from '../../../core/models/payment-scheme.model';
 import { Student } from '../../../core/models/student.model';
 import { StudentClassEnrollmentRow } from '../../../core/models/student-enrollments.model';
 import { SyTerm } from '../../../core/models/sy-term.model';
@@ -21,6 +22,10 @@ import {
   mapCourseToElectiveOption
 } from '../../../shared/utils/elective-subject.util';
 import { studentYearTermToCurriculumTermLabel } from '../../../shared/utils/student-year-level.util';
+import {
+  normalizeCurriculumSemester,
+  normalizeCurriculumYearLevel
+} from '../../../shared/utils/curriculum-course-term.util';
 import type {
   AddSubjectCatalogItem,
   ChargeSlipFeeRow,
@@ -186,8 +191,15 @@ export function yearLevelMatchesFilter(
 }
 
 export function toYearTermKey(courseYearLevel: string, courseSemester: string): string {
-  const yearDigit = courseYearLevel.match(/(\d)/)?.[1] ?? '1';
-  const semDigit = /2nd|second/i.test(courseSemester) ? '2' : '1';
+  const normalizedYear = normalizeCurriculumYearLevel(courseYearLevel);
+  const yearMatch = normalizedYear.match(/^Year\s*(\d+)/i);
+  const yearDigit =
+    yearMatch?.[1] ??
+    parseYearLevelFilterKey(courseYearLevel) ??
+    courseYearLevel.match(/(\d)/)?.[1] ??
+    '1';
+  const normalizedSem = normalizeCurriculumSemester(courseSemester);
+  const semDigit = /2nd|second/i.test(normalizedSem) ? '2' : '1';
   return `${yearDigit}Y${semDigit}`;
 }
 
@@ -229,7 +241,9 @@ export function mapUpcomingTerm(terms: readonly SyTerm[]): SubjectEvaluationUpco
   const term = sorted[0];
   return {
     schoolYearTerm: `${term.syYear} - ${term.sySemester}`,
-    enrollmentPeriod: `${formatDateDisplay(term.syEnrollmentStart)} - ${formatDateDisplay(term.syEnrollmentEnd)}`
+    enrollmentPeriod: `${formatDateDisplay(term.syEnrollmentStart)} - ${formatDateDisplay(term.syEnrollmentEnd)}`,
+    schoolYear: term.syYear?.trim() ?? '',
+    semester: term.sySemester?.trim() ?? ''
   };
 }
 
@@ -381,31 +395,35 @@ export function buildSubjectSelectionState(
     (course) => !isElectiveOptionCourse(course) && !course.isElectiveOption
   );
 
-  const eligible = curriculumCourses
+  const allTermCourses = curriculumCourses
     .map((course) => mapCourseToSuggestedRow(course, electiveOptions))
-    .filter((row) => {
-      const codeKey = normalizeCode(row.courseCode);
-      if (passed.has(codeKey)) {
-        return false;
-      }
-      return prerequisiteMet(row.prerequisite, passed);
-    });
+    .filter((row) => !passed.has(normalizeCode(row.courseCode)));
 
-  const currentTermCourses = eligible.filter((r) => r.yearTerm === currentYearTerm);
+  const eligibleCourses = allTermCourses.filter((row) =>
+    prerequisiteMet(row.prerequisite, passed)
+  );
+
+  const currentTermCourses = eligibleCourses.filter((r) => r.yearTerm === currentYearTerm);
   const regularUnitsForNextTerm = currentTermCourses.reduce((sum, r) => sum + r.units, 0);
   const unitLimit = Math.max(regularUnitsForNextTerm, DEFAULT_UNIT_LIMIT);
 
   return {
     limits: { regularUnitsForNextTerm, unitLimit },
     currentYearTerm,
-    allTermCourses: eligible
+    allTermCourses,
+    eligibleCourses
   };
 }
 
 export function getCurrentTermSuggestedCourses(
-  state: SubjectSelectionState
+  state: SubjectSelectionState,
+  extraRows: readonly SubjectSelectionSuggestedRow[] = []
 ): readonly SubjectSelectionSuggestedRow[] {
-  return state.allTermCourses.filter((row) => row.yearTerm === state.currentYearTerm);
+  const base = state.eligibleCourses.filter((row) => row.yearTerm === state.currentYearTerm);
+  const extra = extraRows.filter(
+    (row) => row.yearTerm === state.currentYearTerm && !base.some((existing) => existing.id === row.id)
+  );
+  return [...base, ...extra];
 }
 
 function compareYearTermKeys(a: string, b: string): number {
@@ -572,6 +590,92 @@ function sumFeeMoney(rows: readonly ChargeSlipFeeRow[]): { cash: number; lowMont
   );
 }
 
+function normalizePaymentSchemeSchoolYear(value: string): string {
+  return value.trim().replace(/^sy\s+/i, '').trim();
+}
+
+function normalizePaymentSchemeSemester(value: string): string {
+  return value
+    .trim()
+    .replace(/\bterm\b/gi, 'Semester')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function findPaymentSchemeForTerm(
+  schemes: readonly PaymentScheme[],
+  schoolYear: string,
+  semester: string
+): PaymentScheme | null {
+  const year = normalizePaymentSchemeSchoolYear(schoolYear);
+  const sem = normalizePaymentSchemeSemester(semester);
+  if (!year || !sem) {
+    return null;
+  }
+
+  return (
+    schemes.find(
+      (scheme) =>
+        normalizePaymentSchemeSchoolYear(scheme.schoolYear).localeCompare(year, undefined, {
+          sensitivity: 'base'
+        }) === 0 &&
+        normalizePaymentSchemeSemester(scheme.semester).localeCompare(sem, undefined, {
+          sensitivity: 'base'
+        }) === 0
+    ) ?? null
+  );
+}
+
+function formatInstallmentLabel(
+  installment: PaymentScheme['installments'][number],
+  index: number
+): string {
+  const paymentName = installment.paymentName?.trim();
+  if (paymentName) {
+    return paymentName;
+  }
+  if (installment.dueDate?.trim()) {
+    return formatDateDisplay(installment.dueDate);
+  }
+  return `Installment ${index + 1}`;
+}
+
+export function mapPaymentSchemeToChargeSlipRows(
+  scheme: PaymentScheme | null,
+  grossLow: number,
+  downpaymentPercent: number
+): ChargeSlipPaymentRow[] {
+  const dpAmount = (grossLow * downpaymentPercent) / 100;
+  const balance = Math.max(0, grossLow - dpAmount);
+
+  if (!scheme || scheme.installments.length === 0) {
+    return [
+      {
+        label: 'Upon Enrollment/Required DP',
+        cash: '',
+        lowMonthlyPayment: formatMoney(dpAmount)
+      },
+      {
+        label: 'Remaining balance (estimate)',
+        cash: '',
+        lowMonthlyPayment: formatMoney(balance)
+      }
+    ];
+  }
+
+  const sorted = [...scheme.installments].sort(
+    (left, right) => left.installmentOrder - right.installmentOrder
+  );
+  const remainingInstallments = Math.max(1, sorted.length - 1);
+  const recurringAmount = balance / remainingInstallments;
+
+  return sorted.map((installment, index) => ({
+    label: formatInstallmentLabel(installment, index),
+    cash: '',
+    lowMonthlyPayment: formatMoney(index === 0 ? dpAmount : recurringAmount)
+  }));
+}
+
 export function buildChargeSlipPreview(
   student: Student,
   curricula: Curricula | null,
@@ -583,7 +687,10 @@ export function buildChargeSlipPreview(
   downpayments: readonly Downpayment[],
   currentYearTerm: string,
   effectiveCurriculumCode?: string | null,
-  electiveSelections: ReadonlyMap<string, string> = new Map()
+  electiveSelections: ReadonlyMap<string, string> = new Map(),
+  paymentSchemes: readonly PaymentScheme[] = [],
+  schoolYear = '',
+  semester = ''
 ): ChargeSlipPreview {
   const selected = resolveSelectionRowsForChargeSlip(selectionRows, selectedIds, electiveSelections);
   const tuitionByCode = new Map(
@@ -628,19 +735,9 @@ export function buildChargeSlipPreview(
   const dp =
     downpayments.find((d) => d.programCode.toLowerCase() === student.programCode.toLowerCase()) ??
     downpayments[0];
-
-  const paymentScheme: ChargeSlipPaymentRow[] = [
-    {
-      label: 'Upon Enrollment/Required DP',
-      cash: '',
-      lowMonthlyPayment: dp ? formatMoney((grossLow * dp.downpaymentPercent) / 100) : formatMoney(0)
-    },
-    {
-      label: 'Remaining balance (estimate)',
-      cash: '',
-      lowMonthlyPayment: formatMoney(Math.max(0, grossLow - (dp ? (grossLow * dp.downpaymentPercent) / 100 : 0)))
-    }
-  ];
+  const dpPercent = dp?.downpaymentPercent ?? 0;
+  const matchedScheme = findPaymentSchemeForTerm(paymentSchemes, schoolYear, semester);
+  const paymentScheme = mapPaymentSchemeToChargeSlipRows(matchedScheme, grossLow, dpPercent);
 
   const given = [student.firstName, student.middleName].filter(Boolean).join(' ').trim();
 

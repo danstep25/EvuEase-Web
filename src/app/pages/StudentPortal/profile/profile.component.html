@@ -7,16 +7,42 @@
   @if (isLoading) {
     <p class="sp-empty">Loading profile…</p>
   } @else if (profile) {
-    <div class="evaluator-surface evaluator-surface--padded">
-      <p><strong>Student Number:</strong> {{ profile.studentNumber }}</p>
-      <p><strong>Name:</strong> {{ profile.lastName }}, {{ profile.firstName }} {{ profile.middleName || '' }}</p>
-      <p><strong>Program:</strong> {{ profile.programCode }} — {{ profile.programTitle }}</p>
-      <p><strong>Year Level:</strong> {{ profile.yearLevel }}</p>
-      <p><strong>Curriculum:</strong> {{ profile.curriculumCode || '—' }}</p>
-      <p><strong>Status:</strong> {{ profile.status }}</p>
-      <p><strong>Email:</strong> {{ profile.email || '—' }}</p>
-      <p><strong>Contact:</strong> {{ profile.contactNumber || '—' }}</p>
-      <p><strong>Portal Access:</strong> {{ profile.hasPortalAccess ? 'Enabled' : 'Not set' }}</p>
+    <div class="sp-profile-grid">
+      <section class="evaluator-surface evaluator-surface--padded">
+        <h2 class="evaluator-surface__title">Personal Information</h2>
+        <dl class="sp-profile-list">
+          <div><dt>Student Number</dt><dd>{{ profile.studentNumber }}</dd></div>
+          <div><dt>Name</dt><dd>{{ profile.lastName }}, {{ profile.firstName }} {{ profile.middleName || '' }}</dd></div>
+          <div><dt>Email</dt><dd>{{ profile.email || '—' }}</dd></div>
+          <div><dt>Contact</dt><dd>{{ profile.contactNumber || '—' }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="evaluator-surface evaluator-surface--padded">
+        <h2 class="evaluator-surface__title">Academic Information</h2>
+        <dl class="sp-profile-list">
+          <div><dt>Program</dt><dd>{{ profile.programCode }} — {{ profile.programTitle }}</dd></div>
+          <div><dt>Year Level</dt><dd>{{ profile.yearLevel }}</dd></div>
+          <div><dt>Curriculum</dt><dd>{{ profile.curriculumCode || '—' }}</dd></div>
+          <div><dt>Status</dt><dd>{{ profile.status }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="evaluator-surface evaluator-surface--padded sp-profile-security">
+        <div class="sp-profile-security__header">
+          <div>
+            <h2 class="evaluator-surface__title">Security</h2>
+            <p class="sp-profile-security__hint">Manage your portal password and account access.</p>
+          </div>
+          <span class="sp-profile-access-badge" [class.is-enabled]="profile.hasPortalAccess">
+            {{ profile.hasPortalAccess ? 'Portal Enabled' : 'Portal Not Set' }}
+          </span>
+        </div>
+        <div class="sp-actions">
+          <a class="sp-btn" routerLink="/student_portal/change-password">Change Password</a>
+          <a class="sp-btn sp-btn--secondary" routerLink="/student_portal/reset-password">Request Password Reset</a>
+        </div>
+      </section>
     </div>
   }
 </div>

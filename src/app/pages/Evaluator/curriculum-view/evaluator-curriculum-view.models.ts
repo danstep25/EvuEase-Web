@@ -6,7 +6,8 @@ export type EvaluatorFeeSubTab =
   | 'tuition-fees'
   | 'other-school-fees'
   | 'miscellaneous-fees'
-  | 'downpayment';
+  | 'downpayment'
+  | 'payment-scheme';
 
 export interface EvaluatorCourseFilterOption {
   value: string;

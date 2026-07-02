@@ -13,6 +13,7 @@ import { TuitionFeesService } from '../../Registrar/curriculum-management/fees-a
 import { OtherSchoolFeesService } from '../../Registrar/curriculum-management/fees-and-charges/other-school-fees/other-school-fees.service';
 import { MiscellaneousFeesService } from '../../Registrar/curriculum-management/fees-and-charges/miscellaneous-fees/miscellaneous-fees.service';
 import { DownpaymentService } from '../../Registrar/curriculum-management/fees-and-charges/downpayment/downpayment.service';
+import { PaymentSchemeService } from '../../Registrar/curriculum-management/fees-and-charges/payment-scheme/payment-scheme.service';
 import { mapStudentEnrollmentOverview } from '../../Registrar/students/student-enrollments.mapper';
 import { mapCourseFromApi } from '../student-permanent-records/evaluator-migrate-curriculum.mapper';
 import { EvaluatorCurriculumResolutionService } from '../student-permanent-records/evaluator-curriculum-resolution.service';
@@ -58,6 +59,7 @@ export class SubjectEvaluationService {
   private readonly otherSchoolFeesService = inject(OtherSchoolFeesService);
   private readonly miscellaneousFeesService = inject(MiscellaneousFeesService);
   private readonly downpaymentService = inject(DownpaymentService);
+  private readonly paymentSchemeService = inject(PaymentSchemeService);
   private readonly curriculumResolutionService = inject(EvaluatorCurriculumResolutionService);
 
   private cachedStudents: Student[] = [];
@@ -146,7 +148,9 @@ export class SubjectEvaluationService {
     selectionRows: readonly SubjectSelectionSuggestedRow[],
     selectedIds: readonly string[],
     currentYearTerm: string,
-    electiveSelections: ReadonlyMap<string, string> = new Map()
+    electiveSelections: ReadonlyMap<string, string> = new Map(),
+    schoolYear = '',
+    semester = ''
   ): Observable<ChargeSlipPreview | null> {
     const student = this.findStudent(studentId);
     if (!student) {
@@ -160,10 +164,15 @@ export class SubjectEvaluationService {
           tuition: this.tuitionFeesService.getTuitionFees(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
           osf: this.otherSchoolFeesService.getOtherSchoolFees(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
           mf: this.miscellaneousFeesService.getMiscellaneousFees(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
-          dp: this.downpaymentService.getDownpayments(BULK_PAGE).pipe(catchError(() => of({ data: [] })))
+          dp: this.downpaymentService.getDownpayments(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
+          paymentSchemes: this.paymentSchemeService.getPaymentSchemes(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
+          currentSyTerm: this.syTermService.getCurrentSyTerm().pipe(catchError(() => of(null)))
         }).pipe(
-          map(({ curricula: resolvedCurricula, tuition, osf, mf, dp }) =>
-            buildChargeSlipPreview(
+          map(({ curricula: resolvedCurricula, tuition, osf, mf, dp, paymentSchemes, currentSyTerm }) => {
+            const resolvedSchoolYear = schoolYear.trim() || currentSyTerm?.syYear?.trim() || '';
+            const resolvedSemester = semester.trim() || currentSyTerm?.sySemester?.trim() || '';
+
+            return buildChargeSlipPreview(
               student,
               resolvedCurricula,
               selectionRows,
@@ -174,9 +183,12 @@ export class SubjectEvaluationService {
               dp.data ?? [],
               currentYearTerm,
               resolvedCode,
-              electiveSelections
-            )
-          )
+              electiveSelections,
+              paymentSchemes.data ?? [],
+              resolvedSchoolYear,
+              resolvedSemester
+            );
+          })
         )
       ),
       catchError(() => of(null))

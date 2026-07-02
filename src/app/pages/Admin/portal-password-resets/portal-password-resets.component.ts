@@ -6,13 +6,13 @@ import { NotificationService } from '../../../shared/services/notification.servi
 import type { StudentPortalPasswordResetRequest } from '../../StudentPortal/models/student-portal.models';
 
 @Component({
-  selector: 'app-portal-password-resets',
+  selector: 'app-admin-portal-password-resets',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './portal-password-resets.component.html',
   styleUrl: './portal-password-resets.component.scss'
 })
-export class PortalPasswordResetsComponent implements OnInit {
+export class AdminPortalPasswordResetsComponent implements OnInit {
   private readonly portalService = inject(StudentPortalService);
   private readonly notificationService = inject(NotificationService);
 
@@ -23,11 +23,17 @@ export class PortalPasswordResetsComponent implements OnInit {
 
   selectedRequest: StudentPortalPasswordResetRequest | null = null;
   newPortalPassword = '';
-  registrarNotes = '';
+  adminNotes = '';
   showResolveModal = false;
+  showRejectModal = false;
+  showNewPassword = false;
 
   ngOnInit(): void {
     this.loadRequests();
+  }
+
+  get pendingCount(): number {
+    return this.requests.filter((row) => row.status === 'Pending').length;
   }
 
   loadRequests(): void {
@@ -47,12 +53,22 @@ export class PortalPasswordResetsComponent implements OnInit {
   openResolve(request: StudentPortalPasswordResetRequest): void {
     this.selectedRequest = request;
     this.newPortalPassword = '';
-    this.registrarNotes = '';
+    this.adminNotes = '';
+    this.showNewPassword = false;
+    this.showRejectModal = false;
     this.showResolveModal = true;
   }
 
-  closeResolve(): void {
+  openReject(request: StudentPortalPasswordResetRequest): void {
+    this.selectedRequest = request;
+    this.adminNotes = '';
     this.showResolveModal = false;
+    this.showRejectModal = true;
+  }
+
+  closeModals(): void {
+    this.showResolveModal = false;
+    this.showRejectModal = false;
     this.selectedRequest = null;
   }
 
@@ -66,13 +82,13 @@ export class PortalPasswordResetsComponent implements OnInit {
       .resolvePasswordResetRequest(
         this.selectedRequest.id,
         this.newPortalPassword.trim(),
-        this.registrarNotes.trim() || undefined
+        this.adminNotes.trim() || undefined
       )
       .subscribe({
         next: () => {
           this.processingId = null;
           this.notificationService.success('Resolved', 'Portal password was reset for the student.');
-          this.closeResolve();
+          this.closeModals();
           this.loadRequests();
         },
         error: (error) => {
@@ -85,12 +101,17 @@ export class PortalPasswordResetsComponent implements OnInit {
       });
   }
 
-  rejectRequest(request: StudentPortalPasswordResetRequest): void {
-    this.processingId = request.id;
-    this.portalService.rejectPasswordResetRequest(request.id).subscribe({
+  confirmReject(): void {
+    if (!this.selectedRequest) {
+      return;
+    }
+
+    this.processingId = this.selectedRequest.id;
+    this.portalService.rejectPasswordResetRequest(this.selectedRequest.id, this.adminNotes.trim() || undefined).subscribe({
       next: () => {
         this.processingId = null;
         this.notificationService.success('Rejected', 'Password reset request was rejected.');
+        this.closeModals();
         this.loadRequests();
       },
       error: () => {
@@ -98,5 +119,18 @@ export class PortalPasswordResetsComponent implements OnInit {
         this.notificationService.error('Failed', 'Could not reject request.');
       }
     });
+  }
+
+  statusClass(status: string): string {
+    switch (status) {
+      case 'Pending':
+        return 'status-badge status-badge--pending';
+      case 'Resolved':
+        return 'status-badge status-badge--resolved';
+      case 'Rejected':
+        return 'status-badge status-badge--rejected';
+      default:
+        return 'status-badge';
+    }
   }
 }

@@ -33,6 +33,13 @@ export function isTermAtOrAfterStudentTerm(
   return compareTermPosition(parseCurriculumTermYearSemester(termLabel), parseStudentYearSemester(studentYearLevel)) !== 'before';
 }
 
+export function isTermAtOrBeforeStudentTerm(
+  termLabel: string,
+  studentYearLevel: string | null | undefined
+): boolean {
+  return compareTermPosition(parseCurriculumTermYearSemester(termLabel), parseStudentYearSemester(studentYearLevel)) !== 'after';
+}
+
 export type TermPosition = 'before' | 'current' | 'after';
 
 export function compareTermPosition(
@@ -111,21 +118,49 @@ export function resolveProgramYearsForPlan(
   return maxYear > 0 ? maxYear : 4;
 }
 
+export function countRemainingProgramTerms(
+  studentYearLevel: string | null | undefined,
+  programYears: number
+): number {
+  const { year: studentYear, semester } = parseStudentYearSemester(studentYearLevel);
+  const completedTerms = (studentYear - 1) * 2 + (semester - 1);
+  const totalTerms = programYears * 2;
+  return Math.max(0, totalTerms - completedTerms);
+}
+
+export function computeTermCompletionEndYear(
+  termIndex: number,
+  currentCalendarYear: number,
+  studentYearLevel: string | null | undefined
+): number {
+  const { semester } = parseStudentYearSemester(studentYearLevel);
+  const academicYearOffset = Math.floor((termIndex + (semester - 1)) / 2);
+  return currentCalendarYear + academicYearOffset + 1;
+}
+
 export function computeEarliestGraduationYear(
   currentCalendarYear: number,
   studentYearLevel: string | null | undefined,
   programYears: number
 ): number {
-  const { year: studentYear } = parseStudentYearSemester(studentYearLevel);
-  return currentCalendarYear + Math.max(0, programYears - studentYear);
+  const remainingTerms = countRemainingProgramTerms(studentYearLevel, programYears);
+  if (remainingTerms <= 0) {
+    return currentCalendarYear;
+  }
+
+  return computeTermCompletionEndYear(
+    remainingTerms - 1,
+    currentCalendarYear,
+    studentYearLevel
+  );
 }
 
 export function computeTermMinCompletionYear(
-  termCurriculumYear: number,
-  programYears: number,
-  currentCalendarYear: number
+  termIndex: number,
+  currentCalendarYear: number,
+  studentYearLevel: string | null | undefined
 ): number {
-  return currentCalendarYear + Math.max(0, programYears - termCurriculumYear);
+  return computeTermCompletionEndYear(termIndex, currentCalendarYear, studentYearLevel);
 }
 
 export function buildExpectedCompletionYearOptions(

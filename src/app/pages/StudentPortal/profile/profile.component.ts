@@ -1,12 +1,13 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { StudentPortalService } from '../services/student-portal.service';
 import type { StudentPortalProfile } from '../models/student-portal.models';
 
 @Component({
   selector: 'app-student-portal-profile',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './profile.component.html',
   styleUrl: '../student-portal.shared.scss'
 })

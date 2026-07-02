@@ -57,6 +57,12 @@ export function firstValidationMessage(errors: ValidationErrors | null | undefin
   if (errors['duplicateClassNumber']) {
     return 'This class number already exists for the selected academic term.';
   }
+  if (errors['passwordMismatch']) {
+    return 'Passwords do not match.';
+  }
+  if (errors['passwordSameAsCurrent']) {
+    return 'New password must be different from your current password.';
+  }
 
   return 'This value is not valid.';
 }

@@ -219,8 +219,9 @@
             type="text"
             id="courseTitle"
             formControlName="courseTitle"
-            placeholder="e.g., Introduction to Computer Science"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            readonly
+            tabindex="-1"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 cursor-default outline-none read-only:bg-white read-only:opacity-100 focus:ring-0 focus:border-gray-300"
             [class.border-red-500]="formControls.courseTitle?.invalid && formControls.courseTitle?.touched"
           />
           @if (formControls.courseTitle?.invalid && formControls.courseTitle?.touched) {

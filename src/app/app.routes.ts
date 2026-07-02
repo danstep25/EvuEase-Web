@@ -26,6 +26,13 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/Admin/system-logs/system-logs.component').then(m => m.SystemLogsComponent)
       },
       {
+        path: 'portal-password-resets',
+        loadComponent: () =>
+          import('./pages/Admin/portal-password-resets/portal-password-resets.component').then(
+            (m) => m.AdminPortalPasswordResetsComponent
+          )
+      },
+      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full'
@@ -83,13 +90,6 @@ export const routes: Routes = [
       {
         path: 'students',
         loadComponent: () => import('./pages/Registrar/students/students.component').then(m => m.StudentsComponent)
-      },
-      {
-        path: 'portal-password-resets',
-        loadComponent: () =>
-          import('./pages/Registrar/portal-password-resets/portal-password-resets.component').then(
-            (m) => m.PortalPasswordResetsComponent
-          )
       },
       {
         path: 'archive',

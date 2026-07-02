@@ -6,6 +6,7 @@ import { Student } from '../../../core/models/student.model';
 import { StudentEnrollmentOverview } from '../../../core/models/student-enrollments.model';
 import { SORT_DEFAULTS } from '../../../shared/constants/sort.constant';
 import { StudentsService } from '../../Registrar/students/students.service';
+import { SchoolYearTermService } from '../../Registrar/school-year-term/school-year-term.service';
 import { CourseService } from '../../Registrar/curriculum-management/course.service';
 import { CurriculumManagementService } from '../../Registrar/curriculum-management/curriculum-management.service';
 import { ProgramService } from '../../Admin/program-management/program.service';
@@ -44,6 +45,7 @@ const EMPTY_ENROLLMENT_OVERVIEW: StudentEnrollmentOverview = {
 @Injectable({ providedIn: 'root' })
 export class EvaluatorStudentAcademicService {
   private readonly studentsService = inject(StudentsService);
+  private readonly schoolYearTermService = inject(SchoolYearTermService);
   private readonly courseService = inject(CourseService);
   private readonly curriculumService = inject(CurriculumManagementService);
   private readonly programService = inject(ProgramService);
@@ -54,9 +56,10 @@ export class EvaluatorStudentAcademicService {
       student: this.studentsService.getStudentById(studentId),
       overview: this.studentsService.getStudentEnrollmentOverview(studentId).pipe(
         catchError(() => of(EMPTY_ENROLLMENT_OVERVIEW))
-      )
+      ),
+      currentSyTerm: this.schoolYearTermService.getCurrentSyTerm().pipe(catchError(() => of(null)))
     }).pipe(
-      switchMap(({ student, overview }) =>
+      switchMap(({ student, overview, currentSyTerm }) =>
         this.curriculumResolutionService.resolveCurriculumContext(student).pipe(
           map(({ curricula, curriculumCode, courses }) =>
             buildStudentAcademicProfile(
@@ -64,7 +67,13 @@ export class EvaluatorStudentAcademicService {
               overview.enrollments,
               [...courses],
               curricula,
-              curriculumCode
+              curriculumCode,
+              currentSyTerm
+                ? {
+                    schoolYear: currentSyTerm.syYear?.trim() ?? '',
+                    semester: currentSyTerm.sySemester?.trim() ?? ''
+                  }
+                : null
             )
           )
         )

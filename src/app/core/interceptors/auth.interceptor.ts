@@ -13,7 +13,8 @@ function isAnonymousAuthRequest(url: string): boolean {
     lower.includes('/auth/login') ||
     lower.includes('/auth/register') ||
     lower.includes('/studentportal/login') ||
-    lower.includes('/studentportal/password-reset-request')
+    (lower.includes('/studentportal/password-reset-request') &&
+      !lower.includes('/studentportal/password-reset-requests'))
   );
 }
 

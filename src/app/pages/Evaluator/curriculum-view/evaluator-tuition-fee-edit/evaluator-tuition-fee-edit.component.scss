@@ -145,6 +145,19 @@
     border-color: #93c5fd;
     box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
   }
+
+  &--readonly,
+  &:read-only {
+    background: #fff;
+    color: #111827;
+    cursor: default;
+    opacity: 1;
+
+    &:focus {
+      border-color: #d1d5db;
+      box-shadow: none;
+    }
+  }
 }
 
 .curriculum-view__tuition-edit-select-wrap {

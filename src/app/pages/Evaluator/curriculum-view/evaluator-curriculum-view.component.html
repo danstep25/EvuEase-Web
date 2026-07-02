@@ -628,6 +628,17 @@
             </svg>
             <span class="curriculum-view__tab-label">Downpayment %</span>
           </button>
+          <button
+            type="button"
+            class="curriculum-view__tab"
+            [class.curriculum-view__tab--active]="activeFeeTab === 'payment-scheme'"
+            (click)="selectFeeTab('payment-scheme')"
+          >
+            <svg class="curriculum-view__tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span class="curriculum-view__tab-label">Payment Scheme</span>
+          </button>
         </nav>
       </div>
 
@@ -1024,6 +1035,8 @@
             </table>
           </div>
         </div>
+      } @else if (activeFeeTab === 'payment-scheme') {
+        <app-payment-schemes />
       }
     </div>
   }

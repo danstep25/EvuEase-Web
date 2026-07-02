@@ -50,19 +50,19 @@ export class StudentPortalService {
   listPasswordResetRequests(status?: string): Observable<readonly StudentPortalPasswordResetRequest[]> {
     const query = status ? `?status=${encodeURIComponent(status)}` : '';
     return this.staffGet<StudentPortalPasswordResetRequest[]>(
-      `${API_URL.studentPortal.passwordResetRequests}${query}`
+      `${API_URL.admin.studentPortalPasswordResetRequests}${query}`
     );
   }
 
   resolvePasswordResetRequest(id: number, newPortalPassword: string, registrarNotes?: string): Observable<void> {
-    return this.staffPost<void>(API_URL.studentPortal.resolvePasswordReset(id), {
+    return this.staffPost<void>(API_URL.admin.resolveStudentPortalPasswordReset(id), {
       newPortalPassword,
       registrarNotes
     });
   }
 
   rejectPasswordResetRequest(id: number, registrarNotes?: string): Observable<void> {
-    return this.staffPost<void>(API_URL.studentPortal.rejectPasswordReset(id), { registrarNotes });
+    return this.staffPost<void>(API_URL.admin.rejectStudentPortalPasswordReset(id), { registrarNotes });
   }
 
   private get<T>(endpoint: string): Observable<T> {

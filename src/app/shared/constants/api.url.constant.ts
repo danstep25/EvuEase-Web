@@ -2,6 +2,13 @@ export const API_URL = {
   auth: {
     login: '/Auth/Login'
   },
+  admin: {
+    studentPortalPasswordResetRequests: '/Admin/student-portal/password-reset-requests',
+    resolveStudentPortalPasswordReset: (id: number | string) =>
+      `/Admin/student-portal/password-reset-requests/${id}/resolve`,
+    rejectStudentPortalPasswordReset: (id: number | string) =>
+      `/Admin/student-portal/password-reset-requests/${id}/reject`
+  },
   studentPortal: {
     login: '/StudentPortal/Login',
     me: '/StudentPortal/Me',
@@ -10,9 +17,6 @@ export const API_URL = {
     pendingSubjects: '/StudentPortal/pending-subjects',
     changePassword: '/StudentPortal/change-password',
     passwordResetRequest: '/StudentPortal/password-reset-request',
-    passwordResetRequests: '/StudentPortal/password-reset-requests',
-    resolvePasswordReset: (id: number | string) => `/StudentPortal/password-reset-requests/${id}/resolve`,
-    rejectPasswordReset: (id: number | string) => `/StudentPortal/password-reset-requests/${id}/reject`
   },
   user: {
     base: '/User',

@@ -232,6 +232,88 @@ export function resolvePreviousTerm(
   return null;
 }
 
+function nextSchoolYear(schoolYear: string): string | null {
+  const normalized = normalizeSchoolYear(schoolYear);
+  const match = normalized.match(/^(\d{4})\s*-\s*(\d{4})$/);
+  if (!match) {
+    return null;
+  }
+
+  const startYear = Number(match[1]);
+  const endYear = Number(match[2]);
+  if (!Number.isFinite(startYear) || !Number.isFinite(endYear)) {
+    return null;
+  }
+
+  return `${startYear + 1}-${endYear + 1}`;
+}
+
+export function resolveNextTerm(
+  schoolYear: string,
+  semester: string
+): { schoolYear: string; semester: string } | null {
+  const year = normalizeSchoolYear(schoolYear);
+  const sem = normalizeSemesterLabel(semester);
+  if (!year || !sem) {
+    return null;
+  }
+
+  const slot = semesterSlotKind(sem);
+  if (slot === 'first') {
+    return { schoolYear: year, semester: '2nd Semester' };
+  }
+
+  if (slot === 'second') {
+    const nextYear = nextSchoolYear(year);
+    if (!nextYear) {
+      return null;
+    }
+    return { schoolYear: nextYear, semester: '1st Semester' };
+  }
+
+  return null;
+}
+
+function formatSemesterAsTermLabel(semester: string): string {
+  const value = semester.trim();
+  if (!value) {
+    return '';
+  }
+  if (/\b1\s*st\b|\bfirst\b/i.test(value)) {
+    return '1st term';
+  }
+  if (/\b2\s*nd\b|\bsecond\b/i.test(value)) {
+    return '2nd term';
+  }
+  if (/\b3\s*rd\b|\bthird\b/i.test(value)) {
+    return '3rd term';
+  }
+  if (/\bsummer\b/i.test(value)) {
+    return 'summer term';
+  }
+  return value.replace(/\bsemester\b/gi, 'term').replace(/\s+/g, ' ').trim();
+}
+
+export function formatSchoolYearTermLabel(schoolYear: string, semester: string): string {
+  const year = normalizeSchoolYear(schoolYear);
+  const sem = formatSemesterAsTermLabel(semester);
+  if (!year && !sem) {
+    return '—';
+  }
+  if (!year) {
+    return sem;
+  }
+  if (!sem) {
+    return year;
+  }
+  return `${year} ${sem}`;
+}
+
+export function formatAcademicTermDisplayLabel(rawAcademicTerm: string): string {
+  const { schoolYear, semester } = parseSchoolYearAndSemester(rawAcademicTerm);
+  return formatSchoolYearTermLabel(schoolYear, semester);
+}
+
 
 export function buildSemesterLayoutRows(blocks: AcademicRecordSemesterBlock[]): {
   pairs: SemesterLayoutPair[];

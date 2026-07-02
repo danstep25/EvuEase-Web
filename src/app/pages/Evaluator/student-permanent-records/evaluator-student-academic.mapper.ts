@@ -3,9 +3,13 @@ import { Curricula } from '../../../core/models/curricula.model';
 import { Student } from '../../../core/models/student.model';
 import { StudentClassEnrollmentRow } from '../../../core/models/student-enrollments.model';
 import {
+  academicTermMatchesConfiguredPeriod,
   compareAcademicTermChronological,
+  formatAcademicTermDisplayLabel,
+  formatSchoolYearTermLabel,
   groupEnrollmentsIntoSemesterBlocks,
-  parseOfficialGradeToNumber
+  parseOfficialGradeToNumber,
+  resolvePreviousTerm
 } from '../../Registrar/students/student-enrollments.mapper';
 import {
   buildCurriculumTermBlocks,
@@ -17,16 +21,12 @@ import {
   computeEarliestGraduationYear,
   computeTermMinCompletionYear,
   isTermAtOrAfterStudentTerm,
+  isTermAtOrBeforeStudentTerm,
   parseCurriculumTermYearSemester,
   projectAcademicPlanSchoolYearLabel,
   resolveAcademicPlanCourseStatus,
   resolveProgramYearsForPlan
 } from '../../../shared/utils/academic-plan.util';
-import {
-  curriculumTermLabelMatchesStudentYearTerm,
-  enrollmentMatchesStudentYearTerm,
-  studentYearTermToCurriculumTermLabel
-} from '../../../shared/utils/student-year-level.util';
 import type {
   AcademicPlanCourseRow,
   AcademicPlanCourseStatus,
@@ -39,6 +39,111 @@ import type {
   StudentAcademicRecordProfile
 } from './evaluator-student-academic.models';
 import type { AcademicRecordCourseRow as RegistrarCourseRow, AcademicRecordSemesterBlock as RegistrarSemesterBlock } from '../../../core/models/academic-records.model';
+
+export interface EvaluatorCurrentSyTermContext {
+  readonly schoolYear: string;
+  readonly semester: string;
+}
+
+function curriculumTermSortKey(termLabel: string): number {
+  const { year, semester } = parseCurriculumTermYearSemester(termLabel);
+  return (year - 1) * 2 + (semester - 1);
+}
+
+function buildSchoolYearTermLabelByCurriculumBlock(
+  blocks: readonly RegistrarSemesterBlock[],
+  currentSyTerm: EvaluatorCurrentSyTermContext | null | undefined
+): Map<string, string> {
+  const labels = new Map<string, string>();
+  const schoolYear = currentSyTerm?.schoolYear?.trim() ?? '';
+  const semester = currentSyTerm?.semester?.trim() ?? '';
+  if (!schoolYear || !semester || blocks.length === 0) {
+    return labels;
+  }
+
+  const sorted = [...blocks].sort(
+    (left, right) => curriculumTermSortKey(left.label) - curriculumTermSortKey(right.label)
+  );
+
+  let termSchoolYear = schoolYear;
+  let termSemester = semester;
+
+  for (let index = sorted.length - 1; index >= 0; index -= 1) {
+    labels.set(sorted[index].label, formatSchoolYearTermLabel(termSchoolYear, termSemester));
+    if (index > 0) {
+      const previous = resolvePreviousTerm(termSchoolYear, termSemester);
+      if (!previous) {
+        break;
+      }
+      termSchoolYear = previous.schoolYear;
+      termSemester = previous.semester;
+    }
+  }
+
+  return labels;
+}
+
+function resolveBlockSchoolYearTermLabel(
+  block: RegistrarSemesterBlock,
+  enrollments: readonly StudentClassEnrollmentRow[],
+  projectedLabel: string
+): string {
+  const enrolledCourseCodes = new Set(
+    block.courses
+      .filter((course) => !course.isNotTaken)
+      .map((course) => course.courseCode.trim().toLowerCase())
+      .filter(Boolean)
+  );
+
+  if (enrolledCourseCodes.size === 0) {
+    return projectedLabel;
+  }
+
+  const academicTerms = new Set<string>();
+  for (const enrollment of enrollments) {
+    const code = enrollment.courseCode?.trim().toLowerCase() ?? '';
+    const term = enrollment.academicTerm?.trim() ?? '';
+    if (code && term && enrolledCourseCodes.has(code)) {
+      academicTerms.add(term);
+    }
+  }
+
+  if (academicTerms.size === 0) {
+    return projectedLabel;
+  }
+
+  const sortedTerms = [...academicTerms].sort(compareAcademicTermChronological);
+  return formatAcademicTermDisplayLabel(sortedTerms[sortedTerms.length - 1]);
+}
+
+function resolveCurrentTermDisplayLabel(
+  currentSyTerm: EvaluatorCurrentSyTermContext | null | undefined
+): string {
+  const schoolYear = currentSyTerm?.schoolYear?.trim() ?? '';
+  const semester = currentSyTerm?.semester?.trim() ?? '';
+  if (schoolYear && semester) {
+    return formatSchoolYearTermLabel(schoolYear, semester);
+  }
+  return '—';
+}
+
+function isConfiguredCurrentTermBlock(
+  rawAcademicTerm: string,
+  displayLabel: string,
+  currentSyTerm: EvaluatorCurrentSyTermContext | null | undefined
+): boolean {
+  const schoolYear = currentSyTerm?.schoolYear?.trim() ?? '';
+  const semester = currentSyTerm?.semester?.trim() ?? '';
+  if (!schoolYear || !semester) {
+    return false;
+  }
+
+  if (rawAcademicTerm.includes('|')) {
+    return displayLabel === formatSchoolYearTermLabel(schoolYear, semester);
+  }
+
+  return academicTermMatchesConfiguredPeriod(rawAcademicTerm, schoolYear, semester);
+}
 
 function mapRegistrarRemarkToEvaluator(row: RegistrarCourseRow): AcademicRecordRemark {
   if (row.isNotTaken || row.remarkKind === 'not-taken') {
@@ -99,24 +204,41 @@ export function mapCurriculumMergedSemestersToEvaluator(
   }));
 }
 
-function mapCurrentTermSemestersToEvaluator(
-  blocks: RegistrarSemesterBlock[]
+function mapTermSemestersToEvaluator(
+  blocks: RegistrarSemesterBlock[],
+  currentSyTerm: EvaluatorCurrentSyTermContext | null | undefined,
+  enrollments: readonly StudentClassEnrollmentRow[] = [],
+  options?: { enrollmentOnly?: boolean }
 ): AcademicRecordSemesterBlock[] {
-  return blocks.map((block) => ({
-    label: block.label,
-    headerVariant: 'recent' as const,
-    totalUnits: block.courses.reduce((sum, c) => sum + c.units, 0),
-    courses: block.courses.map((c) => mapRegistrarRowToEvaluator(c))
-  }));
-}
+  const projectedLabelsByCurriculumBlock = options?.enrollmentOnly
+    ? new Map<string, string>()
+    : buildSchoolYearTermLabelByCurriculumBlock(blocks, currentSyTerm);
 
-function filterEnrollmentsForStudentCurrentTerm(
-  enrollments: StudentClassEnrollmentRow[],
-  studentYearLevel: string
-): StudentClassEnrollmentRow[] {
-  return enrollments.filter((row) =>
-    enrollmentMatchesStudentYearTerm(row.yearLevel, studentYearLevel)
-  );
+  const sorted = [...blocks].sort((left, right) => {
+    if (options?.enrollmentOnly) {
+      return compareAcademicTermChronological(left.rawAcademicTerm, right.rawAcademicTerm);
+    }
+    return curriculumTermSortKey(left.label) - curriculumTermSortKey(right.label);
+  });
+
+  return sorted.map((block) => {
+    const label = options?.enrollmentOnly
+      ? formatAcademicTermDisplayLabel(block.rawAcademicTerm)
+      : resolveBlockSchoolYearTermLabel(
+          block,
+          enrollments,
+          projectedLabelsByCurriculumBlock.get(block.label) ?? block.label
+        );
+
+    const isCurrent = isConfiguredCurrentTermBlock(block.rawAcademicTerm, label, currentSyTerm);
+
+    return {
+      label: isCurrent ? `${label} (Current)` : label,
+      headerVariant: isCurrent ? ('recent' as const) : ('standard' as const),
+      totalUnits: block.courses.reduce((sum, course) => sum + course.units, 0),
+      courses: block.courses.map((course) => mapRegistrarRowToEvaluator(course))
+    };
+  });
 }
 
 function passedCourseCodes(enrollments: StudentClassEnrollmentRow[]): Set<string> {
@@ -179,14 +301,12 @@ export function buildAcademicPlan(
       }))
       .filter((course) => !passed.has(course.courseCode.trim().toLowerCase()));
 
-    const termYear = parseCurriculumTermYearSemester(term.label).year;
-
     return {
       termLabel: term.label,
       schoolYearLabel: projectAcademicPlanSchoolYearLabel(index, currentYear, studentYearLevel),
       headerVariant: index === 0 ? 'recommended' : 'standard',
       badgeLabel: index === 0 ? 'Recommended' : undefined,
-      minCompletionYear: computeTermMinCompletionYear(termYear, programYears, currentYear),
+      minCompletionYear: computeTermMinCompletionYear(index, currentYear, studentYearLevel),
       courses: planCourses,
       totalUnits: planCourses.reduce((sum, course) => sum + course.units, 0)
     };
@@ -246,7 +366,8 @@ export function buildStudentAcademicProfile(
   enrollments: StudentClassEnrollmentRow[],
   courses: Course[],
   curricula: Curricula | null,
-  effectiveCurriculumCode?: string | null
+  effectiveCurriculumCode?: string | null,
+  currentSyTerm?: EvaluatorCurrentSyTermContext | null
 ): StudentAcademicRecordProfile {
   const fullName = [student.lastName, student.firstName].filter(Boolean).join(', ');
   const curriculumCode = effectiveCurriculumCode?.trim() || student.curriculumCode?.trim() || undefined;
@@ -255,18 +376,21 @@ export function buildStudentAcademicProfile(
   const merged = usesCurriculumRoadmap
     ? mergeCurriculumWithEnrollments(courses, enrollments)
     : null;
-  const currentTermLabel = studentYearTermToCurriculumTermLabel(student.yearLevel);
+  const currentTermLabel = resolveCurrentTermDisplayLabel(currentSyTerm);
 
-  const currentTermSemesters = merged
-    ? mapCurrentTermSemestersToEvaluator(
+  const termSemesters = merged
+    ? mapTermSemestersToEvaluator(
         merged.blocks.filter((block) =>
-          curriculumTermLabelMatchesStudentYearTerm(block.label, student.yearLevel)
-        )
+          isTermAtOrBeforeStudentTerm(block.label, student.yearLevel)
+        ),
+        currentSyTerm,
+        enrollments
       )
-    : mapCurrentTermSemestersToEvaluator(
-        groupEnrollmentsIntoSemesterBlocks(
-          filterEnrollmentsForStudentCurrentTerm(enrollments, student.yearLevel)
-        )
+    : mapTermSemestersToEvaluator(
+        groupEnrollmentsIntoSemesterBlocks(enrollments),
+        currentSyTerm,
+        enrollments,
+        { enrollmentOnly: true }
       );
 
   return {
@@ -278,7 +402,7 @@ export function buildStudentAcademicProfile(
     currentCurriculum: buildCurriculumDisplayLabel(curriculumCode, curricula),
     currentCurriculumCode: curriculumCode,
     currentTermLabel,
-    termSemesters: currentTermSemesters,
+    termSemesters,
     curriculumTerms: buildCurriculumTermsWithEnrollmentStatus(courses, enrollments),
     usesCurriculumRoadmap
   };

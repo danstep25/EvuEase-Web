@@ -9,6 +9,8 @@ export interface SubjectSelectionYearTermGroup {
 export interface SubjectEvaluationUpcomingTerm {
   readonly schoolYearTerm: string;
   readonly enrollmentPeriod: string;
+  readonly schoolYear: string;
+  readonly semester: string;
 }
 
 export interface SubjectEvaluationFilterOption {
@@ -58,6 +60,7 @@ export interface SubjectSelectionState {
   };
   readonly currentYearTerm: string;
   readonly allTermCourses: readonly SubjectSelectionSuggestedRow[];
+  readonly eligibleCourses: readonly SubjectSelectionSuggestedRow[];
 }
 
 export interface ChargeSlipTuitionRow {

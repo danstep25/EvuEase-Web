@@ -95,7 +95,8 @@ export class SubjectEvaluationComponent implements OnInit, OnDestroy {
   subjectSelectionState = {
     limits: { regularUnitsForNextTerm: 0, unitLimit: 23 },
     currentYearTerm: '1Y1',
-    allTermCourses: [] as readonly SubjectSelectionSuggestedRow[]
+    allTermCourses: [] as readonly SubjectSelectionSuggestedRow[],
+    eligibleCourses: [] as readonly SubjectSelectionSuggestedRow[]
   };
 
   subjectSelectionViewMode: SubjectSelectionViewMode = 'current';
@@ -208,13 +209,10 @@ export class SubjectEvaluationComponent implements OnInit, OnDestroy {
   }
 
   get suggestedSubjectsForView(): readonly SubjectSelectionSuggestedRow[] {
-    const pool = this.subjectSelectionViewMode === 'current'
-      ? getCurrentTermSuggestedCourses({
-          ...this.subjectSelectionState,
-          allTermCourses: this.allSuggestedCourses
-        })
-      : this.allSuggestedCourses;
-    return pool;
+    if (this.subjectSelectionViewMode === 'current') {
+      return getCurrentTermSuggestedCourses(this.subjectSelectionState, this.extraSuggestedRows);
+    }
+    return this.allSuggestedCourses;
   }
 
   get suggestedSubjectsByYearTerm(): readonly SubjectSelectionYearTermGroup[] {
@@ -520,7 +518,9 @@ export class SubjectEvaluationComponent implements OnInit, OnDestroy {
         this.allSuggestedCourses,
         selectedIds,
         this.subjectSelectionState.currentYearTerm,
-        this.electiveSelections
+        this.electiveSelections,
+        this.upcomingTerm?.schoolYear ?? '',
+        this.upcomingTerm?.semester ?? ''
       )
       .subscribe({
         next: (preview) => {

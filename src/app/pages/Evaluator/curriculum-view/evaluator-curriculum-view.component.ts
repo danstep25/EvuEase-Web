@@ -29,6 +29,7 @@ import { resolveCurriculumCompletionYears } from '../../../shared/utils/curricul
 import { CurriculumStatus } from '../../Registrar/curriculum-management/enums/curriculum-status.enum';
 import { UpdateCurriculaRequest } from '../../../core/models/curricula.model';
 import { EvaluatorDownpaymentViewComponent } from './evaluator-downpayment-view/evaluator-downpayment-view.component';
+import { PaymentSchemesComponent } from '../../Registrar/curriculum-management/fees-and-charges/payment-scheme/payment-schemes.component';
 import { EvaluatorMiscellaneousFeeAddComponent } from './evaluator-miscellaneous-fee-add/evaluator-miscellaneous-fee-add.component';
 import { EvaluatorMiscellaneousFeeDeleteComponent } from './evaluator-miscellaneous-fee-delete/evaluator-miscellaneous-fee-delete.component';
 import { EvaluatorMiscellaneousFeeEditComponent } from './evaluator-miscellaneous-fee-edit/evaluator-miscellaneous-fee-edit.component';
@@ -100,7 +101,8 @@ const BULK_LIST_PARAMS = {
     EvaluatorTuitionFeeEditComponent,
     EvaluatorTuitionFeeDeleteComponent,
     EvaluatorDownpaymentViewComponent,
-    DownpaymentFormComponent
+    DownpaymentFormComponent,
+    PaymentSchemesComponent
   ],
   templateUrl: './evaluator-curriculum-view.component.html',
   styleUrls: [

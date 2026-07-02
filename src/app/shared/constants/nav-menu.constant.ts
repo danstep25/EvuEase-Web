@@ -24,6 +24,12 @@ export const ADMIN_NAV_MENU: NavItem[] = [
     route: 'system-logs', 
     icon: 'description',
     module: 'audit'
+  },
+  {
+    label: 'Portal Password Resets',
+    route: 'portal-password-resets',
+    icon: 'lock',
+    module: 'students'
   }
 ];
 
@@ -60,13 +66,6 @@ export const REGISTRAR_NAV_MENU: NavItem[] = [
     label: 'Students', 
     route: 'students', 
     icon: 'people',
-    module: 'students',
-    roles: ['Registrar']
-  },
-  { 
-    label: 'Portal Password Resets', 
-    route: 'portal-password-resets', 
-    icon: 'lock',
     module: 'students',
     roles: ['Registrar']
   },
