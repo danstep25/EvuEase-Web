@@ -2,6 +2,7 @@ import { Component, OnInit, OnChanges, OnDestroy, Input, Output, EventEmitter, i
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Course, CreateCourseRequest, UpdateCourseRequest } from '../../../../core/models/course.model';
+import { COURSE_TITLE_MAX_LENGTH } from '../../../../shared/constants/course-validation.constant';
 import { Curricula } from '../../../../core/models/curricula.model';
 import { Program } from '../../../../core/models/program.model';
 import { LookupService } from '../../../../shared/services/lookup.service';
@@ -9,6 +10,10 @@ import { FormDiscardService } from '../../../../shared/services/form-discard.ser
 import { attemptFormClose, validateFormForSubmit } from '../../../../shared/utils/form-state.util';
 import { unitFieldValidators } from '../../../../shared/validators/app-validators';
 import { normalizeUnitValue } from '../../../../shared/utils/unit-value.util';
+import {
+  formatPrerequisiteCodes,
+  prerequisitesToFormArray
+} from '../../../../shared/utils/course-prerequisite.util';
 import {
   isElectiveSlotCourse,
   resolveElectiveOptionFlag,
@@ -26,6 +31,8 @@ import { Subject, takeUntil, distinctUntilChanged } from 'rxjs';
   styleUrl: './course-form.component.scss'
 })
 export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
+  readonly courseTitleMaxLength = COURSE_TITLE_MAX_LENGTH;
+
   private readonly fb = inject(FormBuilder);
   private readonly lookupService = inject(LookupService);
   private readonly formDiscard = inject(FormDiscardService);
@@ -51,6 +58,7 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
   semesters = Object.values(Semester);
   componentOptions = ['Lecture', 'Lab'];
   selectedComponents: string[] = [];
+  selectedPrerequisites: string[] = [];
   prerequisiteOptions: string[] = [];
   isLoadingPrerequisites = false;
   
@@ -268,13 +276,8 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
     }
     this.selectedComponents = [...initialComponents];
 
-    let initialPrerequisite = null;
-    if (c?.prerequisites) {
-      const prereq = c.prerequisites.trim();
-      initialPrerequisite = prereq || null;
-    } else if (pf?.prerequisites?.trim()) {
-      initialPrerequisite = pf.prerequisites.trim() || null;
-    }
+    const initialPrerequisites = prerequisitesToFormArray(c?.prerequisites ?? pf?.prerequisites ?? null);
+    this.selectedPrerequisites = [...initialPrerequisites];
 
     const initialProgramId = c?.programId ?? pf?.programId ?? null;
     const initialCourseCode = c?.courseCode ?? pf?.courseCode ?? '';
@@ -289,12 +292,12 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
       curriculumCode: [initialCurriculumCode, [Validators.required]],
       programId: [initialProgramId && initialProgramId > 0 ? initialProgramId : null, [Validators.required]],
       courseCode: [initialCourseCode, [Validators.required, Validators.maxLength(20)]],
-      courseTitle: [initialTitle, [Validators.required, Validators.maxLength(50)]],
+      courseTitle: [initialTitle, [Validators.required, Validators.maxLength(COURSE_TITLE_MAX_LENGTH)]],
       courseComponent: [initialComponents, [this.validateComponentRequired.bind(this), this.validateNoDuplicates.bind(this)]],
       courseTotalUnits: [totalUnits, unitFieldValidators()],
       courseYearLevel: [initialYear, [Validators.required]],
       courseSemester: [initialSem, [Validators.required]],
-      prerequisites: [initialPrerequisite],
+      prerequisites: [initialPrerequisites, [this.validateNoDuplicates.bind(this)]],
       description: [initialDesc],
       isElectiveSlot: [initialElectiveSlot],
       isElectiveOption: [initialElectiveOption]
@@ -380,6 +383,7 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
 
     codeControl?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.syncDetectedElectiveSlotFlag();
+      this.removeCurrentCourseFromPrerequisites();
     });
   }
 
@@ -408,6 +412,7 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
 
   private finishClose(): void {
     this.selectedComponents = [];
+    this.selectedPrerequisites = [];
     this.courseForm.reset({
       curriculumCode: null,
       programId: null,
@@ -417,7 +422,7 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
       courseTotalUnits: 0,
       courseYearLevel: YearLevel.Year1,
       courseSemester: Semester.First,
-      prerequisites: null,
+      prerequisites: [],
       description: '',
       isElectiveSlot: false,
       isElectiveOption: false
@@ -471,6 +476,10 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
 
     const fullCurriculumCode = selectedCurriculum.curriculumCode;
 
+    const prerequisitesValue = formatPrerequisiteCodes(
+      Array.isArray(formValue.prerequisites) ? formValue.prerequisites : []
+    );
+
     if (this.isEditMode) {
       if (!this.course) {
         this.errorMessage = 'Course information is missing';
@@ -488,7 +497,7 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
         courseComponent: Array.isArray(formValue.courseComponent) 
           ? formValue.courseComponent.join(', ') 
           : formValue.courseComponent || '',
-        prerequisites: formValue.prerequisites || null,
+        prerequisites: prerequisitesValue ?? undefined,
         description: formValue.description || '',
         isElectiveSlot: !!formValue.isElectiveSlot,
         isElectiveOption: !!formValue.isElectiveOption && !formValue.isElectiveSlot
@@ -506,7 +515,7 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
         courseComponent: Array.isArray(formValue.courseComponent) 
           ? formValue.courseComponent.join(', ') 
           : formValue.courseComponent || '',
-        prerequisites: formValue.prerequisites || null,
+        prerequisites: prerequisitesValue ?? undefined,
         description: formValue.description || '',
         isElectiveSlot: !!formValue.isElectiveSlot,
         isElectiveOption: !!formValue.isElectiveOption && !formValue.isElectiveSlot
@@ -538,6 +547,83 @@ export class CourseFormComponent implements OnInit, OnChanges, OnDestroy {
 
   setError(message: string | null): void {
     this.errorMessage = message;
+  }
+
+  get availablePrerequisiteOptions(): string[] {
+    const currentCourseCode = String(this.courseForm?.get('courseCode')?.value ?? '')
+      .trim()
+      .toUpperCase();
+    const selected = new Set(this.selectedPrerequisites);
+
+    return this.prerequisiteOptions.filter((option) => {
+      const normalized = option.trim().toUpperCase();
+      return normalized !== currentCourseCode && !selected.has(normalized);
+    });
+  }
+
+  onPrerequisiteSelect(prerequisite: string): void {
+    if (!prerequisite || prerequisite.trim() === '') {
+      return;
+    }
+
+    const trimmedPrerequisite = prerequisite.trim().toUpperCase();
+    const currentCourseCode = String(this.courseForm?.get('courseCode')?.value ?? '')
+      .trim()
+      .toUpperCase();
+
+    if (trimmedPrerequisite === currentCourseCode) {
+      return;
+    }
+
+    const currentPrerequisites = this.courseForm.get('prerequisites')?.value || [];
+
+    if (currentPrerequisites.includes(trimmedPrerequisite)) {
+      this.courseForm.get('prerequisites')?.setErrors({ duplicate: true });
+      this.courseForm.get('prerequisites')?.markAsTouched();
+      return;
+    }
+
+    const updatedPrerequisites = [...currentPrerequisites, trimmedPrerequisite];
+    this.selectedPrerequisites = [...updatedPrerequisites];
+    this.courseForm.patchValue({ prerequisites: updatedPrerequisites });
+
+    const control = this.courseForm.get('prerequisites');
+    if (control) {
+      control.updateValueAndValidity();
+      control.markAsTouched();
+    }
+  }
+
+  removePrerequisite(prerequisite: string): void {
+    const currentPrerequisites = this.courseForm.get('prerequisites')?.value || [];
+    const updatedPrerequisites = currentPrerequisites.filter((code: string) => code !== prerequisite);
+    this.selectedPrerequisites = [...updatedPrerequisites];
+    this.courseForm.patchValue({ prerequisites: updatedPrerequisites });
+
+    const control = this.courseForm.get('prerequisites');
+    if (control) {
+      control.updateValueAndValidity();
+      control.markAsTouched();
+    }
+  }
+
+  private removeCurrentCourseFromPrerequisites(): void {
+    const currentCourseCode = String(this.courseForm?.get('courseCode')?.value ?? '')
+      .trim()
+      .toUpperCase();
+    if (!currentCourseCode) {
+      return;
+    }
+
+    const currentPrerequisites: string[] = this.courseForm.get('prerequisites')?.value || [];
+    const filtered = currentPrerequisites.filter((code) => code !== currentCourseCode);
+    if (filtered.length === currentPrerequisites.length) {
+      return;
+    }
+
+    this.selectedPrerequisites = [...filtered];
+    this.courseForm.patchValue({ prerequisites: filtered });
+    this.courseForm.get('prerequisites')?.updateValueAndValidity();
   }
 
   onComponentSelect(component: string): void {

@@ -9,6 +9,7 @@ export interface StudentPortalSession {
   yearLevel: string;
   curriculumCode?: string | null;
   role: string;
+  mustChangePassword: boolean;
 }
 
 export interface StudentPortalLoginRequest {
@@ -25,6 +26,15 @@ export interface StudentPortalAuthData {
   yearLevel: string;
   curriculumCode?: string | null;
   role: string;
+  expiresAt: string;
+  mustChangePassword: boolean;
+}
+
+export interface StudentPortalIssueTemporaryPasswordResult {
+  requestId: number;
+  studentNumber: string;
+  studentName: string;
+  temporaryPassword: string;
   expiresAt: string;
 }
 
@@ -50,6 +60,22 @@ export interface StudentPortalPendingSubject {
   yearTerm: string;
 }
 
+export interface StudentPortalGradeHistoryRow {
+  enrollmentId: number;
+  courseCode: string;
+  subjectDescription: string;
+  units: number;
+  grade: string | null;
+  remarks: string | null;
+}
+
+export interface StudentPortalGradeHistoryGroup {
+  label: string;
+  sortYear: number;
+  sortSemester: number;
+  rows: StudentPortalGradeHistoryRow[];
+}
+
 export interface StudentPortalPasswordResetRequest {
   id: number;
   studentId: number;
@@ -59,6 +85,8 @@ export interface StudentPortalPasswordResetRequest {
   status: string;
   registrarNotes?: string | null;
   resolvedBy?: string | null;
+  temporaryPassword?: string | null;
+  temporaryPasswordExpiresAt?: string | null;
   requestedAt: string;
   resolvedAt?: string | null;
 }

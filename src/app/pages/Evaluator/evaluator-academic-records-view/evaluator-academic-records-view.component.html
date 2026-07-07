@@ -31,7 +31,17 @@
   } @else if (profile) {
     <section class="evaluator-surface earv__card earv__card--info" aria-labelledby="earv-info-heading">
       <div class="earv__info-header">
-        <h2 id="earv-info-heading" class="earv__info-title">Student Information</h2>
+        <div class="earv__info-title-row">
+          <h2 id="earv-info-heading" class="earv__info-title">Student Information</h2>
+          @if (profile.isCandidateForGraduation) {
+            <span class="earv__grad-badge" role="status" title="This student has passed all required curriculum subjects.">
+              <svg class="earv__grad-badge-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 3 1 9l11 6 9-4.909V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
+              </svg>
+              Candidate for Graduation
+            </span>
+          }
+        </div>
         <button type="button" class="earv__migrate-btn" (click)="onOpenMigrateCurriculum()">
           <svg class="earv__migrate-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
@@ -92,6 +102,15 @@
           </div>
         </div>
       </div>
+
+      @if (profile.isCandidateForGraduation) {
+        <p class="earv__grad-note" role="note">
+          <svg class="earv__grad-note-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 3 1 9l11 6 9-4.909V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
+          </svg>
+          This student has completed all required curriculum subjects and is a candidate for graduation.
+        </p>
+      }
     </section>
 
     <section class="evaluator-surface earv__card earv__card--records">

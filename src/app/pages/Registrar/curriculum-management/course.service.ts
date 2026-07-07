@@ -105,8 +105,8 @@ export class CourseService extends HttpBaseService {
     return this.put<Course>(API_URL.course.update(code), courseData);
   }
 
-  deleteCourse(code: string): Observable<void> {
-    return this.delete<void>(API_URL.course.delete(code));
+  deleteCourse(code: string, curriculumCode: string): Observable<void> {
+    return this.delete<void>(API_URL.course.delete(code, curriculumCode));
   }
 
   previewCourseBatchImport(payload: CourseBatchImportRequest): Observable<CourseBatchImportPreviewResponse> {

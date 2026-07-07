@@ -3,7 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StudentPortalService } from '../../StudentPortal/services/student-portal.service';
 import { NotificationService } from '../../../shared/services/notification.service';
-import type { StudentPortalPasswordResetRequest } from '../../StudentPortal/models/student-portal.models';
+import type {
+  StudentPortalIssueTemporaryPasswordResult,
+  StudentPortalPasswordResetRequest
+} from '../../StudentPortal/models/student-portal.models';
 
 @Component({
   selector: 'app-admin-portal-password-resets',
@@ -22,11 +25,12 @@ export class AdminPortalPasswordResetsComponent implements OnInit {
   processingId: number | null = null;
 
   selectedRequest: StudentPortalPasswordResetRequest | null = null;
-  newPortalPassword = '';
   adminNotes = '';
-  showResolveModal = false;
+  showIssueModal = false;
   showRejectModal = false;
-  showNewPassword = false;
+
+  issuedResult: StudentPortalIssueTemporaryPasswordResult | null = null;
+  copied = false;
 
   ngOnInit(): void {
     this.loadRequests();
@@ -50,52 +54,80 @@ export class AdminPortalPasswordResetsComponent implements OnInit {
     });
   }
 
-  openResolve(request: StudentPortalPasswordResetRequest): void {
+  openIssue(request: StudentPortalPasswordResetRequest): void {
     this.selectedRequest = request;
-    this.newPortalPassword = '';
     this.adminNotes = '';
-    this.showNewPassword = false;
     this.showRejectModal = false;
-    this.showResolveModal = true;
+    this.showIssueModal = true;
   }
 
   openReject(request: StudentPortalPasswordResetRequest): void {
     this.selectedRequest = request;
     this.adminNotes = '';
-    this.showResolveModal = false;
+    this.showIssueModal = false;
     this.showRejectModal = true;
   }
 
   closeModals(): void {
-    this.showResolveModal = false;
+    this.showIssueModal = false;
     this.showRejectModal = false;
     this.selectedRequest = null;
   }
 
-  resolveRequest(): void {
-    if (!this.selectedRequest || this.newPortalPassword.trim().length < 6) {
+  closeIssuedResult(): void {
+    this.issuedResult = null;
+    this.copied = false;
+    this.loadRequests();
+  }
+
+  copyTemporaryPassword(): void {
+    if (!this.issuedResult) {
+      return;
+    }
+
+    void navigator.clipboard?.writeText(this.issuedResult.temporaryPassword).then(() => {
+      this.copied = true;
+    });
+  }
+
+  viewTempPassword(request: StudentPortalPasswordResetRequest): void {
+    if (!request.temporaryPassword) {
+      this.notificationService.error('Unavailable', 'No temporary password is stored for this request.');
+      return;
+    }
+
+    this.issuedResult = {
+      requestId: request.id,
+      studentNumber: request.studentNumber,
+      studentName: request.studentName,
+      temporaryPassword: request.temporaryPassword,
+      expiresAt: request.temporaryPasswordExpiresAt ?? ''
+    };
+    this.copied = false;
+  }
+
+  issueTemporaryPassword(): void {
+    if (!this.selectedRequest) {
       return;
     }
 
     this.processingId = this.selectedRequest.id;
     this.portalService
-      .resolvePasswordResetRequest(
-        this.selectedRequest.id,
-        this.newPortalPassword.trim(),
-        this.adminNotes.trim() || undefined
-      )
+      .issueTemporaryPassword(this.selectedRequest.id, this.adminNotes.trim() || undefined)
       .subscribe({
-        next: () => {
+        next: (result) => {
           this.processingId = null;
-          this.notificationService.success('Resolved', 'Portal password was reset for the student.');
-          this.closeModals();
-          this.loadRequests();
+          this.showIssueModal = false;
+          this.selectedRequest = null;
+          this.issuedResult = result;
+          this.copied = false;
+          this.notificationService.success('Temporary password issued', 'Relay it to the student securely.');
         },
         error: (error) => {
           this.processingId = null;
           this.notificationService.error(
             'Failed',
-            error?.error?.error?.message || error?.message || 'Could not resolve request.'
+            error?.error?.error?.message || error?.message || 'Could not issue a temporary password.'
           );
         }
       });
@@ -125,6 +157,8 @@ export class AdminPortalPasswordResetsComponent implements OnInit {
     switch (status) {
       case 'Pending':
         return 'status-badge status-badge--pending';
+      case 'TempIssued':
+        return 'status-badge status-badge--issued';
       case 'Resolved':
         return 'status-badge status-badge--resolved';
       case 'Rejected':
@@ -132,5 +166,9 @@ export class AdminPortalPasswordResetsComponent implements OnInit {
       default:
         return 'status-badge';
     }
+  }
+
+  statusLabel(status: string): string {
+    return status === 'TempIssued' ? 'Temp Issued' : status;
   }
 }

@@ -13,6 +13,7 @@ import {
 } from '../../Registrar/students/student-enrollments.mapper';
 import {
   buildCurriculumTermBlocks,
+  isCandidateForGraduation,
   mergeCurriculumWithEnrollments
 } from '../../Registrar/students/academic-records-curriculum.mapper';
 import { buildCurriculumDisplayLabel } from '../../Registrar/students/student-curriculum.mapper';
@@ -404,6 +405,7 @@ export function buildStudentAcademicProfile(
     currentTermLabel,
     termSemesters,
     curriculumTerms: buildCurriculumTermsWithEnrollmentStatus(courses, enrollments),
-    usesCurriculumRoadmap
+    usesCurriculumRoadmap,
+    isCandidateForGraduation: merged ? isCandidateForGraduation(merged.blocks) : false
   };
 }

@@ -400,6 +400,7 @@ export class AddStudentComponent implements OnInit, OnDestroy, CanComponentDeact
       this.studentsService.updateStudent(this.editStudentId, updateBody).subscribe({
         next: () => {
           this.isSubmitting = false;
+          this.form.markAsPristine();
           this.notificationService.success('Student updated', 'Changes were saved successfully.');
           void this.router.navigate(['/registrar/students']);
         },
@@ -438,6 +439,7 @@ export class AddStudentComponent implements OnInit, OnDestroy, CanComponentDeact
     this.studentsService.createStudent(body).subscribe({
       next: () => {
         this.isSubmitting = false;
+        this.form.markAsPristine();
         this.notificationService.success('Student added', 'The student was created successfully.');
         void this.router.navigate(['/registrar/students']);
       },

@@ -4,8 +4,8 @@ export const API_URL = {
   },
   admin: {
     studentPortalPasswordResetRequests: '/Admin/student-portal/password-reset-requests',
-    resolveStudentPortalPasswordReset: (id: number | string) =>
-      `/Admin/student-portal/password-reset-requests/${id}/resolve`,
+    issueStudentPortalTemporaryPassword: (id: number | string) =>
+      `/Admin/student-portal/password-reset-requests/${id}/issue-temporary-password`,
     rejectStudentPortalPasswordReset: (id: number | string) =>
       `/Admin/student-portal/password-reset-requests/${id}/reject`
   },
@@ -15,8 +15,10 @@ export const API_URL = {
     dashboard: '/StudentPortal/dashboard',
     enrollments: '/StudentPortal/enrollments',
     pendingSubjects: '/StudentPortal/pending-subjects',
-    changePassword: '/StudentPortal/change-password',
+    gradeHistory: '/StudentPortal/grade-history',
+    setNewPassword: '/StudentPortal/set-new-password',
     passwordResetRequest: '/StudentPortal/password-reset-request',
+    authenticatedPasswordResetRequest: '/StudentPortal/me/password-reset-request',
   },
   user: {
     base: '/User',
@@ -79,7 +81,8 @@ export const API_URL = {
     getById: (code: string) => `/Course/${code}`,
     create: '/Course/new',
     update: (code: string) => `/Course/${code}`,
-    delete: (code: string) => `/Course/${code}`,
+    delete: (code: string, curriculumCode: string) =>
+      `/Course/${encodeURIComponent(code)}?curriculumCode=${encodeURIComponent(curriculumCode)}`,
     batchPreview: '/Course/batch/preview',
     batchDetectPdf: '/Course/batch/detect-pdf',
     batchParsePdf: '/Course/batch/parse-pdf',

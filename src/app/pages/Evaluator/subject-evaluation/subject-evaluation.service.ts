@@ -26,6 +26,7 @@ import {
   buildSubjectSelectionState,
   filterStudents,
   mapUpcomingTerm,
+  mapSyTermToUpcomingTerm,
   toStudentOption,
   YEAR_LEVEL_FILTER_OPTIONS
 } from './subject-evaluation.mapper';
@@ -67,17 +68,19 @@ export class SubjectEvaluationService {
   loadInitialData(): Observable<SubjectEvaluationInitialData> {
     return forkJoin({
       terms: this.syTermService.getSyTerms(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
+      currentTerm: this.syTermService.getCurrentSyTerm().pipe(catchError(() => of(null))),
       programs: this.programService.getPrograms(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
       students: this.studentsService.getStudents(ACTIVE_STUDENTS_PARAMS).pipe(catchError(() => of({ data: [] })))
     }).pipe(
-      map(({ terms, programs, students }) => {
+      map(({ terms, currentTerm, programs, students }) => {
         this.cachedStudents = students.data ?? [];
         const programCodes = (programs.data ?? []).map((p) => p.programCode);
         const fromStudents = this.cachedStudents.map((s) => s.programCode);
         const allPrograms = [...new Set([...programCodes, ...fromStudents])];
 
         return {
-          upcomingTerm: mapUpcomingTerm(terms.data ?? []),
+          upcomingTerm:
+            mapSyTermToUpcomingTerm(currentTerm) ?? mapUpcomingTerm(terms.data ?? []),
           programFilterOptions: buildProgramFilterOptions(allPrograms),
           yearLevelFilterOptions: YEAR_LEVEL_FILTER_OPTIONS
         };
@@ -165,29 +168,39 @@ export class SubjectEvaluationService {
           osf: this.otherSchoolFeesService.getOtherSchoolFees(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
           mf: this.miscellaneousFeesService.getMiscellaneousFees(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
           dp: this.downpaymentService.getDownpayments(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
-          paymentSchemes: this.paymentSchemeService.getPaymentSchemes(BULK_PAGE).pipe(catchError(() => of({ data: [] }))),
           currentSyTerm: this.syTermService.getCurrentSyTerm().pipe(catchError(() => of(null)))
         }).pipe(
-          map(({ curricula: resolvedCurricula, tuition, osf, mf, dp, paymentSchemes, currentSyTerm }) => {
+          switchMap(({ curricula: resolvedCurricula, tuition, osf, mf, dp, currentSyTerm }) => {
             const resolvedSchoolYear = schoolYear.trim() || currentSyTerm?.syYear?.trim() || '';
             const resolvedSemester = semester.trim() || currentSyTerm?.sySemester?.trim() || '';
 
-            return buildChargeSlipPreview(
-              student,
-              resolvedCurricula,
-              selectionRows,
-              selectedIds,
-              tuition.data ?? [],
-              osf.data ?? [],
-              mf.data ?? [],
-              dp.data ?? [],
-              currentYearTerm,
-              resolvedCode,
-              electiveSelections,
-              paymentSchemes.data ?? [],
-              resolvedSchoolYear,
-              resolvedSemester
-            );
+            return this.paymentSchemeService
+              .getPaymentSchemes({
+                ...BULK_PAGE,
+                schoolYear: resolvedSchoolYear,
+                semester: resolvedSemester
+              })
+              .pipe(
+                catchError(() => of({ data: [] })),
+                map((paymentSchemes) =>
+                  buildChargeSlipPreview(
+                    student,
+                    resolvedCurricula,
+                    selectionRows,
+                    selectedIds,
+                    tuition.data ?? [],
+                    osf.data ?? [],
+                    mf.data ?? [],
+                    dp.data ?? [],
+                    currentYearTerm,
+                    resolvedCode,
+                    electiveSelections,
+                    paymentSchemes.data ?? [],
+                    resolvedSchoolYear,
+                    resolvedSemester
+                  )
+                )
+              );
           })
         )
       ),

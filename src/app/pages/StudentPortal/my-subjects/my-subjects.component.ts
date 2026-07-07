@@ -1,8 +1,18 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { StudentAuthService } from '../services/student-auth.service';
 import { StudentPortalService } from '../services/student-portal.service';
-import { normalizeStudentYearTerm } from '../../../shared/utils/student-year-level.util';
+import { SchoolYearTermService } from '../../Registrar/school-year-term/school-year-term.service';
+import {
+  academicTermMatchesConfiguredPeriod,
+  formatConfiguredTermLabel
+} from '../../Registrar/students/student-enrollments.mapper';
+import {
+  enrollmentMatchesStudentYearTerm,
+  normalizeStudentYearTerm
+} from '../../../shared/utils/student-year-level.util';
 import type { StudentClassEnrollmentRow } from '../../../core/models/student-enrollments.model';
 
 @Component({
@@ -15,6 +25,7 @@ import type { StudentClassEnrollmentRow } from '../../../core/models/student-enr
 export class StudentPortalMySubjectsComponent implements OnInit {
   private readonly portalService = inject(StudentPortalService);
   private readonly studentAuth = inject(StudentAuthService);
+  private readonly schoolYearTermService = inject(SchoolYearTermService);
 
   rows: StudentClassEnrollmentRow[] = [];
   currentTerm = '';
@@ -22,13 +33,29 @@ export class StudentPortalMySubjectsComponent implements OnInit {
 
   ngOnInit(): void {
     const student = this.studentAuth.getCurrentStudent();
-    this.currentTerm = normalizeStudentYearTerm(student?.yearLevel ?? '');
+    const studentYearLevel = student?.yearLevel ?? '';
+    this.currentTerm = normalizeStudentYearTerm(studentYearLevel);
 
-    this.portalService.getEnrollments().subscribe({
-      next: (overview) => {
-        this.rows = overview.enrollments.filter(
-          (row) => normalizeStudentYearTerm(row.yearLevel) === this.currentTerm
-        );
+    forkJoin({
+      overview: this.portalService.getEnrollments(),
+      currentSyTerm: this.schoolYearTermService.getCurrentSyTerm().pipe(catchError(() => of(null)))
+    }).subscribe({
+      next: ({ overview, currentSyTerm }) => {
+        const schoolYear = currentSyTerm?.syYear?.trim() ?? '';
+        const semester = currentSyTerm?.sySemester?.trim() ?? '';
+        const enrollments = overview.enrollments;
+
+        if (schoolYear && semester) {
+          this.currentTerm = formatConfiguredTermLabel(schoolYear, semester);
+          this.rows = enrollments.filter((row) =>
+            academicTermMatchesConfiguredPeriod(row.academicTerm, schoolYear, semester)
+          );
+        } else {
+          this.rows = enrollments.filter((row) =>
+            enrollmentMatchesStudentYearTerm(row.yearLevel, studentYearLevel)
+          );
+        }
+
         this.isLoading = false;
       },
       error: () => {

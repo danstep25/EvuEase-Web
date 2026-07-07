@@ -117,6 +117,7 @@
               <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.grossAssessmentLowMonthly }}</td>
             </tr>
 
+            @if (preview.paymentScheme.length > 0) {
             <tr class="se-charge-slip__section-row">
               <th scope="rowgroup" colspan="6" class="se-charge-slip__section-title">Payment Scheme</th>
               <th scope="col" class="se-charge-slip__section-amount-cell" aria-hidden="true"></th>
@@ -129,11 +130,12 @@
                 <td class="se-charge-slip__td--amount">{{ row.lowMonthlyPayment }}</td>
               </tr>
             }
-            <tr class="se-charge-slip__total-row">
-              <td colspan="6" class="se-charge-slip__total-label">Total Amount</td>
-              <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.paymentTotalCash }}</td>
-              <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.paymentTotalLowMonthly }}</td>
-            </tr>
+              <tr class="se-charge-slip__total-row">
+                <td colspan="6" class="se-charge-slip__total-label">Total Amount</td>
+                <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.paymentTotalCash }}</td>
+                <td class="se-charge-slip__td--amount se-charge-slip__total-value">{{ preview.paymentTotalLowMonthly }}</td>
+              </tr>
+            }
           </tbody>
         </table>
       </div>

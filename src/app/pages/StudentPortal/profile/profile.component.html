@@ -32,16 +32,49 @@
         <div class="sp-profile-security__header">
           <div>
             <h2 class="evaluator-surface__title">Security</h2>
-            <p class="sp-profile-security__hint">Manage your portal password and account access.</p>
+            <p class="sp-profile-security__hint">
+              Need a new password? Request a reset and the administrator will issue you a temporary
+              password. You'll set your own password the next time you sign in.
+            </p>
           </div>
           <span class="sp-profile-access-badge" [class.is-enabled]="profile.hasPortalAccess">
             {{ profile.hasPortalAccess ? 'Portal Enabled' : 'Portal Not Set' }}
           </span>
         </div>
-        <div class="sp-actions">
-          <a class="sp-btn" routerLink="/student_portal/change-password">Change Password</a>
-          <a class="sp-btn sp-btn--secondary" routerLink="/student_portal/reset-password">Request Password Reset</a>
-        </div>
+
+        @if (resetSubmitted) {
+          <div class="sp-reset-confirmation" role="status">
+            Your password reset request has been submitted. Please wait for the administrator to
+            issue your temporary password.
+          </div>
+        } @else if (showResetForm) {
+          <div class="sp-reset-form">
+            <label for="sp-reset-reason">Reason (optional)</label>
+            <textarea
+              id="sp-reset-reason"
+              rows="3"
+              [(ngModel)]="resetReason"
+              placeholder="Let the administrator know why you need a reset"
+            ></textarea>
+            <div class="sp-actions">
+              <button type="button" class="sp-btn" (click)="submitReset()" [disabled]="isSubmittingReset">
+                {{ isSubmittingReset ? 'Submitting…' : 'Submit Request' }}
+              </button>
+              <button
+                type="button"
+                class="sp-btn sp-btn--secondary"
+                (click)="cancelResetForm()"
+                [disabled]="isSubmittingReset"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="sp-actions">
+            <button type="button" class="sp-btn" (click)="openResetForm()">Request Password Reset</button>
+          </div>
+        }
       </section>
     </div>
   }

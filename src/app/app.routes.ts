@@ -1,7 +1,11 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { unsavedChangesGuard } from './core/guards/unsaved-changes.guard';
-import { studentPortalGuard, studentPortalGuestGuard } from './pages/StudentPortal/guards/student-portal.guard';
+import {
+  studentPortalGuard,
+  studentPortalGuestGuard,
+  studentPortalSetPasswordGuard
+} from './pages/StudentPortal/guards/student-portal.guard';
 
 export const routes: Routes = [
   {
@@ -191,6 +195,14 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'set-password',
+        canActivate: [studentPortalSetPasswordGuard],
+        loadComponent: () =>
+          import('./pages/StudentPortal/set-password/set-password.component').then(
+            (m) => m.StudentPortalSetPasswordComponent
+          )
+      },
+      {
         path: '',
         loadComponent: () =>
           import('./pages/StudentPortal/base/base.component').then((m) => m.StudentPortalBaseComponent),
@@ -225,23 +237,9 @@ export const routes: Routes = [
               )
           },
           {
-            path: 'print-grades',
-            loadComponent: () =>
-              import('./pages/StudentPortal/print-grades/print-grades.component').then(
-                (m) => m.StudentPortalPrintGradesComponent
-              )
-          },
-          {
             path: 'profile',
             loadComponent: () =>
               import('./pages/StudentPortal/profile/profile.component').then((m) => m.StudentPortalProfileComponent)
-          },
-          {
-            path: 'change-password',
-            loadComponent: () =>
-              import('./pages/StudentPortal/change-password/change-password.component').then(
-                (m) => m.StudentPortalChangePasswordComponent
-              )
           },
           {
             path: '',

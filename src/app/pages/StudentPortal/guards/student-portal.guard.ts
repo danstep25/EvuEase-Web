@@ -6,12 +6,17 @@ export const studentPortalGuard: CanActivateFn = () => {
   const studentAuth = inject(StudentAuthService);
   const router = inject(Router);
 
-  if (studentAuth.isAuthenticated()) {
-    return true;
+  if (!studentAuth.isAuthenticated()) {
+    void router.navigate(['/student_portal/login']);
+    return false;
   }
 
-  void router.navigate(['/student_portal/login']);
-  return false;
+  if (studentAuth.mustChangePassword()) {
+    void router.navigate(['/student_portal/set-password']);
+    return false;
+  }
+
+  return true;
 };
 
 export const studentPortalGuestGuard: CanActivateFn = () => {
@@ -19,6 +24,25 @@ export const studentPortalGuestGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   if (studentAuth.isAuthenticated()) {
+    void router.navigate([
+      studentAuth.mustChangePassword() ? '/student_portal/set-password' : '/student_portal/dashboard'
+    ]);
+    return false;
+  }
+
+  return true;
+};
+
+export const studentPortalSetPasswordGuard: CanActivateFn = () => {
+  const studentAuth = inject(StudentAuthService);
+  const router = inject(Router);
+
+  if (!studentAuth.isAuthenticated()) {
+    void router.navigate(['/student_portal/login']);
+    return false;
+  }
+
+  if (!studentAuth.mustChangePassword()) {
     void router.navigate(['/student_portal/dashboard']);
     return false;
   }

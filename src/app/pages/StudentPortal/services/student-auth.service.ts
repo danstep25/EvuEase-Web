@@ -48,6 +48,20 @@ export class StudentAuthService {
     return this.currentStudentSubject.value;
   }
 
+  mustChangePassword(): boolean {
+    return this.currentStudentSubject.value?.mustChangePassword ?? false;
+  }
+
+  markPasswordChanged(): void {
+    const current = this.currentStudentSubject.value;
+    if (!current) {
+      return;
+    }
+    const updated: StudentPortalSession = { ...current, mustChangePassword: false };
+    localStorage.setItem(USER_KEY, JSON.stringify(updated));
+    this.currentStudentSubject.next(updated);
+  }
+
   isAuthenticated(): boolean {
     const token = this.getToken();
     if (!token) {
@@ -92,7 +106,8 @@ export class StudentAuthService {
       programCode: data.programCode,
       yearLevel: data.yearLevel,
       curriculumCode: data.curriculumCode ?? null,
-      role: data.role
+      role: data.role,
+      mustChangePassword: data.mustChangePassword ?? false
     };
   }
 }

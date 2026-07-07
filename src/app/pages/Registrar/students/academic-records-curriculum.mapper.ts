@@ -244,6 +244,22 @@ export function mergeCurriculumWithEnrollments(
   return { blocks, extraEnrollments };
 }
 
+/**
+ * A student is a candidate for graduation when every required curriculum course
+ * (electives are already filtered out of the merged blocks) has been passed.
+ * Any course that is still not-taken, failed, incomplete, pending, or otherwise
+ * unverified means the requirements are not yet met.
+ */
+export function isCandidateForGraduation(
+  blocks: readonly AcademicRecordSemesterBlock[]
+): boolean {
+  const rows = blocks.flatMap((block) => block.courses);
+  if (rows.length === 0) {
+    return false;
+  }
+  return rows.every((row) => row.remarkKind === 'passed');
+}
+
 export function buildCurriculumSemesterLayoutRows(blocks: AcademicRecordSemesterBlock[]): {
   pairs: SemesterLayoutPair[];
   fullWidthBlocks: AcademicRecordSemesterBlock[];

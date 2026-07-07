@@ -46,7 +46,8 @@ import {
 
 } from './course-batch-upload.model';
 
-import { prerequisiteCodes, clampUnitValue, applyRowUnitValidation } from './course-batch-upload.util';
+import { prerequisiteCodes, clampUnitValue, applyRowValidation, applyRowPrerequisiteValidation, buildKnownPrerequisiteCodes, countRowsWithLongTitles, normalizePrerequisiteString } from './course-batch-upload.util';
+import { COURSE_TITLE_MAX_LENGTH } from '../../../shared/constants/course-validation.constant';
 
 
 
@@ -69,6 +70,8 @@ type BatchUploadStep = 'setup' | 'preview' | 'complete';
 })
 
 export class CourseBatchUploadModalComponent implements OnChanges {
+
+  readonly courseTitleMaxLength = COURSE_TITLE_MAX_LENGTH;
 
   private readonly lookupService = inject(LookupService);
 
@@ -117,6 +120,8 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
   preview: CourseBatchImportPreviewResponse | null = null;
 
+  private knownPrerequisiteCodes = new Set<string>();
+
   previewFilter: 'all' | 'Valid' | 'Warning' | 'Error' = 'all';
 
   previewSearch = '';
@@ -161,7 +166,27 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
   get selectedImportCount(): number {
 
-    return (this.preview?.rows ?? []).filter((row) => row.selected && row.status !== 'Error').length;
+    return (this.preview?.rows ?? []).filter((row) => row.selected && row.status !== 'Error' && row.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH).length;
+
+  }
+
+
+
+  get titleLengthIssueCount(): number {
+
+    return countRowsWithLongTitles(this.preview?.rows ?? []);
+
+  }
+
+
+
+  get hasSelectedTitleLengthIssues(): boolean {
+
+    return (this.preview?.rows ?? []).some(
+
+      (row) => row.selected && row.courseTitle.trim().length > COURSE_TITLE_MAX_LENGTH
+
+    );
 
   }
 
@@ -223,6 +248,16 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
 
 
+  onRowCourseTitleChange(row: CourseBatchImportPreviewRow, value: string): void {
+
+    row.courseTitle = value ?? '';
+
+    this.afterRowChanged(row);
+
+  }
+
+
+
   onRowLecUnitsChange(row: CourseBatchImportPreviewRow, value: number | string): void {
 
     row.courseLecUnits = clampUnitValue(value);
@@ -252,6 +287,26 @@ export class CourseBatchUploadModalComponent implements OnChanges {
     row.courseTotalUnits = clampUnitValue(value);
 
     this.afterRowUnitsChanged(row);
+
+  }
+
+
+
+  onRowPrerequisitesChange(row: CourseBatchImportPreviewRow, value: string): void {
+
+    row.prerequisites = value ?? '';
+
+    this.afterRowChanged(row);
+
+  }
+
+
+
+  onRowPrerequisitesBlur(row: CourseBatchImportPreviewRow): void {
+
+    row.prerequisites = normalizePrerequisiteString(row.prerequisites);
+
+    this.afterRowChanged(row);
 
   }
 
@@ -354,7 +409,7 @@ export class CourseBatchUploadModalComponent implements OnChanges {
   toggleRowSelection(row: CourseBatchImportPreviewRow, checked: boolean): void {
     this.wizardForm.markAsDirty();
 
-    if (row.status === 'Error') {
+    if (row.status === 'Error' || row.courseTitle.trim().length > COURSE_TITLE_MAX_LENGTH) {
 
       row.selected = false;
 
@@ -373,7 +428,7 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
     for (const row of this.filteredPreviewRows) {
 
-      if (row.status !== 'Error') {
+      if (row.status !== 'Error' && row.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH) {
 
         row.selected = checked;
 
@@ -387,7 +442,11 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
   allFilteredRowsSelected(): boolean {
 
-    const selectable = this.filteredPreviewRows.filter((row) => row.status !== 'Error');
+    const selectable = this.filteredPreviewRows.filter(
+
+      (row) => row.status !== 'Error' && row.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH
+
+    );
 
     return selectable.length > 0 && selectable.every((row) => row.selected);
 
@@ -398,6 +457,22 @@ export class CourseBatchUploadModalComponent implements OnChanges {
   confirmImport(): void {
 
     if (!this.preview || !this.selectedProgramId || !this.selectedCurriculumCode || this.isImporting) {
+
+      return;
+
+    }
+
+
+
+    if (this.hasSelectedTitleLengthIssues) {
+
+      this.notificationService.warning(
+
+        'Course titles too long',
+
+        `Shorten selected course titles to ${COURSE_TITLE_MAX_LENGTH} characters or fewer before importing.`
+
+      );
 
       return;
 
@@ -429,7 +504,7 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
         courseSemester: row.courseSemester,
 
-        prerequisites: row.prerequisites,
+        prerequisites: normalizePrerequisiteString(row.prerequisites),
 
         courseComponent: row.courseComponent,
 
@@ -797,7 +872,7 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
   private normalizePreviewResponse(raw: CourseBatchImportPreviewResponse): CourseBatchImportPreviewResponse {
 
-    return {
+    const result: CourseBatchImportPreviewResponse = {
 
       curriculumCode: raw.curriculumCode,
 
@@ -817,48 +892,79 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
       detectedReferenceNumber: raw.detectedReferenceNumber,
 
-      rows: (raw.rows ?? []).map((row) => ({
+      rows: (raw.rows ?? []).map((row) => {
 
-        rowNumber: row.rowNumber,
+        const mapped: CourseBatchImportPreviewRow = {
 
-        courseCode: row.courseCode,
+          rowNumber: row.rowNumber,
 
-        courseTitle: row.courseTitle,
+          courseCode: row.courseCode,
 
-        courseLecUnits: row.courseLecUnits,
+          courseTitle: row.courseTitle,
 
-        courseLabUnits: row.courseLabUnits,
+          courseLecUnits: row.courseLecUnits,
 
-        courseTotalUnits: row.courseTotalUnits,
+          courseLabUnits: row.courseLabUnits,
 
-        courseYearLevel: row.courseYearLevel,
+          courseTotalUnits: row.courseTotalUnits,
 
-        courseSemester: row.courseSemester,
+          courseYearLevel: row.courseYearLevel,
 
-        prerequisites: row.prerequisites,
+          courseSemester: row.courseSemester,
 
-        courseComponent: row.courseComponent,
+          prerequisites: normalizePrerequisiteString(row.prerequisites),
 
-        selected: row.status !== 'Error',
+          courseComponent: row.courseComponent,
 
-        status: row.status,
+          selected: row.status !== 'Error',
 
-        messages: row.messages ?? []
+          status: row.status,
 
-      }))
+          messages: row.messages ?? []
+
+        };
+
+        applyRowValidation(mapped);
+
+        mapped.selected = mapped.status !== 'Error' && mapped.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH;
+
+        return mapped;
+
+      })
 
     };
+
+    this.knownPrerequisiteCodes = buildKnownPrerequisiteCodes(result.rows);
+
+    for (const row of result.rows) {
+
+      applyRowPrerequisiteValidation(row, this.knownPrerequisiteCodes);
+
+      row.selected = row.status !== 'Error' && row.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH;
+
+    }
+
+    return result;
 
   }
 
 
 
   private afterRowUnitsChanged(row: CourseBatchImportPreviewRow): void {
+
+    this.afterRowChanged(row);
+
+  }
+
+
+
+  private afterRowChanged(row: CourseBatchImportPreviewRow): void {
     this.wizardForm.markAsDirty();
 
-    applyRowUnitValidation(row);
+    applyRowValidation(row);
+    applyRowPrerequisiteValidation(row, this.knownPrerequisiteCodes);
 
-    row.selected = row.status !== 'Error';
+    row.selected = row.status !== 'Error' && row.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH;
 
     this.refreshPreviewStats();
 

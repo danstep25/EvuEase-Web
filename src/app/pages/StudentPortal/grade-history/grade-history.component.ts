@@ -1,7 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs';
 import { StudentPortalService } from '../services/student-portal.service';
-import type { StudentClassEnrollmentRow } from '../../../core/models/student-enrollments.model';
+import type { StudentPortalGradeHistoryGroup } from '../models/student-portal.models';
 
 @Component({
   selector: 'app-student-portal-grade-history',
@@ -13,33 +14,23 @@ import type { StudentClassEnrollmentRow } from '../../../core/models/student-enr
 export class StudentPortalGradeHistoryComponent implements OnInit {
   private readonly portalService = inject(StudentPortalService);
 
-  grouped: { term: string; rows: StudentClassEnrollmentRow[] }[] = [];
+  grouped: StudentPortalGradeHistoryGroup[] = [];
   summary = { totalUnitsCompleted: 0, cumulativeGpa: null as number | null, failedSubjects: 0, retakenSubjects: 0 };
   isLoading = true;
 
   ngOnInit(): void {
-    this.portalService.getEnrollments().subscribe({
-      next: (overview) => {
+    forkJoin({
+      history: this.portalService.getGradeHistory(),
+      overview: this.portalService.getEnrollments()
+    }).subscribe({
+      next: ({ history, overview }) => {
         this.summary = overview.summary;
-        this.grouped = this.groupByTerm(overview.enrollments);
+        this.grouped = [...history];
         this.isLoading = false;
       },
       error: () => {
         this.isLoading = false;
       }
     });
-  }
-
-  private groupByTerm(rows: readonly StudentClassEnrollmentRow[]): { term: string; rows: StudentClassEnrollmentRow[] }[] {
-    const map = new Map<string, StudentClassEnrollmentRow[]>();
-    for (const row of rows) {
-      const term = row.academicTerm?.trim() || 'Unknown Term';
-      const list = map.get(term) ?? [];
-      list.push(row);
-      map.set(term, list);
-    }
-    return [...map.entries()]
-      .sort(([a], [b]) => b.localeCompare(a))
-      .map(([term, termRows]) => ({ term, rows: termRows }));
   }
 }

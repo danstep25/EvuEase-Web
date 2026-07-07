@@ -20,10 +20,13 @@ function isAnonymousAuthRequest(url: string): boolean {
 
 function resolveAuthToken(url: string, staffToken: string | null): string | null {
   const lower = url.toLowerCase();
+  const studentToken = localStorage.getItem('student_portal_token');
   if (lower.includes('/studentportal/')) {
-    return localStorage.getItem('student_portal_token') ?? staffToken;
+    return studentToken ?? staffToken;
   }
-  return staffToken;
+  // Shared endpoints (e.g. /SyTerm/current) may be hit from the student portal,
+  // where only the student token exists. Prefer the staff token but fall back to it.
+  return staffToken ?? studentToken;
 }
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
@@ -45,7 +48,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401 && !skipAuth) {
-        if (req.url.toLowerCase().includes('/studentportal/')) {
+        const isStudentPortalRequest = req.url.toLowerCase().includes('/studentportal/');
+        const hasStaffSession = !!authService.getToken();
+        // A student may hit shared endpoints (e.g. /SyTerm/current). Don't bounce
+        // them to the staff login on 401 — keep them in the student portal.
+        if (isStudentPortalRequest || (!hasStaffSession && studentAuth.isAuthenticated())) {
           studentAuth.logout();
         } else {
           authService.logout();

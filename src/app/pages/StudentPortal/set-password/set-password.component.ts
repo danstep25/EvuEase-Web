@@ -7,8 +7,9 @@ import {
   ValidationErrors,
   Validators
 } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 import { StudentPortalService } from '../services/student-portal.service';
+import { StudentAuthService } from '../services/student-auth.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { validateFormForSubmit } from '../../../shared/utils/form-state.util';
 import { controlFirstMessage, shouldShowControlError } from '../../../shared/utils/form-field-error.util';
@@ -22,43 +23,35 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
   return newPassword === confirmPassword ? null : { passwordMismatch: true };
 }
 
-function newPasswordDifferent(group: AbstractControl): ValidationErrors | null {
-  const currentPassword = group.get('currentPassword')?.value;
-  const newPassword = group.get('newPassword')?.value;
-  if (!currentPassword || !newPassword) {
-    return null;
-  }
-  return currentPassword === newPassword ? { passwordSameAsCurrent: true } : null;
-}
-
 @Component({
-  selector: 'app-student-portal-change-password',
+  selector: 'app-student-portal-set-password',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  templateUrl: './change-password.component.html',
-  styleUrl: '../student-portal.shared.scss'
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './set-password.component.html',
+  styleUrl: './set-password.component.scss'
 })
-export class StudentPortalChangePasswordComponent {
+export class StudentPortalSetPasswordComponent {
   private readonly fb = inject(FormBuilder);
   private readonly portalService = inject(StudentPortalService);
+  private readonly studentAuth = inject(StudentAuthService);
   private readonly notificationService = inject(NotificationService);
+  private readonly router = inject(Router);
+
+  readonly studentName = this.studentAuth.getCurrentStudent()?.name ?? '';
 
   readonly form = this.fb.nonNullable.group(
     {
-      currentPassword: ['', Validators.required],
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required]
     },
-    { validators: [passwordsMatch, newPasswordDifferent] }
+    { validators: [passwordsMatch] }
   );
 
   isSubmitting = false;
   errorMessage: string | null = null;
   submitted = false;
-  showCurrentPassword = false;
   showNewPassword = false;
   showConfirmPassword = false;
-  changeSuccess = false;
 
   onSubmit(): void {
     const result = validateFormForSubmit(this.form);
@@ -67,22 +60,16 @@ export class StudentPortalChangePasswordComponent {
       return;
     }
 
-    const { currentPassword, newPassword, confirmPassword } = this.form.getRawValue();
-    if (newPassword !== confirmPassword) {
-      this.errorMessage = 'New password and confirmation do not match.';
-      return;
-    }
-
+    const { newPassword } = this.form.getRawValue();
     this.isSubmitting = true;
     this.errorMessage = null;
-    this.changeSuccess = false;
-    this.portalService.changePassword(currentPassword, newPassword).subscribe({
+
+    this.portalService.setNewPassword(newPassword).subscribe({
       next: () => {
         this.isSubmitting = false;
-        this.form.reset();
-        this.submitted = false;
-        this.changeSuccess = true;
-        this.notificationService.success('Password updated', 'Your portal password was changed.');
+        this.studentAuth.markPasswordChanged();
+        this.notificationService.success('Password updated', 'Your new password is now active.');
+        void this.router.navigate(['/student_portal/dashboard']);
       },
       error: (error) => {
         this.isSubmitting = false;
@@ -90,36 +77,28 @@ export class StudentPortalChangePasswordComponent {
           error?.error?.error?.message ||
           error?.error?.message ||
           error?.message ||
-          'Could not change password.';
+          'Could not set your new password.';
       }
     });
   }
 
-  showFieldError(controlName: 'currentPassword' | 'newPassword' | 'confirmPassword'): boolean {
+  logout(): void {
+    this.studentAuth.logout();
+  }
+
+  showFieldError(controlName: 'newPassword' | 'confirmPassword'): boolean {
     return shouldShowControlError(this.form.get(controlName), this.submitted);
   }
 
-  fieldMessage(controlName: 'currentPassword' | 'newPassword' | 'confirmPassword'): string {
+  fieldMessage(controlName: 'newPassword' | 'confirmPassword'): string {
     return controlFirstMessage(this.form.get(controlName), this.submitted);
   }
 
   get showPasswordMismatch(): boolean {
-    return (
-      this.submitted &&
-      !!this.form.errors?.['passwordMismatch'] &&
-      !!this.form.get('confirmPassword')?.value
-    );
-  }
-
-  get showSameAsCurrent(): boolean {
-    return this.submitted && !!this.form.errors?.['passwordSameAsCurrent'];
-  }
-
-  get newPasswordValue(): string {
-    return this.form.get('newPassword')?.value ?? '';
+    return this.submitted && !!this.form.errors?.['passwordMismatch'] && !!this.form.get('confirmPassword')?.value;
   }
 
   get meetsMinLength(): boolean {
-    return this.newPasswordValue.length >= 6;
+    return (this.form.get('newPassword')?.value ?? '').length >= 6;
   }
 }

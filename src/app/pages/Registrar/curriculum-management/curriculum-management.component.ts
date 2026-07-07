@@ -861,7 +861,7 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
   onConfirmDelete(): void {
     if (this.courseToDelete) {
       const course = this.courseToDelete;
-      this.courseService.deleteCourse(course.courseCode).subscribe({
+      this.courseService.deleteCourse(course.courseCode, course.curriculumCode ?? '').subscribe({
         next: () => {
           this.notificationService.success(
             'Course Deleted',

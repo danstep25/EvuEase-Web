@@ -43,6 +43,10 @@ export class StudentPortalLoginComponent {
       next: (response) => {
         this.isLoading = false;
         if (response.success && response.data) {
+          if (response.data.mustChangePassword) {
+            void this.router.navigate(['/student_portal/set-password']);
+            return;
+          }
           this.notificationService.success('Welcome', `Signed in as ${response.data.name}`);
           void this.router.navigate(['/student_portal/dashboard']);
           return;

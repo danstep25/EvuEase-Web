@@ -10,6 +10,8 @@ import { StudentAuthService } from './student-auth.service';
 import type {
   StudentPortalDashboard,
   StudentPortalEnrollments,
+  StudentPortalGradeHistoryGroup,
+  StudentPortalIssueTemporaryPasswordResult,
   StudentPortalPasswordResetRequest,
   StudentPortalPendingSubject,
   StudentPortalProfile
@@ -39,12 +41,20 @@ export class StudentPortalService {
     return this.get<StudentPortalPendingSubject[]>(API_URL.studentPortal.pendingSubjects);
   }
 
-  changePassword(currentPassword: string, newPassword: string): Observable<void> {
-    return this.post<void>(API_URL.studentPortal.changePassword, { currentPassword, newPassword });
+  getGradeHistory(): Observable<readonly StudentPortalGradeHistoryGroup[]> {
+    return this.get<StudentPortalGradeHistoryGroup[]>(API_URL.studentPortal.gradeHistory);
+  }
+
+  setNewPassword(newPassword: string): Observable<void> {
+    return this.post<void>(API_URL.studentPortal.setNewPassword, { newPassword });
   }
 
   requestPasswordReset(studentNumber: string, reason?: string): Observable<void> {
     return this.anonymousPost<void>(API_URL.studentPortal.passwordResetRequest, { studentNumber, reason });
+  }
+
+  requestPasswordResetAuthenticated(reason?: string): Observable<void> {
+    return this.post<void>(API_URL.studentPortal.authenticatedPasswordResetRequest, { reason });
   }
 
   listPasswordResetRequests(status?: string): Observable<readonly StudentPortalPasswordResetRequest[]> {
@@ -54,11 +64,14 @@ export class StudentPortalService {
     );
   }
 
-  resolvePasswordResetRequest(id: number, newPortalPassword: string, registrarNotes?: string): Observable<void> {
-    return this.staffPost<void>(API_URL.admin.resolveStudentPortalPasswordReset(id), {
-      newPortalPassword,
-      registrarNotes
-    });
+  issueTemporaryPassword(
+    id: number,
+    registrarNotes?: string
+  ): Observable<StudentPortalIssueTemporaryPasswordResult> {
+    return this.staffPost<StudentPortalIssueTemporaryPasswordResult>(
+      API_URL.admin.issueStudentPortalTemporaryPassword(id),
+      { registrarNotes }
+    );
   }
 
   rejectPasswordResetRequest(id: number, registrarNotes?: string): Observable<void> {

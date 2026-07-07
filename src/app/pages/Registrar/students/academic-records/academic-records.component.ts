@@ -8,6 +8,7 @@ import { EvaluatorCurriculumResolutionService } from '../../../Evaluator/student
 import { buildCurriculumDisplayLabel } from '../student-curriculum.mapper';
 import {
   buildCurriculumSemesterLayoutRows,
+  isCandidateForGraduation,
   mergeCurriculumWithEnrollments
 } from '../academic-records-curriculum.mapper';
 import {
@@ -55,6 +56,7 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
   curriculumLabel: string | null = null;
   curriculumLoadWarning: string | null = null;
   usesCurriculumPlan = false;
+  isCandidateForGraduation = false;
   viewMode: RecordsViewMode = 'term';
 
   recentTermBlock: AcademicRecordSemesterBlock | null = null;
@@ -101,6 +103,7 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
     this.curriculumLoadWarning = null;
     this.currentTermWarning = null;
     this.usesCurriculumPlan = false;
+    this.isCandidateForGraduation = false;
     this.viewMode = 'term';
     this.student = null;
     this.recentTermBlock = null;
@@ -187,6 +190,7 @@ export class AcademicRecordsComponent implements OnInit, OnDestroy {
           if (curriculum.courses.length > 0) {
             this.usesCurriculumPlan = true;
             const merged = mergeCurriculumWithEnrollments([...curriculum.courses], enrollments);
+            this.isCandidateForGraduation = isCandidateForGraduation(merged.blocks);
             const layout = buildCurriculumSemesterLayoutRows(merged.blocks);
             this.overallSemesterPairs = layout.pairs;
             this.overallSemesterFullWidth = [...layout.fullWidthBlocks, ...merged.extraEnrollments];

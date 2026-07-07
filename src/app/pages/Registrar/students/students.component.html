@@ -98,13 +98,14 @@
               <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Year Level</th>
               <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Type</th>
               <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Status</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Graduation</th>
               <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Actions</th>
             </tr>
           </thead>
           <tbody>
             @if (isLoading) {
               <tr>
-                <td colspan="7" class="py-8 text-center text-gray-500">
+                <td colspan="8" class="py-8 text-center text-gray-500">
                   <div class="flex items-center justify-center">
                     <svg class="animate-spin h-5 w-5 mr-3 text-purple-600" fill="none" viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -120,7 +121,7 @@
               </tr>
             } @else if (students.length === 0) {
               <tr>
-                <td colspan="7" class="py-8 text-center text-gray-500">
+                <td colspan="8" class="py-8 text-center text-gray-500">
                   No students found
                 </td>
               </tr>
@@ -154,6 +155,22 @@
                     >
                       {{ student.status }}
                     </span>
+                  </td>
+                  <td class="py-4 px-4">
+                    @if (student.isCandidateForGraduation) {
+                      <span
+                        class="students-grad-badge"
+                        role="status"
+                        title="This student has passed all required curriculum subjects."
+                      >
+                        <svg class="students-grad-badge__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                          <path d="M12 3 1 9l11 6 9-4.909V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
+                        </svg>
+                        Candidate
+                      </span>
+                    } @else {
+                      <span class="text-gray-400 text-sm">—</span>
+                    }
                   </td>
                   <td class="py-4 px-4">
                     <div class="flex items-center gap-3">

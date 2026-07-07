@@ -53,6 +53,7 @@ export interface StudentAcademicRecordProfile {
   readonly termSemesters: readonly AcademicRecordSemesterBlock[];
   readonly curriculumTerms: readonly AcademicRecordCurriculumTermBlock[];
   readonly usesCurriculumRoadmap: boolean;
+  readonly isCandidateForGraduation: boolean;
 }
 
 export type AcademicPlanCourseStatus = 'Available' | 'Pending' | 'Future';

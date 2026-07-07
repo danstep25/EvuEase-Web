@@ -16,6 +16,7 @@ export interface Student {
   gender?: string | null;
   birthdate?: string | null;
   hasPortalAccess?: boolean;
+  isCandidateForGraduation?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

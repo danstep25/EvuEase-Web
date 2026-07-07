@@ -326,6 +326,20 @@
 
 
 
+            @if (titleLengthIssueCount > 0) {
+
+              <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="alert">
+
+                <p class="font-semibold">{{ titleLengthIssueCount }} course title(s) exceed {{ courseTitleMaxLength }} characters.</p>
+
+                <p class="mt-1">Edit the course titles in the table below before importing. Titles over the limit are marked as warnings and cannot be imported until shortened.</p>
+
+              </div>
+
+            }
+
+
+
             <div class="flex flex-wrap items-center gap-3">
 
               <input
@@ -436,7 +450,19 @@
 
                           <td class="py-2.5 px-3 text-sm font-medium text-gray-900 whitespace-nowrap">{{ row.courseCode }}</td>
 
-                          <td class="py-2.5 px-3 text-sm text-gray-800">{{ row.courseTitle }}</td>
+                          <td class="py-2.5 px-3">
+                            <textarea
+                              class="batch-title-input"
+                              rows="2"
+                              [attr.maxlength]="courseTitleMaxLength"
+                              [ngModel]="row.courseTitle"
+                              (ngModelChange)="onRowCourseTitleChange(row, $event)"
+                              [attr.aria-label]="'Course title for ' + row.courseCode"
+                            ></textarea>
+                            <p class="batch-title-count" [class.batch-title-count--over]="row.courseTitle.length > courseTitleMaxLength">
+                              {{ row.courseTitle.length }} / {{ courseTitleMaxLength }}
+                            </p>
+                          </td>
 
                           <td class="py-2.5 px-3">
                             <input
@@ -479,13 +505,19 @@
 
                           <td class="py-2.5 px-3">
 
-                            @if (prerequisiteChips(row.prerequisites).length === 0) {
+                            <input
+                              type="text"
+                              class="batch-prereq-input w-full min-w-[8rem] rounded border border-gray-200 px-2 py-1 text-xs text-gray-800"
+                              [ngModel]="row.prerequisites ?? ''"
+                              (ngModelChange)="onRowPrerequisitesChange(row, $event)"
+                              (blur)="onRowPrerequisitesBlur(row)"
+                              placeholder="COSC1001; COSC1002"
+                              [attr.aria-label]="'Pre-requisites for ' + row.courseCode"
+                            />
 
-                              <span class="text-sm text-gray-400">None</span>
+                            @if (prerequisiteChips(row.prerequisites).length > 0) {
 
-                            } @else {
-
-                              <div class="flex flex-wrap gap-1">
+                              <div class="mt-1 flex flex-wrap gap-1">
 
                                 @for (code of prerequisiteChips(row.prerequisites); track code) {
 
@@ -607,7 +639,7 @@
 
               (click)="confirmImport()"
 
-              [disabled]="selectedImportCount === 0 || isImporting"
+              [disabled]="selectedImportCount === 0 || isImporting || hasSelectedTitleLengthIssues"
 
               class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
 

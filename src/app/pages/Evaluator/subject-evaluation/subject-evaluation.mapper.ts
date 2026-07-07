@@ -4,6 +4,10 @@ import { MiscellaneousFee } from '../../../core/models/miscellaneous-fee.model';
 import { OtherSchoolFee } from '../../../core/models/other-school-fee.model';
 import { Downpayment } from '../../../core/models/downpayment.model';
 import { PaymentScheme } from '../../../core/models/payment-scheme.model';
+import {
+  formatPaymentSchemeChargeSlipLabel,
+  sortPaymentSchemeInstallments
+} from '../../../shared/utils/payment-scheme-charge-slip.util';
 import { Student } from '../../../core/models/student.model';
 import { StudentClassEnrollmentRow } from '../../../core/models/student-enrollments.model';
 import { SyTerm } from '../../../core/models/sy-term.model';
@@ -56,6 +60,15 @@ function formatDateDisplay(iso: string | null | undefined): string {
   if (!iso?.trim()) {
     return '—';
   }
+  const normalized = iso.trim().slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+    const [year, month, day] = normalized.split('-').map((part) => Number(part));
+    return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  }
   try {
     return new Date(iso).toLocaleDateString('en-US', {
       month: 'long',
@@ -65,6 +78,14 @@ function formatDateDisplay(iso: string | null | undefined): string {
   } catch {
     return iso;
   }
+}
+
+function parseMoney(value: string | null | undefined): number {
+  if (!value?.trim()) {
+    return 0;
+  }
+  const parsed = parseFloat(value.replace(/,/g, ''));
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 function formatMoney(value: number): string {
@@ -225,6 +246,19 @@ function formatStudentProgramYearTerm(programCode: string, yearLevel: string): s
   return `${programCode.trim().toUpperCase()} - ${parseStudentCurrentYearTerm(yearLevel)}`;
 }
 
+export function mapSyTermToUpcomingTerm(term: SyTerm | null | undefined): SubjectEvaluationUpcomingTerm | null {
+  if (!term) {
+    return null;
+  }
+
+  return {
+    schoolYearTerm: `${term.syYear} - ${term.sySemester}`,
+    enrollmentPeriod: `${formatDateDisplay(term.syEnrollmentStart)} - ${formatDateDisplay(term.syEnrollmentEnd)}`,
+    schoolYear: term.syYear?.trim() ?? '',
+    semester: term.sySemester?.trim() ?? ''
+  };
+}
+
 export function mapUpcomingTerm(terms: readonly SyTerm[]): SubjectEvaluationUpcomingTerm | null {
   const active = terms.filter((t) => (t.syStatus ?? '').toLowerCase() === 'active');
   const pool = active.length > 0 ? active : [...terms];
@@ -238,13 +272,7 @@ export function mapUpcomingTerm(terms: readonly SyTerm[]): SubjectEvaluationUpco
     return db - da;
   });
 
-  const term = sorted[0];
-  return {
-    schoolYearTerm: `${term.syYear} - ${term.sySemester}`,
-    enrollmentPeriod: `${formatDateDisplay(term.syEnrollmentStart)} - ${formatDateDisplay(term.syEnrollmentEnd)}`,
-    schoolYear: term.syYear?.trim() ?? '',
-    semester: term.sySemester?.trim() ?? ''
-  };
+  return mapSyTermToUpcomingTerm(sorted[0]);
 }
 
 export function buildProgramFilterOptions(programCodes: readonly string[]): readonly SubjectEvaluationFilterOption[] {
@@ -591,15 +619,32 @@ function sumFeeMoney(rows: readonly ChargeSlipFeeRow[]): { cash: number; lowMont
 }
 
 function normalizePaymentSchemeSchoolYear(value: string): string {
-  return value.trim().replace(/^sy\s+/i, '').trim();
+  return value
+    .trim()
+    .replace(/^sy\s+/i, '')
+    .replace(/[\u2013\u2014]/g, '-')
+    .replace(/\s+/g, '');
 }
 
 function normalizePaymentSchemeSemester(value: string): string {
-  return value
+  const trimmed = value
     .trim()
     .replace(/\bterm\b/gi, 'Semester')
     .replace(/\s+/g, ' ')
     .trim();
+  const lower = trimmed.toLowerCase();
+
+  if (/^1(st)?(\s*sem(ester)?)?$/i.test(lower) || /\bfirst\b/i.test(lower)) {
+    return '1st Semester';
+  }
+  if (/^2(nd)?(\s*sem(ester)?)?$/i.test(lower) || /\bsecond\b/i.test(lower)) {
+    return '2nd Semester';
+  }
+  if (/\bsummer\b/i.test(lower)) {
+    return 'Summer';
+  }
+
+  return trimmed;
 }
 
 export function findPaymentSchemeForTerm(
@@ -626,18 +671,11 @@ export function findPaymentSchemeForTerm(
   );
 }
 
-function formatInstallmentLabel(
+function formatChargeSlipInstallmentLabel(
   installment: PaymentScheme['installments'][number],
   index: number
 ): string {
-  const paymentName = installment.paymentName?.trim();
-  if (paymentName) {
-    return paymentName;
-  }
-  if (installment.dueDate?.trim()) {
-    return formatDateDisplay(installment.dueDate);
-  }
-  return `Installment ${index + 1}`;
+  return formatPaymentSchemeChargeSlipLabel(installment, index);
 }
 
 export function mapPaymentSchemeToChargeSlipRows(
@@ -645,35 +683,31 @@ export function mapPaymentSchemeToChargeSlipRows(
   grossLow: number,
   downpaymentPercent: number
 ): ChargeSlipPaymentRow[] {
-  const dpAmount = (grossLow * downpaymentPercent) / 100;
-  const balance = Math.max(0, grossLow - dpAmount);
-
   if (!scheme || scheme.installments.length === 0) {
-    return [
-      {
-        label: 'Upon Enrollment/Required DP',
-        cash: '',
-        lowMonthlyPayment: formatMoney(dpAmount)
-      },
-      {
-        label: 'Remaining balance (estimate)',
-        cash: '',
-        lowMonthlyPayment: formatMoney(balance)
-      }
-    ];
+    return [];
   }
 
-  const sorted = [...scheme.installments].sort(
-    (left, right) => left.installmentOrder - right.installmentOrder
-  );
+  const dpAmount = (grossLow * downpaymentPercent) / 100;
+  const balance = Math.max(0, grossLow - dpAmount);
+  const sorted = sortPaymentSchemeInstallments(scheme);
   const remainingInstallments = Math.max(1, sorted.length - 1);
   const recurringAmount = balance / remainingInstallments;
 
   return sorted.map((installment, index) => ({
-    label: formatInstallmentLabel(installment, index),
+    label: formatChargeSlipInstallmentLabel(installment, index),
     cash: '',
     lowMonthlyPayment: formatMoney(index === 0 ? dpAmount : recurringAmount)
   }));
+}
+
+function sumPaymentSchemeAmounts(rows: readonly ChargeSlipPaymentRow[]): { cash: number; lowMonthly: number } {
+  return rows.reduce(
+    (acc, row) => ({
+      cash: acc.cash + parseMoney(row.cash),
+      lowMonthly: acc.lowMonthly + parseMoney(row.lowMonthlyPayment)
+    }),
+    { cash: 0, lowMonthly: 0 }
+  );
 }
 
 export function buildChargeSlipPreview(
@@ -738,6 +772,7 @@ export function buildChargeSlipPreview(
   const dpPercent = dp?.downpaymentPercent ?? 0;
   const matchedScheme = findPaymentSchemeForTerm(paymentSchemes, schoolYear, semester);
   const paymentScheme = mapPaymentSchemeToChargeSlipRows(matchedScheme, grossLow, dpPercent);
+  const paymentTotals = sumPaymentSchemeAmounts(paymentScheme);
 
   const given = [student.firstName, student.middleName].filter(Boolean).join(' ').trim();
 
@@ -760,7 +795,7 @@ export function buildChargeSlipPreview(
     grossAssessmentCash: formatMoney(grossCash),
     grossAssessmentLowMonthly: formatMoney(grossLow),
     paymentScheme,
-    paymentTotalCash: formatMoney(grossCash),
-    paymentTotalLowMonthly: formatMoney(grossLow)
+    paymentTotalCash: formatMoney(paymentTotals.cash > 0 ? paymentTotals.cash : grossCash),
+    paymentTotalLowMonthly: formatMoney(paymentTotals.lowMonthly > 0 ? paymentTotals.lowMonthly : grossLow)
   };
 }
