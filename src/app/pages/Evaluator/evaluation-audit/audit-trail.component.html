@@ -1,0 +1,97 @@
+<div class="evaluator-page audit-trail">
+  <header class="evaluator-page__header">
+    <h1 class="evaluator-page__title audit-trail__title">{{ pageTitle }}</h1>
+    <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
+  </header>
+
+  <section class="evaluator-surface audit-trail__panel audit-trail__panel--toolbar">
+    <div class="audit-trail__toolbar-copy">
+      <h2 class="audit-trail__panel-title">Evaluated Students</h2>
+      <p class="audit-trail__panel-lead">Search by student number, name, program, evaluator, or term.</p>
+    </div>
+    <label class="audit-trail__search">
+      <span class="audit-trail__search-label">Search</span>
+      <input
+        type="search"
+        class="audit-trail__search-input"
+        [ngModel]="searchTerm"
+        (ngModelChange)="onSearchChange($event)"
+        placeholder="Search evaluations…"
+        aria-label="Search evaluation audit records"
+      />
+    </label>
+  </section>
+
+  <section class="evaluator-surface evaluator-surface--table audit-trail__panel audit-trail__panel--table">
+    <div class="audit-trail__table-scroll">
+      <table class="audit-trail__table">
+        <thead>
+          <tr>
+            <th scope="col">Evaluated At</th>
+            <th scope="col">Student Number</th>
+            <th scope="col">Student Name</th>
+            <th scope="col">Program / Year Level</th>
+            <th scope="col">School Year / Term</th>
+            <th scope="col" class="audit-trail__th--center">Units</th>
+            <th scope="col">Evaluated By</th>
+            <th scope="col" class="audit-trail__th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading) {
+            <tr>
+              <td colspan="8">Loading evaluation records…</td>
+            </tr>
+          } @else if (rows.length === 0) {
+            <tr>
+              <td colspan="8">No evaluated students yet.</td>
+            </tr>
+          } @else {
+            @for (row of rows; track row.id) {
+              <tr class="audit-trail__row">
+                <td>{{ formatDate(row.evaluatedAt) }}</td>
+                <td>{{ row.studentNumber }}</td>
+                <td class="audit-trail__cell-strong">{{ row.studentName }}</td>
+                <td>{{ row.programYearLevel }}</td>
+                <td>{{ row.schoolYearTerm }}</td>
+                <td class="audit-trail__cell--center">{{ row.totalUnitsSelected }}</td>
+                <td>{{ row.evaluatedBy }}</td>
+                <td class="audit-trail__cell-actions">
+                  <button
+                    type="button"
+                    class="audit-trail__action audit-trail__action--view"
+                    title="View evaluation"
+                    [attr.aria-label]="'View evaluation for ' + row.studentName"
+                    (click)="onView(row, $event)"
+                  >
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                    View
+                  </button>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<app-evaluation-audit-view-dialog
+  [isOpen]="showViewDialog"
+  [auditId]="selectedAuditId"
+  (closed)="onCloseViewDialog()"
+/>

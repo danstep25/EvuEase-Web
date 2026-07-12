@@ -527,6 +527,18 @@ export class SubjectEvaluationComponent implements OnInit, OnDestroy {
           this.chargeSlipPreview = preview;
           this.isLoadingChargeSlip = false;
           this.currentStep = 4;
+          if (preview) {
+            this.subjectEvaluationService.saveEvaluationAudit(
+              this.selectedStudentId!,
+              preview,
+              this.allSuggestedCourses,
+              selectedIds,
+              this.finishedSubjects,
+              this.upcomingTerm?.schoolYear ?? '',
+              this.upcomingTerm?.semester ?? '',
+              this.upcomingTerm?.schoolYearTerm ?? ''
+            ).subscribe();
+          }
         },
         error: () => {
           this.chargeSlipPreview = null;

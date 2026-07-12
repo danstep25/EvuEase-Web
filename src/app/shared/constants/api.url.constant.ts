@@ -73,7 +73,11 @@ export const API_URL = {
     getById: (id: string) => `/Curricula/${id}`,
     create: '/Curricula/new',
     update: (id: string) => `/Curricula/${id}`,
-    delete: (id: string) => `/Curricula/${id}`
+    delete: (id: string) => `/Curricula/${id}`,
+    uploadSupportingDocument: (curriculumCode: string) =>
+      `/Curricula/code/${encodeURIComponent(curriculumCode)}/supporting-document`,
+    downloadSupportingDocument: (curriculumCode: string) =>
+      `/Curricula/code/${encodeURIComponent(curriculumCode)}/supporting-document`
   },
   course: {
     base: '/Course',
@@ -148,6 +152,11 @@ export const API_URL = {
     updateStatus: (id: string) => `/CreditRequest/${id}/status`,
     uploadSignedPdf: (id: string) => `/CreditRequest/${id}/signed-pdf`,
     downloadSignedPdf: (id: string) => `/CreditRequest/${id}/signed-pdf`
+  },
+  evaluationAudit: {
+    getAll: '/EvaluationAudit',
+    getById: (id: number | string) => `/EvaluationAudit/${id}`,
+    create: '/EvaluationAudit'
   },
   classAssignment: {
     gradingSchemeBasis: '/ClassAssignment/grading-scheme-basis'

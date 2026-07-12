@@ -140,6 +140,14 @@ export const routes: Routes = [
         data: { title: 'Subject Evaluation' }
       },
       {
+        path: 'audit-trail',
+        loadComponent: () =>
+          import('./pages/Evaluator/evaluation-audit/audit-trail.component').then(
+            (m) => m.EvaluatorAuditTrailComponent
+          ),
+        data: { title: 'Audit Trail' }
+      },
+      {
         path: 'credit-subjects/add',
         canDeactivate: [unsavedChangesGuard],
         loadComponent: () =>

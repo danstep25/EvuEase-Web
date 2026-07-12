@@ -152,3 +152,20 @@ export function applyRowValidation(row: CourseBatchImportPreviewRow): void {
 export function countRowsWithLongTitles(rows: readonly CourseBatchImportPreviewRow[]): number {
   return rows.filter((row) => row.courseTitle.trim().length > COURSE_TITLE_MAX_LENGTH).length;
 }
+
+export function hasExistingCourseCodeMessage(messages: readonly string[]): boolean {
+  return messages.some((message) => /already exists/i.test(message));
+}
+
+export function isRowEligibleForImport(row: CourseBatchImportPreviewRow): boolean {
+  return (
+    row.selected &&
+    row.status !== 'Error' &&
+    row.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH &&
+    !hasExistingCourseCodeMessage(row.messages)
+  );
+}
+
+export function countRowsWithExistingCourseCodes(rows: readonly CourseBatchImportPreviewRow[]): number {
+  return rows.filter((row) => row.selected && hasExistingCourseCodeMessage(row.messages)).length;
+}

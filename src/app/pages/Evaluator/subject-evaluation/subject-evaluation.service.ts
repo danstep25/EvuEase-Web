@@ -24,6 +24,7 @@ import {
   buildProgramFilterOptions,
   buildStudentSummary,
   buildSubjectSelectionState,
+  computeSuggestedUnitsSelected,
   filterStudents,
   mapUpcomingTerm,
   mapSyTermToUpcomingTerm,
@@ -32,10 +33,13 @@ import {
 } from './subject-evaluation.mapper';
 import type {
   ChargeSlipPreview,
+  SubjectEvaluationFinishedSubjectRow,
   SubjectEvaluationInitialData,
   SubjectEvaluationStudentWorkflow,
   SubjectSelectionSuggestedRow
 } from './subject-evaluation.models';
+import { EvaluationAuditService } from '../evaluation-audit/evaluation-audit.service';
+import type { CreateEvaluationAuditRequest } from '../evaluation-audit/evaluation-audit.models';
 
 const BULK_PAGE = { PageIndex: 1, PageSize: 500, SortDirection: SORT_DEFAULTS.DIRECTION, SortKey: '' } as const;
 
@@ -62,6 +66,7 @@ export class SubjectEvaluationService {
   private readonly downpaymentService = inject(DownpaymentService);
   private readonly paymentSchemeService = inject(PaymentSchemeService);
   private readonly curriculumResolutionService = inject(EvaluatorCurriculumResolutionService);
+  private readonly evaluationAuditService = inject(EvaluationAuditService);
 
   private cachedStudents: Student[] = [];
 
@@ -299,6 +304,48 @@ export class SubjectEvaluationService {
           );
       }),
       catchError(() => of([]))
+    );
+  }
+
+  saveEvaluationAudit(
+    studentId: string,
+    preview: ChargeSlipPreview,
+    selectionRows: readonly SubjectSelectionSuggestedRow[],
+    selectedIds: readonly string[],
+    finishedSubjects: readonly SubjectEvaluationFinishedSubjectRow[],
+    schoolYear: string,
+    semester: string,
+    schoolYearTerm: string
+  ): Observable<void> {
+    const student = this.findStudent(studentId);
+    if (!student) {
+      return of(void 0);
+    }
+
+    const selectedSubjects = selectionRows.filter((row) => selectedIds.includes(row.id));
+    const totalUnitsSelected = computeSuggestedUnitsSelected(selectionRows, new Set(selectedIds));
+    const studentName = [student.lastName, student.firstName, student.middleName].filter(Boolean).join(', ').replace(/,\s*$/, '');
+
+    const request: CreateEvaluationAuditRequest = {
+      studentId: Number(student.id),
+      studentNumber: student.studentNumber,
+      studentName,
+      programCode: student.programCode,
+      programYearLevel: `${student.programCode} - ${student.yearLevel}`,
+      schoolYear,
+      semester,
+      schoolYearTerm,
+      totalUnitsSelected,
+      evaluationData: {
+        chargeSlipPreview: preview,
+        selectedSubjects,
+        finishedSubjects
+      }
+    };
+
+    return this.evaluationAuditService.createAuditRecord(request).pipe(
+      map(() => void 0),
+      catchError(() => of(void 0))
     );
   }
 }

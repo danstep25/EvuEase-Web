@@ -115,6 +115,13 @@ export const EVALUATOR_NAV_MENU: NavItem[] = [
     roles: ['Evaluator']
   },
   {
+    label: 'Audit Trail',
+    route: 'audit-trail',
+    icon: 'audit-trail',
+    module: 'audit',
+    roles: ['Evaluator']
+  },
+  {
     label: 'Credit Subjects',
     route: 'credit-subjects',
     icon: 'verified',

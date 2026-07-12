@@ -772,6 +772,7 @@ export class CurriculumManagementComponent extends BasePaginationHandler impleme
     this.showCourseBatchUploadModal = false;
     this.tableViewReloadToken++;
     this.loadCourses();
+    this.loadCurricula();
     this.notificationService.success(
       'Courses imported',
       `${count} course${count === 1 ? '' : 's'} were added to the curriculum.`

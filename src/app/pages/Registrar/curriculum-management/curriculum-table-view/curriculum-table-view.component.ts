@@ -8,6 +8,8 @@ import { Program } from '../../../../core/models/program.model';
 import { SORT_DEFAULTS } from '../../../../shared/constants/sort.constant';
 import { resolveCurriculumCompletionYears } from '../../../../shared/utils/curriculum-completion.util';
 import { CourseService } from '../course.service';
+import { CurriculumManagementService } from '../curriculum-management.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 const TABLE_VIEW_BULK_PARAMS = {
   PageIndex: 1,
@@ -42,6 +44,8 @@ function normalizeYearBucket(year: string): string {
 })
 export class CurriculumTableViewComponent implements OnChanges {
   private readonly courseService = inject(CourseService);
+  private readonly curriculaService = inject(CurriculumManagementService);
+  private readonly notificationService = inject(NotificationService);
 
   @Input() programs: Program[] = [];
   @Input() curricula: Curricula[] = [];
@@ -56,6 +60,8 @@ export class CurriculumTableViewComponent implements OnChanges {
 
   tableCourses: Course[] = [];
   isLoadingTableCourses = false;
+  isLoadingSupportingDocument = false;
+  curriculumDetails: Curricula | null = null;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (
@@ -64,6 +70,7 @@ export class CurriculumTableViewComponent implements OnChanges {
       changes['reloadToken']
     ) {
       this.loadTableCourses();
+      this.loadCurriculumDetails();
     }
   }
 
@@ -156,6 +163,43 @@ export class CurriculumTableViewComponent implements OnChanges {
     this.batchUpload.emit();
   }
 
+  viewSupportingDocument(): void {
+    const curriculumCode = this.selectedCurriculumFilter?.trim();
+    if (!curriculumCode || this.isLoadingSupportingDocument) {
+      return;
+    }
+
+    this.isLoadingSupportingDocument = true;
+    this.curriculaService.downloadSupportingDocument(curriculumCode).subscribe({
+      next: (blob) => {
+        const fileName =
+          this.curriculumDetails?.supportingDocumentFileName || 'curriculum-supporting-document';
+        const url = URL.createObjectURL(blob);
+        const isPdf = fileName.toLowerCase().endsWith('.pdf');
+        const isImage = /\.(png|jpe?g|webp)$/i.test(fileName);
+
+        if (isPdf || isImage) {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        } else {
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = fileName;
+          anchor.click();
+        }
+
+        window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        this.isLoadingSupportingDocument = false;
+      },
+      error: (err: { userMessage?: string; message?: string }) => {
+        this.isLoadingSupportingDocument = false;
+        this.notificationService.error(
+          'Could not open document',
+          err?.userMessage || err?.message || 'Supporting document is unavailable.'
+        );
+      }
+    });
+  }
+
   private loadTableCourses(): void {
     const programId = this.selectedProgramFilter;
     const curriculumCode = this.selectedCurriculumFilter?.trim();
@@ -177,6 +221,30 @@ export class CurriculumTableViewComponent implements OnChanges {
       .subscribe((response) => {
         this.tableCourses = response?.success && response.data ? response.data : [];
         this.isLoadingTableCourses = false;
+      });
+  }
+
+  private loadCurriculumDetails(): void {
+    const programId = this.selectedProgramFilter;
+    const curriculumCode = this.selectedCurriculumFilter?.trim();
+
+    if (!programId || !curriculumCode) {
+      this.curriculumDetails = null;
+      return;
+    }
+
+    this.curriculaService
+      .getCurricula({
+        PageIndex: 1,
+        PageSize: 500,
+        SortDirection: SORT_DEFAULTS.DIRECTION,
+        SortKey: '',
+        programId
+      })
+      .pipe(catchError(() => of(null)))
+      .subscribe((response) => {
+        const rows = response?.data ?? [];
+        this.curriculumDetails = rows.find((row) => row.curriculumCode === curriculumCode) ?? null;
       });
   }
 }

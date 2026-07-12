@@ -11,6 +11,9 @@ export interface Curricula {
   curriculumStatus: string;
   createdAt?: string | null;
   updatedAt?: string | null;
+  hasSupportingDocument?: boolean;
+  supportingDocumentFileName?: string | null;
+  supportingDocumentUploadedAt?: string | null;
 }
 
 export interface CreateCurriculaRequest {

@@ -33,6 +33,7 @@ import { LookupService } from '../../../shared/services/lookup.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 
 import { CourseService } from './course.service';
+import { CurriculumManagementService } from './curriculum-management.service';
 
 import {
 
@@ -46,7 +47,7 @@ import {
 
 } from './course-batch-upload.model';
 
-import { prerequisiteCodes, clampUnitValue, applyRowValidation, applyRowPrerequisiteValidation, buildKnownPrerequisiteCodes, countRowsWithLongTitles, normalizePrerequisiteString } from './course-batch-upload.util';
+import { prerequisiteCodes, clampUnitValue, applyRowValidation, applyRowPrerequisiteValidation, buildKnownPrerequisiteCodes, countRowsWithLongTitles, countRowsWithExistingCourseCodes, hasExistingCourseCodeMessage, isRowEligibleForImport, normalizePrerequisiteString } from './course-batch-upload.util';
 import { COURSE_TITLE_MAX_LENGTH } from '../../../shared/constants/course-validation.constant';
 
 
@@ -76,6 +77,7 @@ export class CourseBatchUploadModalComponent implements OnChanges {
   private readonly lookupService = inject(LookupService);
 
   private readonly courseService = inject(CourseService);
+  private readonly curriculaService = inject(CurriculumManagementService);
 
   private readonly notificationService = inject(NotificationService);
   private readonly formDiscard = inject(FormDiscardService);
@@ -109,6 +111,8 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
 
   selectedFile: File | null = null;
+  supportingDocumentFile: File | null = null;
+  saveCurriculumPdfAsReference = true;
 
   pdfDetection: CourseBatchPdfDetectionResponse | null = null;
 
@@ -131,6 +135,8 @@ export class CourseBatchUploadModalComponent implements OnChanges {
   isPreviewLoading = false;
 
   isImporting = false;
+  isUploadingDocument = false;
+  referenceDocumentSaved = false;
 
   importSummary: { imported: number; skipped: number } | null = null;
 
@@ -162,11 +168,63 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
   }
 
+  get willAttachReferenceDocument(): boolean {
+    return !!this.resolveReferenceDocumentFile();
+  }
+
+  get referenceDocumentLabel(): string | null {
+    const file = this.resolveReferenceDocumentFile();
+    return file?.name ?? null;
+  }
+
+  onSupportingDocumentSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    input.value = '';
+
+    if (!file) {
+      return;
+    }
+
+    if (!this.isAllowedSupportingDocument(file)) {
+      this.notificationService.warning(
+        'Invalid file',
+        'Supporting documents must be PDF, PNG, JPG, JPEG, WEBP, DOC, or DOCX.'
+      );
+      return;
+    }
+
+    this.supportingDocumentFile = file;
+    this.wizardForm.markAsDirty();
+  }
+
+  clearSupportingDocument(): void {
+    this.supportingDocumentFile = null;
+    this.wizardForm.markAsDirty();
+  }
+
+  onSaveCurriculumPdfAsReferenceChange(checked: boolean): void {
+    this.saveCurriculumPdfAsReference = checked;
+    this.wizardForm.markAsDirty();
+  }
+
 
 
   get selectedImportCount(): number {
 
-    return (this.preview?.rows ?? []).filter((row) => row.selected && row.status !== 'Error' && row.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH).length;
+    return (this.preview?.rows ?? []).filter((row) => isRowEligibleForImport(row)).length;
+
+  }
+
+  get duplicateCourseSelectionCount(): number {
+
+    return countRowsWithExistingCourseCodes(this.preview?.rows ?? []);
+
+  }
+
+  get hasSelectedDuplicateCourseCodes(): boolean {
+
+    return this.duplicateCourseSelectionCount > 0;
 
   }
 
@@ -409,7 +467,11 @@ export class CourseBatchUploadModalComponent implements OnChanges {
   toggleRowSelection(row: CourseBatchImportPreviewRow, checked: boolean): void {
     this.wizardForm.markAsDirty();
 
-    if (row.status === 'Error' || row.courseTitle.trim().length > COURSE_TITLE_MAX_LENGTH) {
+    if (
+      row.status === 'Error' ||
+      row.courseTitle.trim().length > COURSE_TITLE_MAX_LENGTH ||
+      hasExistingCourseCodeMessage(row.messages)
+    ) {
 
       row.selected = false;
 
@@ -428,7 +490,11 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
     for (const row of this.filteredPreviewRows) {
 
-      if (row.status !== 'Error' && row.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH) {
+      if (
+        row.status !== 'Error' &&
+        row.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH &&
+        !hasExistingCourseCodeMessage(row.messages)
+      ) {
 
         row.selected = checked;
 
@@ -444,7 +510,10 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
     const selectable = this.filteredPreviewRows.filter(
 
-      (row) => row.status !== 'Error' && row.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH
+      (row) =>
+        row.status !== 'Error' &&
+        row.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH &&
+        !hasExistingCourseCodeMessage(row.messages)
 
     );
 
@@ -532,8 +601,6 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
       .importCourseBatch(payload)
 
-      .pipe(finalize(() => (this.isImporting = false)))
-
       .subscribe({
 
         next: (result) => {
@@ -546,16 +613,21 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
           };
 
-          this.step = 'complete';
-          this.wizardForm.markAsPristine();
-
-          this.imported.emit(result.importedCount ?? 0);
+          this.uploadReferenceDocumentIfNeeded();
 
         },
 
-        error: (err: { error?: { message?: string }; message?: string }) => {
+        error: (err: { userMessage?: string; error?: { message?: string; error?: { message?: string; details?: string } }; message?: string }) => {
+
+          this.isImporting = false;
 
           const msg =
+
+            err?.userMessage ||
+
+            err?.error?.error?.message ||
+
+            (typeof err?.error?.error?.details === 'string' ? err.error.error.details : null) ||
 
             err?.error?.message ||
 
@@ -616,6 +688,8 @@ export class CourseBatchUploadModalComponent implements OnChanges {
     this.curriculumVersions = [];
 
     this.selectedFile = null;
+    this.supportingDocumentFile = null;
+    this.saveCurriculumPdfAsReference = true;
 
     this.pdfDetection = null;
 
@@ -634,6 +708,8 @@ export class CourseBatchUploadModalComponent implements OnChanges {
     this.isPreviewLoading = false;
 
     this.isImporting = false;
+    this.isUploadingDocument = false;
+    this.referenceDocumentSaved = false;
 
     this.importSummary = null;
     this.wizardForm.markAsPristine();
@@ -926,7 +1002,10 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
         applyRowValidation(mapped);
 
-        mapped.selected = mapped.status !== 'Error' && mapped.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH;
+        mapped.selected =
+          mapped.status !== 'Error' &&
+          mapped.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH &&
+          !hasExistingCourseCodeMessage(mapped.messages);
 
         return mapped;
 
@@ -940,7 +1019,10 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
       applyRowPrerequisiteValidation(row, this.knownPrerequisiteCodes);
 
-      row.selected = row.status !== 'Error' && row.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH;
+        row.selected =
+          row.status !== 'Error' &&
+          row.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH &&
+          !hasExistingCourseCodeMessage(row.messages);
 
     }
 
@@ -964,7 +1046,10 @@ export class CourseBatchUploadModalComponent implements OnChanges {
     applyRowValidation(row);
     applyRowPrerequisiteValidation(row, this.knownPrerequisiteCodes);
 
-    row.selected = row.status !== 'Error' && row.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH;
+        row.selected =
+          row.status !== 'Error' &&
+          row.courseTitle.trim().length <= COURSE_TITLE_MAX_LENGTH &&
+          !hasExistingCourseCodeMessage(row.messages);
 
     this.refreshPreviewStats();
 
@@ -988,6 +1073,69 @@ export class CourseBatchUploadModalComponent implements OnChanges {
 
     this.preview.errorRows = rows.filter((row) => row.status === 'Error').length;
 
+  }
+
+  private uploadReferenceDocumentIfNeeded(): void {
+    const file = this.resolveReferenceDocumentFile();
+    const curriculumCode = this.selectedCurriculumCode.trim();
+
+    if (!file || !curriculumCode) {
+      this.finishImport();
+      return;
+    }
+
+    this.isUploadingDocument = true;
+    this.curriculaService
+      .uploadSupportingDocument(curriculumCode, file)
+      .pipe(finalize(() => (this.isUploadingDocument = false)))
+      .subscribe({
+        next: () => {
+          this.referenceDocumentSaved = true;
+          this.finishImport();
+        },
+        error: (err: { userMessage?: string; error?: { message?: string }; message?: string }) => {
+          const msg =
+            err?.userMessage ||
+            err?.error?.message ||
+            err?.message ||
+            'Courses were imported, but the supporting document could not be saved.';
+          this.notificationService.warning('Supporting document not saved', msg);
+          this.finishImport();
+        }
+      });
+  }
+
+  private finishImport(): void {
+    const importedCount = this.importSummary?.imported ?? 0;
+    this.isImporting = false;
+    this.step = 'complete';
+    this.wizardForm.markAsPristine();
+    this.imported.emit(importedCount);
+  }
+
+  private resolveReferenceDocumentFile(): File | null {
+    if (this.supportingDocumentFile) {
+      return this.supportingDocumentFile;
+    }
+
+    if (this.saveCurriculumPdfAsReference && this.selectedFile) {
+      return this.selectedFile;
+    }
+
+    return null;
+  }
+
+  private isAllowedSupportingDocument(file: File): boolean {
+    const name = file.name.toLowerCase();
+    return (
+      name.endsWith('.pdf') ||
+      name.endsWith('.png') ||
+      name.endsWith('.jpg') ||
+      name.endsWith('.jpeg') ||
+      name.endsWith('.webp') ||
+      name.endsWith('.doc') ||
+      name.endsWith('.docx')
+    );
   }
 
 }

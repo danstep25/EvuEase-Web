@@ -31,7 +31,13 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             errorMessage = error.error?.message || 'Validation Error';
             break;
           case 500:
-            errorMessage = 'Internal Server Error. Please try again later.';
+            errorMessage =
+              error.error?.error?.message ||
+              (typeof error.error?.error?.details === 'string'
+                ? error.error.error.details
+                : null) ||
+              error.error?.message ||
+              'Internal Server Error. Please try again later.';
             break;
           case 503:
             errorMessage = 'Service Unavailable. Please try again later.';
