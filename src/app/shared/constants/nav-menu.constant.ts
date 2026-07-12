@@ -26,6 +26,12 @@ export const ADMIN_NAV_MENU: NavItem[] = [
     module: 'audit'
   },
   {
+    label: 'Audit Trail',
+    route: 'audit-trail',
+    icon: 'audit-trail',
+    module: 'audit'
+  },
+  {
     label: 'Portal Password Resets',
     route: 'portal-password-resets',
     icon: 'lock',

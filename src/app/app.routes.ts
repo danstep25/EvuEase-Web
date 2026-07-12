@@ -30,6 +30,14 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/Admin/system-logs/system-logs.component').then(m => m.SystemLogsComponent)
       },
       {
+        path: 'audit-trail',
+        loadComponent: () =>
+          import('./pages/Evaluator/evaluation-audit/audit-trail.component').then(
+            (m) => m.EvaluatorAuditTrailComponent
+          ),
+        data: { title: 'Audit Trail' }
+      },
+      {
         path: 'portal-password-resets',
         loadComponent: () =>
           import('./pages/Admin/portal-password-resets/portal-password-resets.component').then(
