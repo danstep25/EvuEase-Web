@@ -1,130 +1,220 @@
-# EvalEase Web
+# EvuEase Web (Frontend)
 
-A modern Angular application for the Student Subject Evaluation System at STI College Tarlac, built with Angular 18, Tailwind CSS, and best practices.
+Angular web application for EvuEase / EvalEase (Admin, Registrar, Evaluator, and Student portals).
 
-## Features
+## Specifications
 
-- 🎨 **Modern UI**: Built with Tailwind CSS for a clean, responsive design
-- ⚡ **Angular 18**: Latest Angular with standalone components
-- 🎯 **TypeScript**: Full type safety and modern ES features
-- 📱 **Responsive Design**: Mobile-first approach with Tailwind CSS
-- 🔒 **Form Validation**: Reactive forms with proper validation
-- 🏗️ **Best Practices**: Clean code architecture following Angular guidelines
+| Item | Value |
+|------|--------|
+| Framework | Angular **18** (standalone components) |
+| Language | TypeScript ~5.4 |
+| Styling | Tailwind CSS 3 + SCSS |
+| Package manager | npm |
+| Node.js | **18.x or higher** (20 LTS recommended) |
+| Dev server | `http://localhost:4200` |
+| API (default) | `https://localhost:7252/api` |
 
-## Prerequisites
+Configure the API base URL in:
 
-Before you begin, ensure you have the following installed:
+- `src/environments/environment.ts` (development)
+- `src/environments/environment.prod.ts` (production)
 
-- **Node.js** (v18.x or higher) - [Download](https://nodejs.org/)
-- **npm** (comes with Node.js) or **yarn**
+---
 
-## Installation
+## Required software / packages
 
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+| Software | Required? | Purpose |
+|----------|-----------|---------|
+| **Node.js** | Yes | JavaScript runtime (**18+**, 20 LTS recommended) |
+| **npm** | Yes | Package manager (installed with Node.js) |
+| **Modern browser** | Yes | Chrome / Edge / Firefox for the UI |
+| **Backend API running** | Yes | Frontend calls `https://localhost:7252/api` |
+| **Git** | Optional | Clone the repository |
 
-2. **Start the development server:**
-   ```bash
-   npm start
-   ```
+**Installed by `npm install` (from `package.json` — no global install needed):**
 
-3. **Open your browser:**
-   Navigate to `http://localhost:4200/`
+- Angular 18 (`@angular/*`)
+- TypeScript, RxJS, Zone.js
+- Tailwind CSS, PostCSS, Autoprefixer
+- Angular CLI / build tools (via local `node_modules`)
 
-## Project Structure
+You do **not** need a global Angular CLI (`npm install -g @angular/cli`) unless you prefer it. Use `npm start` after installing dependencies.
 
-```
-src/
-├── app/
-│   ├── pages/
-│   │   └── login/              # Login page component
-│   ├── app.component.ts        # Root component
-│   └── app.routes.ts           # Route configuration
-├── assets/                     # Static assets
-├── styles.scss                 # Global styles with Tailwind
-└── index.html                  # Entry HTML file
-```
+## Prerequisites by OS
 
-## Available Scripts
+### Windows
 
-- `npm start` - Start development server
-- `npm run build` - Build for production
-- `npm run watch` - Build and watch for changes
-- `npm test` - Run unit tests
+1. Install [Node.js 20 LTS](https://nodejs.org/) (includes npm).
+2. Optional: [Git for Windows](https://git-scm.com/download/win).
+3. Ensure the backend API is running (see [Backend README](../EvuEase-API/README.md)).
 
-## Customization
+Verify:
 
-### Theme Colors
-
-Edit the Tailwind configuration in `tailwind.config.js`:
-
-```javascript
-theme: {
-  extend: {
-    colors: {
-      primary: {
-        DEFAULT: '#1a237e',
-        dark: '#0d1459',
-        light: '#3949ab',
-      },
-      accent: {
-        DEFAULT: '#ffc107',
-        dark: '#ffb300',
-        light: '#ffd54f',
-      },
-    },
-  },
-}
+```powershell
+node -v
+npm -v
 ```
 
-### Adding New Pages
+### macOS
 
-1. Create a new component in `src/app/pages/`
-2. Add a route in `src/app/app.routes.ts`:
-   ```typescript
-   {
-     path: 'your-page',
-     loadComponent: () => import('./pages/your-page/your-page.component').then(m => m.YourPageComponent)
-   }
-   ```
+1. Install Node.js 20 LTS via [nodejs.org](https://nodejs.org/) or Homebrew:
 
-## Technologies Used
+```bash
+brew install node@20
+```
 
-- **Angular 18** - Frontend framework
-- **Tailwind CSS** - Utility-first CSS framework
-- **TypeScript** - Programming language
-- **RxJS** - Reactive programming
-- **PostCSS** - CSS processing
+2. Optional: Xcode Command Line Tools (`xcode-select --install`) if build tools are missing.
 
-## Development
+Verify:
 
-This project uses Angular's standalone components architecture. All components are self-contained and don't require NgModules.
+```bash
+node -v
+npm -v
+```
 
-### Code Style
+### Linux
 
-- Uses `inject()` function for dependency injection (Angular 18 best practice)
-- Implements proper TypeScript interfaces for type safety
-- Follows Angular style guide conventions
-- Uses Tailwind utility classes for styling
+1. Install Node.js 20 LTS using your package manager or [NodeSource / nvm](https://nodejs.org/).
 
-## Building for Production
+Example with **nvm**:
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+# restart shell, then:
+nvm install 20
+nvm use 20
+```
+
+Verify:
+
+```bash
+node -v
+npm -v
+```
+
+---
+
+## Setup and run
+
+Do this after the API and database are available.
+
+### 1. Install dependencies
+
+**Windows (PowerShell):**
+
+```powershell
+cd EvuEase-Web
+npm install
+```
+
+**macOS / Linux:**
+
+```bash
+cd EvuEase-Web
+npm install
+```
+
+### 2. Point to the API
+
+Edit `src/environments/environment.ts` if your API URL differs:
+
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'https://localhost:7252/api',
+  apiVersion: 'v1',
+  useMockAuth: false
+};
+```
+
+If you run the API on HTTP only:
+
+```typescript
+apiUrl: 'http://localhost:5218/api',
+```
+
+CORS on the API must allow `http://localhost:4200`.
+
+### 3. Start the development server
+
+```bash
+npm start
+```
+
+This runs `ng serve`. Open:
+
+`http://localhost:4200/`
+
+### 4. Production build
 
 ```bash
 npm run build
 ```
 
-The build artifacts will be stored in the `dist/` directory.
+Output is written under `dist/`.
 
-## Demo Credentials
+---
 
-The login page includes demo credentials for testing:
+## Available scripts
 
-- **Registrar**: registrar / registrar123
-- **Evaluator**: evaluator / evaluator123
-- **Admin**: admin / admin123
+| Script | Command | Description |
+|--------|---------|-------------|
+| Start | `npm start` | Dev server (`ng serve`) |
+| Build | `npm run build` | Production build |
+| Watch | `npm run watch` | Build and watch (development config) |
+| Test | `npm test` | Unit tests (Karma/Jasmine) |
 
-## License
+---
 
-This project is part of the EvalEase application suite for STI College Tarlac.
+## Project structure (high level)
+
+```
+EvuEase-Web/
+├── src/
+│   ├── app/
+│   │   ├── pages/           # Admin, Registrar, Evaluator, StudentPortal, Auth
+│   │   ├── core/            # Guards, models, interceptors, services
+│   │   ├── shared/          # Shared UI, constants, utilities
+│   │   └── app.routes.ts
+│   ├── environments/
+│   ├── styles.scss
+│   └── index.html
+├── angular.json
+├── package.json
+├── tailwind.config.js
+└── tsconfig.json
+```
+
+---
+
+## Portals
+
+After login, routes are role-based, for example:
+
+| Portal | Path prefix |
+|--------|-------------|
+| Admin | `/admin` |
+| Registrar | `/registrar` |
+| Evaluator | `/evaluator` |
+| Student | `/student_portal` |
+
+Use accounts that exist in your database (seed or create via Admin → User Management). Older demo-only credentials in docs may not match a fresh database.
+
+---
+
+## Troubleshooting
+
+| Issue | What to try |
+|-------|-------------|
+| `npm install` fails | Use Node 18+; delete `node_modules` and `package-lock.json`, then `npm install` again |
+| Blank page / API errors | Confirm API is running and `environment.apiUrl` is correct |
+| CORS blocked | Add `http://localhost:4200` to API `Cors:AllowedOrigins` |
+| HTTPS certificate warning to API | Trust .NET dev cert (`dotnet dev-certs https --trust`) or use HTTP API URL |
+| Port 4200 in use | `npx ng serve --port 4300` and update API CORS if needed |
+
+---
+
+## Related
+
+- Backend / database setup: [../EvuEase-API/README.md](../EvuEase-API/README.md)
+- Repository overview: [../README.md](../README.md)
