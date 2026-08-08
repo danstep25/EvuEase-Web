@@ -1,0 +1,337 @@
+@if (isOpen) {
+  @if (isLoading) {
+    <div class="emcd__overlay" role="presentation">
+      <div class="emcd__dialog"><p class="emcd__loading">Loading...</p></div>
+    </div>
+  } @else if (context) {
+  <div
+    class="emcd__overlay"
+    role="presentation"
+    (keydown.escape)="onClose()"
+  >
+    <div
+      class="emcd__dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="emcd-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="emcd__header">
+        <div class="emcd__header-text">
+          <h2 id="emcd-title" class="emcd__title">Migrate Curriculum</h2>
+          <p class="emcd__subtitle">Update student's curriculum assignment</p>
+        </div>
+        <button type="button" class="emcd__close" (click)="onClose()">
+          <svg class="emcd__close-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Close
+        </button>
+      </header>
+
+      <div class="emcd__body">
+        <section class="emcd__student-card" aria-labelledby="emcd-student-heading">
+          <h3 id="emcd-student-heading" class="emcd__student-card-title">Student Information</h3>
+          <div class="emcd__student-grid">
+            <div class="emcd__student-item">
+              <span class="emcd__student-label">Student Number</span>
+              <span class="emcd__student-value">{{ context.studentNumber }}</span>
+            </div>
+            <div class="emcd__student-item">
+              <span class="emcd__student-label">Name</span>
+              <span class="emcd__student-value">{{ context.fullName }}</span>
+            </div>
+            <div class="emcd__student-item">
+              <span class="emcd__student-label">Program</span>
+              <span class="emcd__student-value">{{ context.program }}</span>
+            </div>
+            <div class="emcd__student-item">
+              <span class="emcd__student-label">Year Level</span>
+              <span class="emcd__student-value">{{ context.yearLevel }}</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="emcd__field">
+          <label class="emcd__label" for="emcd-current-curriculum">Current Curriculum</label>
+          <input
+            id="emcd-current-curriculum"
+            class="emcd__input emcd__input--readonly"
+            type="text"
+            [value]="context.currentCurriculumCode"
+            readonly
+            tabindex="-1"
+          />
+        </div>
+
+        <div class="emcd__field">
+          <label class="emcd__label" for="emcd-new-curriculum">
+            New Curriculum <span class="emcd__required" aria-hidden="true">*</span>
+          </label>
+          <div class="emcd__select-wrap">
+            <select
+              id="emcd-new-curriculum"
+              class="emcd__select"
+              [(ngModel)]="newCurriculumCode"
+              (ngModelChange)="onNewCurriculumChange()"
+            >
+              <option value="">Select New Curriculum</option>
+              @for (option of newCurriculumOptions; track trackOption($index, option)) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+            <svg class="emcd__select-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        <div class="emcd__alert" role="note">
+          <svg class="emcd__alert-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.75"
+              d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <p class="emcd__alert-text">
+            <strong>Important:</strong> Curriculum migration will update the student's academic plan — ensure this action is authorized.
+          </p>
+        </div>
+
+        @if (newCurriculumCode.trim()) {
+          @if (isPreviewLoading) {
+            <p class="emcd__preview-loading">Loading migration preview...</p>
+          } @else if (preview) {
+            <section class="emcd__summary" aria-labelledby="emcd-summary-heading">
+              <h3 id="emcd-summary-heading" class="emcd__section-title">Migration Summary</h3>
+              <div class="emcd__summary-cards">
+                <article class="emcd__summary-card emcd__summary-card--auto">
+                  <span class="emcd__summary-count">{{ preview.summary.autoMatched }}</span>
+                  <span class="emcd__summary-label">Auto Matched</span>
+                </article>
+                <article class="emcd__summary-card emcd__summary-card--manual">
+                  <span class="emcd__summary-count">{{ preview.summary.manualMatched }}</span>
+                  <span class="emcd__summary-label">Manual Matched</span>
+                </article>
+                <article class="emcd__summary-card emcd__summary-card--pending">
+                  <span class="emcd__summary-count">{{ preview.summary.pendingMatch }}</span>
+                  <span class="emcd__summary-label">Pending Match</span>
+                </article>
+                <article class="emcd__summary-card emcd__summary-card--retake">
+                  <span class="emcd__summary-count">{{ preview.summary.mustRetake }}</span>
+                  <span class="emcd__summary-label">Must Retake</span>
+                </article>
+              </div>
+              <div class="emcd__summary-footer">
+                <p class="emcd__units-credited">
+                  Units Credited:
+                  <strong>{{ preview.summary.unitsCredited }} of {{ preview.summary.unitsTotal }} units</strong>
+                </p>
+                <button type="button" class="emcd__auto-suggest-btn" (click)="onAutoSuggestMatches()">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.75"
+                      d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"
+                    />
+                  </svg>
+                  Auto-Suggest Matches
+                </button>
+              </div>
+            </section>
+
+            <section class="emcd__structure" aria-labelledby="emcd-structure-heading">
+              <header class="emcd__structure-banner">
+                <h3 id="emcd-structure-heading" class="emcd__structure-title">New Curriculum Structure</h3>
+                <p class="emcd__structure-subtitle">
+                  Version: {{ preview.newCurriculumVersion }} | All subjects required for program completion
+                </p>
+              </header>
+
+              <div class="emcd__term-list">
+                @for (term of preview.structureTerms; track trackStructureTerm($index, term)) {
+                  <article class="emcd__term">
+                    <button
+                      type="button"
+                      class="emcd__term-toggle"
+                      [attr.aria-expanded]="isStructureTermExpanded(term)"
+                      (click)="toggleStructureTerm(term)"
+                    >
+                      <svg
+                        class="emcd__term-chevron"
+                        [class.emcd__term-chevron--open]="isStructureTermExpanded(term)"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                      <span class="emcd__term-toggle-text">
+                        <span class="emcd__term-label">{{ term.label }}</span>
+                        <span class="emcd__term-meta">{{ term.subjectCount }} subjects | {{ term.totalUnits }} units total</span>
+                      </span>
+                      <span
+                        class="emcd__term-badge"
+                        [class.emcd__term-badge--credited]="term.creditedCount > 0 && term.remainingCount === 0"
+                        [class.emcd__term-badge--remaining]="term.remainingCount > 0"
+                      >
+                        {{ structureTermBadge(term) }}
+                      </span>
+                    </button>
+
+                    @if (isStructureTermExpanded(term)) {
+                      <div class="emcd__course-grid">
+                        @for (course of term.courses; track trackStructureCourse($index, course)) {
+                          <article
+                            class="emcd__course-card"
+                            [class.emcd__course-card--credited]="course.creditStatus === 'credited'"
+                            [class.emcd__course-card--retake]="course.creditStatus === 'must-retake'"
+                          >
+                            <div class="emcd__course-card-head">
+                              <span class="emcd__course-code">{{ course.courseCode }}</span>
+                              @if (course.creditStatus === 'credited') {
+                                <span class="emcd__credited-badge">✓ CREDITED</span>
+                              }
+                            </div>
+                            <p class="emcd__course-title">{{ course.subjectDescription }}</p>
+                            <p class="emcd__course-units">{{ course.units }} units</p>
+                          </article>
+                        }
+                      </div>
+                    }
+                  </article>
+                }
+              </div>
+            </section>
+
+            @if (preview.mappingTerms.length > 0) {
+              <section class="emcd__bridge" aria-labelledby="emcd-bridge-heading">
+                <header class="emcd__bridge-header">
+                  <h3 id="emcd-bridge-heading" class="emcd__bridge-title">Subject Mapping Bridge</h3>
+                  <p class="emcd__bridge-subtitle">
+                    Map completed subjects from old curriculum to new curriculum
+                  </p>
+                </header>
+
+                @for (term of preview.mappingTerms; track trackMappingTerm($index, term)) {
+                  <article class="emcd__bridge-term">
+                    <button
+                      type="button"
+                      class="emcd__term-toggle emcd__term-toggle--bridge"
+                      [attr.aria-expanded]="isMappingTermExpanded(term)"
+                      (click)="toggleMappingTerm(term)"
+                    >
+                      <svg
+                        class="emcd__term-chevron"
+                        [class.emcd__term-chevron--open]="isMappingTermExpanded(term)"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                      <span class="emcd__term-toggle-text">
+                        <span class="emcd__term-label">{{ term.label }}</span>
+                        <span class="emcd__term-meta">{{ term.subjectCount }} subjects | {{ term.totalUnits }} units total</span>
+                      </span>
+                      <span
+                        class="emcd__term-badge"
+                        [class.emcd__term-badge--credited]="term.creditedCount > 0 && term.remainingCount === 0"
+                        [class.emcd__term-badge--remaining]="term.remainingCount > 0"
+                      >
+                        @if (term.remainingCount > 0) {
+                          {{ term.remainingCount }} Remaining
+                        } @else {
+                          {{ term.creditedCount }} Credited
+                        }
+                      </span>
+                    </button>
+
+                    @if (isMappingTermExpanded(term) && term.rows.length > 0) {
+                      <div class="emcd__bridge-table-wrap">
+                        <div class="emcd__bridge-table-head">
+                          <span>Old Curriculum<br /><small>Academic History (v{{ preview.oldCurriculumVersion }})</small></span>
+                          <span>Grade &amp; Status</span>
+                          <span>Mapping</span>
+                          <span>New Curriculum<br /><small>Requirements (v{{ preview.newCurriculumVersion }})</small></span>
+                          <span>Action</span>
+                        </div>
+                        @for (row of term.rows; track trackMappingRow($index, row)) {
+                          <div class="emcd__bridge-row">
+                            <div class="emcd__bridge-col emcd__bridge-col--old">
+                              <article class="emcd__bridge-course emcd__bridge-course--old">
+                                <div class="emcd__bridge-course-head">
+                                  <span class="emcd__bridge-code">{{ row.oldCourseCode }}</span>
+                                  <span class="emcd__bridge-tag emcd__bridge-tag--old">OLD</span>
+                                </div>
+                                <p class="emcd__bridge-course-title">{{ row.oldCourseTitle }}</p>
+                                <p class="emcd__bridge-course-units">{{ row.oldUnits }} units</p>
+                              </article>
+                            </div>
+                            <div class="emcd__bridge-col emcd__bridge-col--grade">
+                              <span class="emcd__bridge-grade">{{ row.grade }}</span>
+                              <span class="emcd__bridge-grade-status">{{ row.gradeStatus }}</span>
+                            </div>
+                            <div class="emcd__bridge-col emcd__bridge-col--map">
+                              <span class="emcd__bridge-map-icon" aria-hidden="true">✓</span>
+                              <span class="emcd__bridge-map-type">{{ row.matchType }}</span>
+                            </div>
+                            <div class="emcd__bridge-col emcd__bridge-col--new">
+                              <article class="emcd__bridge-course emcd__bridge-course--new">
+                                <div class="emcd__bridge-course-head">
+                                  <span class="emcd__bridge-code">{{ row.newCourseCode }}</span>
+                                  <span class="emcd__bridge-tag emcd__bridge-tag--new">NEW</span>
+                                </div>
+                                <p class="emcd__bridge-course-title">{{ row.newCourseTitle }}</p>
+                                <p class="emcd__bridge-course-units">{{ row.newUnits }} units</p>
+                              </article>
+                            </div>
+                            <div class="emcd__bridge-col emcd__bridge-col--action">
+                              <button type="button" class="emcd__bridge-sync-btn" aria-label="Refresh mapping" disabled>
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                  <path
+                                    stroke="currentColor"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1.75"
+                                    d="M4 4v5h5M20 20v-5h-5M20 8a8 8 0 00-14.9-3M4 16a8 8 0 0014.9 3"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </article>
+                }
+              </section>
+            }
+          } @else {
+            <p class="emcd__preview-empty" role="status">
+              No courses found for the selected curriculum. Add courses in Curriculum Management first.
+            </p>
+          }
+        }
+      </div>
+
+      <footer class="emcd__footer">
+        <button type="button" class="emcd__btn emcd__btn--cancel" (click)="onCancel()">Cancel</button>
+        <button
+          type="button"
+          class="emcd__btn emcd__btn--primary"
+          [disabled]="isSubmitting || !newCurriculumCode.trim()"
+          (click)="onConfirm()"
+        >
+          {{ isSubmitting ? 'Migrating…' : 'Migrate Curriculum' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+  }
+}

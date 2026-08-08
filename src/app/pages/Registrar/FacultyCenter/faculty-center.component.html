@@ -1,0 +1,1580 @@
+<div class="evaluator-page">
+  <header class="evaluator-page__header">
+    <h1 class="evaluator-page__title">{{ pageTitle }}</h1>
+    <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
+  </header>
+
+  <div class="tabs-container mb-6">
+    <div class="flex border-b border-gray-200">
+      <button
+        type="button"
+        (click)="setMainTab(FacultyMainTab.ClassAssignment)"
+        [class]="'tab-button ' + (activeMainTab === FacultyMainTab.ClassAssignment ? 'active' : '')"
+      >
+        <svg class="w-5 h-5 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+          />
+        </svg>
+        Class Assignment
+      </button>
+      <button
+        type="button"
+        (click)="setMainTab(FacultyMainTab.ClassRoster)"
+        [class]="'tab-button ' + (activeMainTab === FacultyMainTab.ClassRoster ? 'active' : '')"
+      >
+        <svg class="w-5 h-5 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+          />
+        </svg>
+        Class Roster
+      </button>
+      <button
+        type="button"
+        (click)="setMainTab(FacultyMainTab.GradeRoster)"
+        [class]="'tab-button ' + (activeMainTab === FacultyMainTab.GradeRoster ? 'active' : '')"
+      >
+        <svg class="w-5 h-5 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+        Grade Roster
+      </button>
+    </div>
+  </div>
+
+  @if (activeMainTab === FacultyMainTab.ClassAssignment) {
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div class="mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-1">Class Assignment</h2>
+        <p class="text-sm text-gray-600">Manage class assignments and grading scales</p>
+      </div>
+
+      <form [formGroup]="termForm" class="space-y-6" (ngSubmit)="onSaveSchemeAndBasis()">
+        <div class="max-w-md">
+          <label class="block text-xs font-semibold text-gray-600 mb-1" for="academicTerm">Academic Term</label>
+          <select
+            id="academicTerm"
+            formControlName="academicTerm"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none disabled:opacity-60"
+            [disabled]="isSaving || isLoadingTerms || isLoadingScheme"
+          >
+            @if (isLoadingTerms) {
+              <option value="" disabled>Loading school year terms…</option>
+            } @else if (syTerms.length === 0) {
+              <option value="" disabled>No school year terms available</option>
+            } @else {
+              <option value="">Select academic term</option>
+              @for (term of syTerms; track term.syId) {
+                <option [value]="term.syCode">{{ term.syYear }} — {{ term.sySemester }}</option>
+              }
+            }
+          </select>
+          @if (showFieldError('academicTerm')) {
+            <p class="mt-1 text-xs text-red-600">{{ fieldMessage('academicTerm') }}</p>
+          }
+        </div>
+
+        <div class="faculty-grading-wrap border-t border-gray-200 pt-6">
+          <div class="faculty-inner-tabs">
+            <button
+              type="button"
+              class="faculty-inner-tab"
+              [class.active]="gradingSubTab === FacultyGradingSubTab.GradingScale"
+              (click)="setGradingSubTab(FacultyGradingSubTab.GradingScale)"
+            >
+              Grading Scale
+            </button>
+            <button
+              type="button"
+              class="faculty-inner-tab"
+              [class.active]="gradingSubTab === FacultyGradingSubTab.GradeScale"
+              (click)="setGradingSubTab(FacultyGradingSubTab.GradeScale)"
+            >
+              Grade Scale
+            </button>
+          </div>
+
+          @if (gradingSubTab === FacultyGradingSubTab.GradingScale) {
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <h3 class="text-sm font-semibold text-gray-900 mb-3">Grading Scheme</h3>
+                <div class="space-y-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1" for="gradingSchemeCode">
+                      Code <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                      id="gradingSchemeCode"
+                      type="text"
+                      formControlName="gradingSchemeCode"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none disabled:opacity-60"
+                      [disabled]="isSaving || isLoadingScheme || isLoadingTerms"
+                    />
+                    @if (showFieldError('gradingSchemeCode')) {
+                      <p class="mt-1 text-xs text-red-600">{{ fieldMessage('gradingSchemeCode') }}</p>
+                    }
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1" for="gradingSchemeDescription">
+                      Description <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                      id="gradingSchemeDescription"
+                      type="text"
+                      formControlName="gradingSchemeDescription"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none disabled:opacity-60"
+                      [disabled]="isSaving || isLoadingScheme || isLoadingTerms"
+                    />
+                    @if (showFieldError('gradingSchemeDescription')) {
+                      <p class="mt-1 text-xs text-red-600">{{ fieldMessage('gradingSchemeDescription') }}</p>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <h3 class="text-sm font-semibold text-gray-900 mb-3">Grading Basis</h3>
+                <div class="space-y-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1" for="gradingBasisCode">
+                      Code <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                      id="gradingBasisCode"
+                      type="text"
+                      formControlName="gradingBasisCode"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none disabled:opacity-60"
+                      [disabled]="isSaving || isLoadingScheme || isLoadingTerms"
+                    />
+                    @if (showFieldError('gradingBasisCode')) {
+                      <p class="mt-1 text-xs text-red-600">{{ fieldMessage('gradingBasisCode') }}</p>
+                    }
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1" for="gradingBasisDescription">
+                      Description <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                      id="gradingBasisDescription"
+                      type="text"
+                      formControlName="gradingBasisDescription"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none disabled:opacity-60"
+                      [disabled]="isSaving || isLoadingScheme || isLoadingTerms"
+                    />
+                    @if (showFieldError('gradingBasisDescription')) {
+                      <p class="mt-1 text-xs text-red-600">{{ fieldMessage('gradingBasisDescription') }}</p>
+                    }
+                  </div>
+                </div>
+                <div class="mt-4 flex flex-wrap gap-3">
+                  <button
+                    type="submit"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors duration-200 shadow-sm"
+                    [disabled]="isSaving || isLoadingScheme || isLoadingTerms"
+                  >
+                    @if (isSaving) {
+                      <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path
+                          class="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    } @else {
+                      <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                        />
+                      </svg>
+                    }
+                    {{ isSaving ? 'Saving…' : 'Save Scheme & Basis' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <h3 class="text-lg font-semibold text-gray-900">Grade Scale</h3>
+              <button
+                type="button"
+                (click)="onAddGradeScale()"
+                class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 shadow-sm text-sm shrink-0"
+                [disabled]="isSaving || isLoadingScheme || isLoadingTerms"
+              >
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add Scale
+              </button>
+            </div>
+
+            <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                  <thead>
+                    <tr class="border-b-2 border-gray-200">
+                      <th class="text-left py-3 px-4 font-semibold text-gray-500 uppercase text-sm tracking-wide">
+                        Mark
+                      </th>
+                      <th class="text-left py-3 px-4 font-semibold text-gray-500 uppercase text-sm tracking-wide">
+                        Grade
+                      </th>
+                      <th class="text-left py-3 px-4 font-semibold text-gray-500 uppercase text-sm tracking-wide">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @if (gradeScaleRows.length === 0) {
+                      <tr>
+                        <td colspan="3" class="py-8 px-4 text-center text-sm text-gray-500">
+                          No grade scale rows yet. Use &quot;Add Scale&quot; to add mark/grade pairs.
+                        </td>
+                      </tr>
+                    }
+                    @for (row of gradeScaleRows; track row.id) {
+                      <tr class="border-b border-gray-100 hover:bg-gray-50/80 transition-colors">
+                        @if (editingGradeScaleId === row.id && editGradeDraft) {
+                          <td class="py-3 px-4 align-middle">
+                            <input
+                              type="number"
+                              step="0.01"
+                              name="mark-{{ row.id }}"
+                              [(ngModel)]="editGradeDraft.mark"
+                              [ngModelOptions]="{ standalone: true }"
+                              class="w-full max-w-[8rem] px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                            />
+                          </td>
+                          <td class="py-3 px-4 align-middle">
+                            <input
+                              type="number"
+                              step="0.01"
+                              name="grade-{{ row.id }}"
+                              [(ngModel)]="editGradeDraft.grade"
+                              [ngModelOptions]="{ standalone: true }"
+                              class="w-full max-w-[8rem] px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                            />
+                          </td>
+                          <td class="py-3 px-4 align-middle">
+                            <div class="flex items-center gap-2">
+                              <button
+                                type="button"
+                                (click)="saveEditGradeScale()"
+                                class="text-blue-600 hover:text-blue-800 p-1 rounded transition-colors"
+                                title="Save row"
+                              >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              </button>
+                              <button
+                                type="button"
+                                (click)="cancelEditGradeScale()"
+                                class="text-gray-500 hover:text-gray-700 p-1 rounded transition-colors"
+                                title="Cancel"
+                              >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        } @else {
+                          <td class="py-3 px-4 text-gray-900 text-sm tabular-nums">
+                            {{ formatMark(row.mark) }}
+                          </td>
+                          <td class="py-3 px-4 text-gray-900 text-sm tabular-nums">
+                            {{ formatGrade(row.grade) }}
+                          </td>
+                          <td class="py-3 px-4">
+                            <div class="flex items-center gap-3">
+                              <button
+                                type="button"
+                                (click)="startEditGradeScale(row)"
+                                class="text-blue-600 hover:text-blue-800 transition-colors"
+                                title="Edit row"
+                                [disabled]="isSaving || isLoadingScheme || isLoadingTerms"
+                              >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  />
+                                </svg>
+                              </button>
+                              <button
+                                type="button"
+                                (click)="onDeleteGradeScale(row)"
+                                class="text-red-600 hover:text-red-800 transition-colors"
+                                title="Delete row"
+                                [disabled]="isSaving || isLoadingScheme || isLoadingTerms"
+                              >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+        </div>
+      </form>
+    </div>
+  }
+
+  @if (activeMainTab === FacultyMainTab.ClassRoster) {
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-1">Class Roster</h2>
+      <p class="text-sm text-gray-600">Manage classes and enrolled students</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-5 py-4 border-b border-gray-200">
+        <h3 class="text-base font-semibold text-gray-900">Classes</h3>
+        <div class="flex flex-wrap items-center gap-2 justify-end">
+          <input
+            id="mainClassRosterPdfInput"
+            type="file"
+            accept="application/pdf,.pdf"
+            class="sr-only"
+            (change)="onMainClassRosterPdfSelected($event)"
+            tabindex="-1"
+          />
+          <button
+            type="button"
+            (click)="triggerMainClassRosterPdfUpload()"
+            [disabled]="isLoadingClasses || isImportingClassRosterPdf"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed text-gray-800 rounded-lg font-medium text-sm shadow-sm transition-colors shrink-0"
+            title="Match or create classes from an STI class list PDF (per page)"
+          >
+            @if (isImportingClassRosterPdf) {
+              <svg
+                class="animate-spin h-5 w-5 shrink-0 text-gray-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            } @else {
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
+              </svg>
+            }
+            {{ isImportingClassRosterPdf ? 'Importing PDF…' : 'Import class list PDF' }}
+          </button>
+          <button
+            type="button"
+            (click)="onCreateClass()"
+            [disabled]="isLoadingClasses"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-lg font-medium text-sm shadow-sm transition-colors shrink-0"
+          >
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            {{ classCreatePanelOpen ? 'Close' : 'Create Class' }}
+          </button>
+        </div>
+      </div>
+
+      @if (classCreatePanelOpen) {
+        <form
+          [formGroup]="classCreateForm"
+          (ngSubmit)="onSubmitClassCreate()"
+          class="class-create-form border-b border-gray-200 bg-gray-50/90 px-5 py-4"
+          novalidate
+        >
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div
+              class="class-create-form__field sm:col-span-2 lg:col-span-3 relative course-combo"
+              (focusout)="onCourseComboFocusOut($event)"
+            >
+              <label class="class-create-form__label" for="ccCourseSearch">
+                <span class="class-create-form__label-text">Course</span>
+                <span class="text-red-500" aria-hidden="true">*</span>
+              </label>
+              <p id="ccCourseHint" class="class-create-form__hint">Type to search by course code or title.</p>
+              <div class="relative class-create-form__control-wrap">
+                <input
+                  id="ccCourseSearch"
+                  type="text"
+                  [(ngModel)]="courseSearchQuery"
+                  [ngModelOptions]="{ standalone: true }"
+                  (ngModelChange)="onCourseSearchQueryChange($event)"
+                  (focus)="onCourseInputFocus()"
+                  placeholder="Type course code or title to search..."
+                  autocomplete="off"
+                  class="class-create-form__control class-create-form__control--with-icon"
+                  [disabled]="isLoadingCourses"
+                  aria-describedby="ccCourseHint"
+                  aria-autocomplete="list"
+                  [attr.aria-expanded]="courseComboOpen"
+                />
+                <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400" aria-hidden="true">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </div>
+              @if (courseComboOpen && !isLoadingCourses && filteredCoursesForClassCombo.length > 0) {
+                <ul class="course-combo__list absolute z-30 w-full max-h-60 overflow-auto py-1" role="listbox">
+                  @for (c of filteredCoursesForClassCombo; track c.value) {
+                    <li role="option">
+                      <button
+                        type="button"
+                        class="course-combo__option w-full text-left px-3 py-2 text-sm text-gray-900 hover:bg-gray-50"
+                        (mousedown)="selectCourseFromLookup(c, $event)"
+                      >
+                        {{ c.displayText || c.value }}
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+              @if (isLoadingCourses) {
+                <p class="class-create-form__status">Loading courses…</p>
+              } @else if (!isLoadingCourses && coursesLookup.length === 0) {
+                <p class="class-create-form__status class-create-form__status--warn">No courses in catalog.</p>
+              }
+              @if (showClassCreateError('courseCode')) {
+                <p class="class-create-form__error" role="alert">{{ classCreateFieldMessage('courseCode') }}</p>
+              }
+            </div>
+
+            <div class="class-create-form__field">
+              <label class="class-create-form__label" for="ccClassNumber">
+                <span class="class-create-form__label-text">Class number</span>
+                <span class="text-red-500" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="ccClassNumber"
+                type="text"
+                formControlName="classNumber"
+                placeholder="e.g., 001, 002, 003"
+                class="class-create-form__control"
+              />
+              @if (showClassCreateError('classNumber')) {
+                <p class="class-create-form__error" role="alert">{{ classCreateFieldMessage('classNumber') }}</p>
+              }
+            </div>
+
+            <div class="class-create-form__field">
+              <label class="class-create-form__label" for="ccProgram">
+                <span class="class-create-form__label-text">Program</span>
+                <span class="text-red-500" aria-hidden="true">*</span>
+              </label>
+              <select
+                id="ccProgram"
+                formControlName="programCode"
+                class="class-create-form__control bg-white"
+                [disabled]="isLoadingPrograms"
+              >
+                @if (isLoadingPrograms) {
+                  <option value="" disabled>Loading programs…</option>
+                } @else if (programsForClass.length === 0) {
+                  <option value="" disabled>No programs available</option>
+                } @else {
+                  <option value="">Select a program…</option>
+                  @for (p of programsForClass; track p.programId) {
+                    <option [value]="p.programCode">{{ p.programCode }} — {{ p.programTitle }}</option>
+                  }
+                }
+              </select>
+              @if (showClassCreateError('programCode')) {
+                <p class="class-create-form__error" role="alert">{{ classCreateFieldMessage('programCode') }}</p>
+              }
+            </div>
+
+            <div class="class-create-form__field">
+              <label class="class-create-form__label" for="ccYearLevel">
+                <span class="class-create-form__label-text">Year level</span>
+                <span class="text-red-500" aria-hidden="true">*</span>
+              </label>
+              <select
+                id="ccYearLevel"
+                formControlName="yearLevel"
+                class="class-create-form__control bg-white"
+              >
+                <option value="">Select year level…</option>
+                @for (yl of yearLevelOptions; track yl) {
+                  <option [value]="yl">{{ yl }}</option>
+                }
+              </select>
+              @if (showClassCreateError('yearLevel')) {
+                <p class="class-create-form__error" role="alert">{{ classCreateFieldMessage('yearLevel') }}</p>
+              }
+            </div>
+
+            <div class="class-create-form__field">
+              <label class="class-create-form__label" for="ccSectionLetter">
+                <span class="class-create-form__label-text">Section letter</span>
+                <span class="text-red-500" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="ccSectionLetter"
+                type="text"
+                formControlName="section"
+                placeholder="e.g., A, B, C"
+                class="class-create-form__control"
+              />
+              @if (showClassCreateError('section')) {
+                <p class="class-create-form__error" role="alert">{{ classCreateFieldMessage('section') }}</p>
+              }
+            </div>
+          </div>
+
+          <input type="hidden" formControlName="courseCode" />
+          <input type="hidden" formControlName="courseTitle" />
+          <input type="hidden" formControlName="component" />
+          <input type="hidden" formControlName="academicTerm" />
+          <input type="hidden" formControlName="enrolled" />
+
+          <div class="class-create-form__actions">
+            <button
+              type="submit"
+              [disabled]="isSavingClass || classCreateForm.invalid"
+              class="class-create-form__btn class-create-form__btn--primary"
+            >
+              @if (isSavingClass) {
+                <svg class="animate-spin h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              }
+              {{ isSavingClass ? 'Saving…' : 'Create Class' }}
+            </button>
+            <button type="button" (click)="onCancelClassCreate()" class="class-create-form__btn class-create-form__btn--secondary">
+              Cancel
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (lastPdfImportSummary?.pages?.length && !pdfImportByPagePanelDismissed) {
+        <div class="px-5 py-4 border-b border-gray-100 bg-slate-50/80 space-y-3">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 space-y-1 pr-2">
+              <p class="text-sm font-medium text-gray-900">Last PDF import — by page</p>
+              <p class="text-xs text-gray-600">
+                Each PDF page is matched using course code, class number, section letter, program, and year level
+                (from the PDF). If no row matches, a new class is created (component LEC, semester from PDF when available).
+              </p>
+            </div>
+            <button
+              type="button"
+              (click)="dismissPdfImportByPagePanel()"
+              class="inline-flex items-center justify-center p-1.5 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-200/80 transition-colors shrink-0"
+              aria-label="Dismiss import summary"
+              title="Dismiss"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+            <table class="w-full min-w-[720px] text-left text-sm border-collapse">
+              <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                  <th class="py-2 px-3 font-semibold text-gray-600 whitespace-nowrap">Page</th>
+                  <th class="py-2 px-3 font-semibold text-gray-600 whitespace-nowrap">Course</th>
+                  <th class="py-2 px-3 font-semibold text-gray-600 whitespace-nowrap">Class #</th>
+                  <th class="py-2 px-3 font-semibold text-gray-600 whitespace-nowrap">Sec</th>
+                  <th class="py-2 px-3 font-semibold text-gray-600 whitespace-nowrap">Program</th>
+                  <th class="py-2 px-3 font-semibold text-gray-600 whitespace-nowrap">Year</th>
+                  <th class="py-2 px-3 font-semibold text-gray-600 whitespace-nowrap">Result</th>
+                  <th class="py-2 px-3 font-semibold text-gray-600 text-right whitespace-nowrap">Imported</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of lastPdfImportSummary!.pages; track p.pageNumber) {
+                  <tr class="border-b border-gray-100">
+                    <td class="py-2 px-3 tabular-nums">{{ p.pageNumber }}</td>
+                    <td class="py-2 px-3 whitespace-nowrap">{{ p.skippedReason ? '—' : p.courseCode }}</td>
+                    <td class="py-2 px-3 whitespace-nowrap">{{ p.skippedReason ? '—' : p.classNumber }}</td>
+                    <td class="py-2 px-3 whitespace-nowrap">{{ p.skippedReason ? '—' : p.section }}</td>
+                    <td class="py-2 px-3 whitespace-nowrap">{{ p.skippedReason ? '—' : p.programCode }}</td>
+                    <td class="py-2 px-3 whitespace-nowrap">{{ p.skippedReason ? '—' : p.yearLevel }}</td>
+                    <td class="py-2 px-3">
+                      @if (p.skippedReason) {
+                        <span class="text-amber-800 text-xs">{{ p.skippedReason }}</span>
+                      } @else if (p.classCreatedFromPdf) {
+                        <span class="text-emerald-800 text-xs font-medium">Created class #{{ p.facultyClassId }}</span>
+                      } @else {
+                        <span class="text-gray-700 text-xs">Matched #{{ p.facultyClassId }}</span>
+                      }
+                    </td>
+                    <td class="py-2 px-3 text-right tabular-nums">{{ p.skippedReason ? '—' : p.importedCount }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      @if (rosterPdfNotFoundFlattened.length > 0 && !pdfNotInRegistryPanelDismissed) {
+        <div
+          class="mx-5 mb-4 rounded-lg border border-amber-200 bg-amber-50/90 overflow-hidden"
+          role="region"
+          aria-label="Students from PDF not in registry"
+        >
+          <div
+            class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 px-4 py-3 border-b border-amber-200/80 bg-amber-100/50"
+          >
+            <div class="min-w-0 pr-2">
+              <h3 class="text-sm font-semibold text-amber-950">
+                Not in student registry ({{ rosterPdfNotFoundFlattened.length }})
+              </h3>
+              <p class="mt-0.5 text-xs text-amber-900/80">
+                From the last PDF import — add or fix these students in Students, then import again if needed.
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+              <button
+                type="button"
+                (click)="copyRosterPdfNotFoundCsv()"
+                class="inline-flex items-center justify-center px-3 py-1.5 rounded-md text-xs font-medium text-amber-950 bg-white border border-amber-300 hover:bg-amber-50 transition-colors"
+              >
+                Copy as CSV
+              </button>
+              <button
+                type="button"
+                (click)="downloadRosterPdfNotFoundCsv()"
+                class="inline-flex items-center justify-center px-3 py-1.5 rounded-md text-xs font-medium text-white bg-amber-800 hover:bg-amber-900 transition-colors"
+              >
+                Download CSV
+              </button>
+              <button
+                type="button"
+                (click)="dismissPdfNotInRegistryPanel()"
+                class="inline-flex items-center justify-center p-1.5 rounded-md text-amber-900 hover:text-amber-950 hover:bg-amber-200/60 transition-colors"
+                aria-label="Dismiss this list"
+                title="Dismiss"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="overflow-x-auto max-h-56 overflow-y-auto">
+            <table class="w-full min-w-[600px] border-collapse text-left text-sm">
+              <thead class="sticky top-0 bg-amber-100/95 border-b border-amber-200">
+                <tr>
+                  <th class="py-2 px-3 font-semibold text-amber-950 whitespace-nowrap">Page</th>
+                  <th class="py-2 px-3 font-semibold text-amber-950 whitespace-nowrap">Student number</th>
+                  <th class="py-2 px-3 font-semibold text-amber-950">Name (PDF)</th>
+                  <th class="py-2 px-3 font-semibold text-amber-950 whitespace-nowrap">Program</th>
+                  <th class="py-2 px-3 font-semibold text-amber-950 whitespace-nowrap">Year</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of rosterPdfNotFoundFlattened; track r.studentNumber + '-' + r.sourcePage) {
+                  <tr class="border-b border-amber-100/80 hover:bg-white/60">
+                    <td class="py-2 px-3 tabular-nums text-gray-900">{{ r.sourcePage }}</td>
+                    <td class="py-2 px-3 tabular-nums text-gray-900 whitespace-nowrap">{{ r.studentNumber }}</td>
+                    <td class="py-2 px-3 text-gray-900">{{ r.pdfDisplayName }}</td>
+                    <td class="py-2 px-3 text-gray-800 whitespace-nowrap">{{ r.pdfProgramCode }}</td>
+                    <td class="py-2 px-3 text-gray-800 whitespace-nowrap">{{ r.pdfYearLevel }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <div class="px-5 py-4 border-b border-gray-100">
+        <label class="sr-only" for="classRosterSearch">Search classes</label>
+        <div class="relative max-w-xl">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </span>
+          <input
+            id="classRosterSearch"
+            type="search"
+            [(ngModel)]="classRosterSearch"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="Search by course code, class number, or title..."
+            class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+            autocomplete="off"
+          />
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[1120px] border-collapse text-left">
+          <thead>
+            <tr class="border-b border-gray-200 bg-gray-50/80">
+              <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                Course code
+              </th>
+              <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                Class number
+              </th>
+              <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                Section
+              </th>
+              <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                Program
+              </th>
+              <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                Year level
+              </th>
+              <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide min-w-[12rem]">
+                Course title
+              </th>
+              <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                Component
+              </th>
+              <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                Academic semester
+              </th>
+              <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right whitespace-nowrap">
+                Enrolled
+              </th>
+              <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (isLoadingClasses) {
+              <tr>
+                <td colspan="10" class="py-12 px-4 text-center text-sm text-gray-500">
+                  Loading classes…
+                </td>
+              </tr>
+            } @else if (classRosterRows.length === 0) {
+              <tr>
+                <td colspan="10" class="py-12 px-4 text-center text-sm text-gray-500">
+                  No classes yet. Use &quot;Create Class&quot; to add one.
+                </td>
+              </tr>
+            } @else if (filteredClassRosterRows.length === 0) {
+              <tr>
+                <td colspan="10" class="py-12 px-4 text-center text-sm text-gray-500">
+                  No classes match your search.
+                </td>
+              </tr>
+            } @else {
+              @for (row of filteredClassRosterRows; track row.id) {
+                <tr class="border-b border-gray-100 hover:bg-gray-50/90 transition-colors">
+                  <td class="py-3.5 px-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ row.courseCode }}</td>
+                  <td class="py-3.5 px-4 text-sm text-gray-800 tabular-nums whitespace-nowrap">{{ row.classNumber }}</td>
+                  <td class="py-3.5 px-4 text-sm text-gray-800 whitespace-nowrap">{{ row.section }}</td>
+                  <td class="py-3.5 px-4 text-sm text-gray-800 whitespace-nowrap">{{ row.programCode }}</td>
+                  <td class="py-3.5 px-4 text-sm text-gray-800 whitespace-nowrap">{{ row.yearLevel }}</td>
+                  <td class="py-3.5 px-4 text-sm text-gray-800">{{ row.courseTitle }}</td>
+                  <td class="py-3.5 px-4 text-sm text-gray-700 whitespace-nowrap">{{ row.component }}</td>
+                  <td class="py-3.5 px-4 text-sm text-gray-700 whitespace-nowrap">{{ row.academicTerm }}</td>
+                  <td class="py-3.5 px-4 text-sm text-gray-900 tabular-nums text-right">{{ row.enrolled }}</td>
+                  <td class="py-3.5 px-4">
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        (click)="onViewClass(row)"
+                        class="p-1.5 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+                        title="View details"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        (click)="onDeleteClass(row)"
+                        class="p-1.5 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
+                        title="Delete class"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  @if (activeMainTab === FacultyMainTab.GradeRoster) {
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-1">Grade Roster</h2>
+      <p class="text-sm text-gray-600">Manage and view student grades</p>
+    </div>
+
+    <div class="faculty-inner-tabs mb-6">
+      <button
+        type="button"
+        class="faculty-inner-tab inline-flex items-center gap-2"
+        [class.active]="gradeRosterSubTab === FacultyGradeRosterSubTab.GradeManagement"
+        (click)="setGradeRosterSubTab(FacultyGradeRosterSubTab.GradeManagement)"
+      >
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+          />
+        </svg>
+        Grade Management
+      </button>
+      <button
+        type="button"
+        class="faculty-inner-tab inline-flex items-center gap-2"
+        [class.active]="gradeRosterSubTab === FacultyGradeRosterSubTab.CreditRequests"
+        (click)="setGradeRosterSubTab(FacultyGradeRosterSubTab.CreditRequests)"
+      >
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+        Credit Requests
+      </button>
+    </div>
+
+    @if (gradeRosterSubTab === FacultyGradeRosterSubTab.GradeManagement) {
+      <div class="space-y-8">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-base font-semibold text-gray-900 mb-6">Search Class</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1" for="gradeRosterAcademicTerm">
+              Academic Term
+              <span class="text-red-600" aria-hidden="true">*</span>
+            </label>
+            <select
+              id="gradeRosterAcademicTerm"
+              name="gradeRosterAcademicTerm"
+              [(ngModel)]="gradeRosterSelectedSyId"
+              (ngModelChange)="onGradeRosterTermSelectChange()"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:opacity-60"
+              [disabled]="isLoadingTerms"
+            >
+              @if (isLoadingTerms) {
+                <option [ngValue]="null" disabled>Loading school year terms…</option>
+              } @else if (syTerms.length === 0) {
+                <option [ngValue]="null" disabled>No school year terms available</option>
+              } @else {
+                @for (term of syTerms; track term.syId) {
+                  <option [ngValue]="term.syId">{{ term.syYear }} / {{ term.sySemester }}</option>
+                }
+              }
+            </select>
+          </div>
+
+          <div
+            class="relative course-combo"
+            (focusout)="onGradeRosterClassComboFocusOut($event)"
+          >
+            <label class="block text-xs font-semibold text-gray-600 mb-1" for="gradeRosterClassSearch">
+              Select Class (Type to search)
+              <span class="text-red-600" aria-hidden="true">*</span>
+            </label>
+            <div class="relative class-create-form__control-wrap">
+              <input
+                id="gradeRosterClassSearch"
+                type="text"
+                name="gradeRosterClassSearch"
+                [(ngModel)]="gradeRosterClassSearchQuery"
+                (ngModelChange)="onGradeRosterClassSearchQueryChange($event)"
+                (focus)="onGradeRosterClassInputFocus()"
+                placeholder="Type or click to select a class..."
+                autocomplete="off"
+                class="class-create-form__control class-create-form__control--with-icon"
+                [disabled]="isLoadingTerms || gradeRosterSelectedSyId == null"
+                aria-autocomplete="list"
+                [attr.aria-expanded]="gradeRosterClassComboOpen"
+              />
+              <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400" aria-hidden="true">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </div>
+            @if (gradeRosterClassComboOpen && !isLoadingGradeRosterLookup && gradeRosterLookupRows.length > 0) {
+              <ul class="course-combo__list absolute z-30 w-full max-h-60 overflow-auto py-1" role="listbox">
+                @for (row of gradeRosterLookupRows; track row.id) {
+                  <li role="option">
+                    <button
+                      type="button"
+                      class="course-combo__option w-full text-left px-3 py-2 text-sm text-gray-900 hover:bg-gray-50"
+                      (mousedown)="selectGradeRosterClass(row, $event)"
+                    >
+                      {{ row.displayText }}
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+            @if (isLoadingGradeRosterLookup) {
+              <p class="mt-1 text-xs text-gray-500">Loading classes…</p>
+            } @else if (!isLoadingGradeRosterLookup && gradeRosterSelectedSyId != null && gradeRosterLookupRows.length === 0) {
+              <p class="mt-1 text-xs text-amber-700">No classes for this term. Add classes under Class Roster.</p>
+            }
+          </div>
+        </div>
+
+        @if (selectedGradeRosterLookup) {
+          <div
+            class="mt-6 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3.5 shadow-sm"
+            role="status"
+            aria-live="polite"
+          >
+            <p class="text-xs font-semibold text-sky-900/85 mb-1.5">Selected Class:</p>
+            <p class="text-sm font-semibold text-gray-900 leading-snug">
+              {{ selectedGradeRosterLookup.displayText }}
+            </p>
+            <p class="mt-2 text-xs text-sky-950/70">{{ gradeRosterSelectedTermLabel() }}</p>
+          </div>
+        }
+
+        <div class="flex justify-end mt-6 pt-1">
+          <button
+            type="button"
+            (click)="onViewGradeRosterGrades()"
+            [disabled]="!canViewGradeRosterGrades"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 transition-colors shadow-sm"
+          >
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
+            View Grades
+          </button>
+        </div>
+      </div>
+
+        @if (gradeRosterGradesViewActive) {
+          <app-grade-roster-student-grades
+            [students]="gradeRosterStudentRows"
+            [loading]="isLoadingGradeRosterStudents"
+            (uploadGrades)="onGradeRosterUploadGrades()"
+            (editStudent)="onGradeRosterEditStudent($event)"
+          />
+        }
+      </div>
+
+      <button
+        type="button"
+        (click)="showGradeRosterHelp()"
+        class="fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-slate-700 text-white shadow-lg hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        aria-label="Help for Grade Roster"
+        title="Help"
+      >
+        <span class="text-lg font-semibold" aria-hidden="true">?</span>
+      </button>
+
+      <app-update-student-grade-modal
+        [open]="gradeEditModalOpen"
+        [student]="gradeEditStudent"
+        [academicTermKey]="gradeRosterGradingSchemeKey"
+        [saving]="isSavingGrade"
+        (closed)="closeGradeEditModal()"
+        (save)="onGradeEditSave($event)"
+      />
+    } @else if (gradeRosterSubTab === FacultyGradeRosterSubTab.CreditRequests) {
+      <app-faculty-credit-requests-panel />
+    }
+  }
+
+</div>
+
+@if (showClassRosterDetailModal && classRosterDetailRow) {
+  <div
+    class="class-roster-detail-modal fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6"
+    role="presentation"
+    (click)="closeClassRosterDetailModal()"
+  >
+    <div
+      class="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]"
+      aria-hidden="true"
+    ></div>
+    <div
+      class="relative w-full max-w-4xl max-h-[min(90vh,720px)] flex flex-col rounded-xl bg-white shadow-xl border border-gray-200 overflow-hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="class-roster-detail-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-start justify-between gap-4 px-6 pt-5 pb-4 border-b border-gray-100 shrink-0">
+        <div class="min-w-0">
+          <h2 id="class-roster-detail-title" class="text-lg font-bold text-gray-900 truncate">
+            {{ classRosterDetailRow.courseCode }} - {{ classRosterDetailRow.courseTitle }}
+          </h2>
+          <p class="mt-1 text-sm text-gray-500">
+            Class {{ formatClassNumberForTitle(classRosterDetailRow.classNumber) }} |
+            {{ classRosterDetailRow.academicTerm }}
+          </p>
+        </div>
+        <button
+          type="button"
+          (click)="closeClassRosterDetailModal()"
+          class="shrink-0 rounded-lg p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          aria-label="Close"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-3 bg-gray-50/80 border-b border-gray-100 shrink-0"
+      >
+        <button
+          type="button"
+          (click)="closeClassRosterDetailModal()"
+          class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 border border-gray-200 hover:bg-gray-200 transition-colors"
+        >
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Classes
+        </button>
+        <div class="flex flex-wrap items-center gap-2 justify-end">
+          <button
+            type="button"
+            (click)="onAddStudentToClass()"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-colors"
+          >
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+              />
+            </svg>
+            Add Student
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+        <div class="rounded-lg border border-gray-200 overflow-hidden bg-white">
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[640px] border-collapse text-left">
+              <thead>
+                <tr class="border-b border-gray-200 bg-white">
+                  <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                    Student ID
+                  </th>
+                  <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                    Name
+                  </th>
+                  <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                    Program
+                  </th>
+                  <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                    Year level
+                  </th>
+                  <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                    Curriculum
+                  </th>
+                  <th
+                    class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide text-center whitespace-nowrap w-32"
+                  >
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (isLoadingClassRosterDetailStudents) {
+                  <tr>
+                    <td colspan="6" class="py-10 px-4 text-center text-sm text-gray-500">Loading students…</td>
+                  </tr>
+                } @else if (classRosterDetailStudents.length === 0) {
+                  <tr>
+                    <td colspan="6" class="py-10 px-4 text-center text-sm text-gray-500">
+                      No students enrolled in this class yet.
+                    </td>
+                  </tr>
+                } @else {
+                  @for (s of classRosterDetailStudents; track s.id) {
+                    <tr class="border-b border-gray-100 hover:bg-gray-50/80 transition-colors">
+                      <td class="py-3 px-4 text-sm text-gray-900 tabular-nums whitespace-nowrap">{{ s.studentId }}</td>
+                      <td class="py-3 px-4 text-sm text-gray-900">{{ s.displayName }}</td>
+                      <td class="py-3 px-4 text-sm text-gray-800 whitespace-nowrap">{{ s.programCode }}</td>
+                      <td class="py-3 px-4 text-sm text-gray-800 whitespace-nowrap">{{ s.yearLevel }}</td>
+                      <td class="py-3 px-4 text-sm whitespace-nowrap">
+                        @if (s.curriculumCode) {
+                          <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 border border-emerald-100">
+                            {{ s.curriculumCode }}
+                          </span>
+                        } @else {
+                          <span class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-900 border border-amber-100">
+                            Not assigned
+                          </span>
+                        }
+                      </td>
+                      <td class="py-3 px-4 text-center">
+                        <div class="inline-flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            (click)="onOpenStudentCurriculum(s)"
+                            class="inline-flex p-1.5 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+                            [title]="s.curriculumCode ? 'Change curriculum' : 'Assign curriculum'"
+                            [attr.aria-label]="s.curriculumCode ? 'Change curriculum for ' + s.displayName : 'Assign curriculum for ' + s.displayName"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            (click)="onRemoveStudentFromClass(s)"
+                            class="inline-flex p-1.5 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
+                            title="Remove from class"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <p class="mt-4 text-sm text-gray-600">
+          Total enrolled:
+          <span class="font-semibold text-gray-900">{{ classRosterDetailStudents.length }}</span>
+          {{
+            classRosterDetailStudents.length === 1 ? ' student' : ' students'
+          }}
+        </p>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showAddStudentModal && classRosterDetailRow && classRosterDetailClassId > 0) {
+  <app-class-roster-add-student-modal
+    [facultyClassId]="classRosterDetailClassId"
+    [enrolledStudentNumbers]="enrolledStudentNumbersForAddModal"
+    (closed)="onAddStudentModalClose()"
+    (studentAdded)="onStudentAddedFromRegistry($event)"
+  />
+}
+
+@if (showStudentCurriculumModal && studentCurriculumTarget) {
+  <app-class-roster-student-curriculum-modal
+    [isOpen]="showStudentCurriculumModal"
+    [student]="studentCurriculumTarget"
+    (closed)="onStudentCurriculumModalClose()"
+    (saved)="onStudentCurriculumSaved($event)"
+  />
+}
+
+<app-confirmation-modal
+  [isOpen]="showDeleteConfirmation"
+  [config]="deleteConfirmationConfig"
+  (confirm)="onConfirmDeleteClass()"
+  (cancel)="onCancelDeleteClass()"
+></app-confirmation-modal>
+
+<app-confirmation-modal
+  [isOpen]="showRemoveStudentConfirmation"
+  [config]="removeStudentConfirmationConfig"
+  (confirm)="onConfirmRemoveStudentFromClass()"
+  (cancel)="onCancelRemoveStudentFromClass()"
+></app-confirmation-modal>
+
+<app-confirmation-modal
+  [isOpen]="showMissingCourseModuleModal"
+  [config]="missingCourseModuleModalConfig"
+  (confirm)="onConfirmMissingCourseModule()"
+  (cancel)="onCancelMissingCourseModule()"
+></app-confirmation-modal>
+
+@if (showPdfStudentSelectionModal) {
+  <div class="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6" role="presentation">
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]" aria-hidden="true"></div>
+    <div
+      class="relative w-full max-w-5xl max-h-[90vh] flex flex-col rounded-xl bg-white shadow-xl border border-gray-200 overflow-hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pdf-student-selection-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-start justify-between gap-4 px-6 pt-5 pb-4 border-b border-gray-100 shrink-0">
+        <div class="min-w-0">
+          <h2 id="pdf-student-selection-title" class="text-lg font-bold text-gray-900 truncate">
+            Select Students to Import
+          </h2>
+          <p class="mt-1 text-sm text-gray-600">
+            {{ selectedPdfStudentCount }} selected out of {{ pdfPreviewStudentsFlattened.length }} parsed student row(s).
+            @if (hasMultiplePdfImportPrograms) {
+              <span class="text-amber-700">Students are grouped by program below.</span>
+            }
+          </p>
+        </div>
+        <button
+          type="button"
+          (click)="closePdfStudentSelectionModal()"
+          class="shrink-0 rounded-lg p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          aria-label="Close"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="px-6 py-4 border-b border-gray-100 shrink-0 space-y-4">
+        @if (hasMultiplePdfImportPrograms) {
+          <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="status">
+            <p class="font-semibold">Multiple programs detected</p>
+            <p class="mt-1 text-amber-900">
+              This PDF includes students from {{ pdfPreviewPrograms.length }} programs
+              ({{ pdfPreviewPrograms.join(', ') }}). Review each program tab, choose a curriculum per program,
+              and select which students to import.
+            </p>
+          </div>
+        }
+
+        <section class="rounded-lg border border-blue-100 bg-blue-50/60 p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="text-sm font-semibold text-gray-900">Curriculum assignment</h3>
+              <p class="mt-1 text-sm text-gray-600">
+                @if (hasMultiplePdfImportPrograms) {
+                  Choose the curriculum for <span class="font-medium text-gray-800">{{ pdfImportActiveProgramTab }}</span> students without one.
+                } @else {
+                  Choose the curriculum to register for students without one. Required for each program in this PDF.
+                }
+              </p>
+            </div>
+            @if (isLoadingPdfCurriculumOptions) {
+              <span class="text-xs text-gray-500 whitespace-nowrap">Loading curricula…</span>
+            }
+          </div>
+
+          @if (pdfCurriculumLoadError) {
+            <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900" role="alert">
+              {{ pdfCurriculumLoadError }}
+            </div>
+          }
+
+          @if (!isLoadingPdfCurriculumOptions && pdfPreviewPrograms.length > 0) {
+            @if (hasMultiplePdfImportPrograms) {
+              <div class="mt-3 rounded-lg border border-white bg-white/90 p-3 shadow-sm max-w-md">
+                <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5" [attr.for]="'pdf-curriculum-' + pdfImportActiveProgramTab">
+                  {{ pdfImportActiveProgramTab }}
+                </label>
+                <div class="relative">
+                  <select
+                    [id]="'pdf-curriculum-' + pdfImportActiveProgramTab"
+                    class="w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2 pr-9 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none"
+                    [(ngModel)]="pdfProgramCurriculumSelections[pdfImportActiveProgramTab]"
+                    [ngModelOptions]="{ standalone: true }"
+                    [disabled]="(pdfCurriculumOptionsByProgram[pdfImportActiveProgramTab] ?? []).length === 0"
+                  >
+                    <option value="">Select curriculum</option>
+                    @for (option of pdfCurriculumOptionsByProgram[pdfImportActiveProgramTab] ?? []; track option.id) {
+                      <option [value]="option.curriculumCode">{{ curriculumOptionLabel(option) }}</option>
+                    }
+                  </select>
+                  <svg class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            } @else {
+              <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                @for (programCode of pdfPreviewPrograms; track programCode) {
+                  <div class="rounded-lg border border-white bg-white/90 p-3 shadow-sm">
+                    <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5" [attr.for]="'pdf-curriculum-' + programCode">
+                      {{ programCode }}
+                    </label>
+                    <div class="relative">
+                      <select
+                        [id]="'pdf-curriculum-' + programCode"
+                        class="w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2 pr-9 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none"
+                        [(ngModel)]="pdfProgramCurriculumSelections[programCode]"
+                        [ngModelOptions]="{ standalone: true }"
+                        [disabled]="(pdfCurriculumOptionsByProgram[programCode] ?? []).length === 0"
+                      >
+                        <option value="">Select curriculum</option>
+                        @for (option of pdfCurriculumOptionsByProgram[programCode] ?? []; track option.id) {
+                          <option [value]="option.curriculumCode">{{ curriculumOptionLabel(option) }}</option>
+                        }
+                      </select>
+                      <svg class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          }
+        </section>
+
+        @if (hasMultiplePdfImportPrograms) {
+          <div class="border-b border-gray-200" role="tablist" aria-label="Programs in PDF import">
+            <div class="flex flex-wrap gap-1 -mb-px">
+              @for (programCode of pdfPreviewPrograms; track programCode) {
+                @let stats = pdfImportProgramTabStats(programCode);
+                <button
+                  type="button"
+                  role="tab"
+                  [id]="'pdf-import-tab-' + programCode"
+                  [attr.aria-selected]="pdfImportActiveProgramTab === programCode"
+                  [attr.aria-controls]="'pdf-import-panel-' + programCode"
+                  (click)="onSelectPdfImportProgramTab(programCode)"
+                  class="inline-flex items-center gap-2 rounded-t-lg border px-4 py-2.5 text-sm font-medium transition-colors"
+                  [class.border-gray-200]="pdfImportActiveProgramTab === programCode"
+                  [class.border-b-white]="pdfImportActiveProgramTab === programCode"
+                  [class.bg-white]="pdfImportActiveProgramTab === programCode"
+                  [class.text-blue-700]="pdfImportActiveProgramTab === programCode"
+                  [class.border-transparent]="pdfImportActiveProgramTab !== programCode"
+                  [class.text-gray-600]="pdfImportActiveProgramTab !== programCode"
+                  [class.hover:text-gray-900]="pdfImportActiveProgramTab !== programCode"
+                  [class.hover:border-gray-300]="pdfImportActiveProgramTab !== programCode"
+                >
+                  <span>{{ programCode }}</span>
+                  <span
+                    class="rounded-full px-2 py-0.5 text-xs tabular-nums"
+                    [class.bg-blue-100]="pdfImportActiveProgramTab === programCode"
+                    [class.text-blue-800]="pdfImportActiveProgramTab === programCode"
+                    [class.bg-gray-100]="pdfImportActiveProgramTab !== programCode"
+                    [class.text-gray-700]="pdfImportActiveProgramTab !== programCode"
+                  >
+                    {{ stats.selected }}/{{ stats.total }}
+                  </span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="space-y-3">
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </span>
+          <input
+            type="search"
+            [(ngModel)]="pdfStudentSearchQuery"
+            [ngModelOptions]="{ standalone: true }"
+            [placeholder]="hasMultiplePdfImportPrograms
+              ? 'Search students in ' + pdfImportActiveProgramTab + '…'
+              : 'Search by student number, name, course, program, year level, or page...'"
+            class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+            autocomplete="off"
+          />
+        </div>
+        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            [checked]="allFilteredPdfStudentsSelected"
+            (change)="onToggleAllFilteredPdfStudents($any($event.target).checked)"
+          />
+          <span>
+            @if (hasMultiplePdfImportPrograms) {
+              Select all {{ pdfImportActiveProgramTab }} students shown
+            } @else {
+              Select all filtered rows
+            }
+          </span>
+        </label>
+        </div>
+      </div>
+
+      <div
+        class="flex-1 min-h-0 overflow-auto px-6 py-4"
+        [attr.role]="hasMultiplePdfImportPrograms ? 'tabpanel' : null"
+        [attr.id]="hasMultiplePdfImportPrograms ? 'pdf-import-panel-' + pdfImportActiveProgramTab : null"
+        [attr.aria-labelledby]="hasMultiplePdfImportPrograms ? 'pdf-import-tab-' + pdfImportActiveProgramTab : null"
+      >
+        <div class="rounded-lg border border-gray-200 overflow-hidden bg-white">
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[900px] border-collapse text-left">
+              <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                  <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Include</th>
+                  <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Student #</th>
+                  <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Name</th>
+                  <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Program</th>
+                  <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Year</th>
+                  <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Course</th>
+                  <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Page</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (filteredPdfPreviewStudents.length === 0) {
+                  <tr>
+                    <td colspan="7" class="py-10 px-4 text-center text-sm text-gray-500">
+                      @if (hasMultiplePdfImportPrograms) {
+                        No {{ pdfImportActiveProgramTab }} students match your search.
+                      } @else {
+                        No students match your search.
+                      }
+                    </td>
+                  </tr>
+                } @else {
+                  @for (s of filteredPdfPreviewStudents; track s.rowKey) {
+                    <tr class="border-b border-gray-100 hover:bg-gray-50/80 transition-colors">
+                      <td class="py-2.5 px-4">
+                        <input
+                          type="checkbox"
+                          [checked]="isPdfStudentRowSelected(s.rowKey)"
+                          (change)="onTogglePdfStudentRow(s.rowKey, $any($event.target).checked)"
+                        />
+                      </td>
+                      <td class="py-2.5 px-4 text-sm text-gray-900 tabular-nums whitespace-nowrap">{{ s.studentNumber }}</td>
+                      <td class="py-2.5 px-4 text-sm text-gray-900">{{ s.displayName }}</td>
+                      <td class="py-2.5 px-4 text-sm text-gray-800 whitespace-nowrap">{{ s.programCode }}</td>
+                      <td class="py-2.5 px-4 text-sm text-gray-800 whitespace-nowrap">{{ s.yearLevel }}</td>
+                      <td class="py-2.5 px-4 text-sm text-gray-800 whitespace-nowrap">{{ s.courseCode || '—' }}</td>
+                      <td class="py-2.5 px-4 text-sm text-gray-800 tabular-nums whitespace-nowrap">{{ s.pageNumber }}</td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/70 shrink-0 flex items-center justify-end gap-3">
+        <button
+          type="button"
+          (click)="closePdfStudentSelectionModal()"
+          class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          (click)="onConfirmPdfStudentSelectionImport()"
+          [disabled]="!canConfirmPdfImport || isImportingClassRosterPdf"
+          class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+        >
+          Import selected students
+        </button>
+      </div>
+    </div>
+  </div>
+}

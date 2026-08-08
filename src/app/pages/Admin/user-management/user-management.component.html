@@ -1,13 +1,13 @@
-<div class="page-content">
-  <header class="page-header">
-    <h1 class="page-title">{{ pageTitle }}</h1>
-    <p class="page-subtitle">{{ pageSubtitle }}</p>
+<div class="evaluator-page">
+  <header class="evaluator-page__header">
+    <h1 class="evaluator-page__title">{{ pageTitle }}</h1>
+    <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
   </header>
 
-  <!-- Search and Add User Bar -->
+  
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
     <div class="flex items-center justify-between gap-4">
-      <!-- Search Input -->
+      
       <div class="flex-1 relative">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,7 +24,7 @@
         </form>
       </div>
 
-      <!-- Add User Button -->
+      
       <button
         (click)="onAddUser()"
         class="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors duration-200 shadow-sm"
@@ -37,12 +37,12 @@
     </div>
   </div>
 
-  <!-- Users Table -->
+  
   <div class="content-area">
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div class="overflow-x-auto">
       <table class="w-full border-collapse">
-        <!-- Table Header -->
+        
         <thead>
           <tr class="border-b-2 border-gray-200">
             <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">FULL NAME</th>
@@ -54,7 +54,7 @@
           </tr>
         </thead>
 
-        <!-- Table Body -->
+        
         <tbody>
           @if (isLoading) {
             <tr>
@@ -77,36 +77,36 @@
           } @else {
             @for (user of filteredUsers; track user.id) {
               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                <!-- Full Name -->
+                
                 <td class="py-4 px-4 text-gray-900">
                   {{ user.name || 'N/A' }}
                 </td>
 
-                <!-- Email -->
+                
                 <td class="py-4 px-4 text-gray-700">
                   {{ user.email || 'N/A' }}
                 </td>
 
-                <!-- Role Badge -->
+                
                 <td class="py-4 px-4">
                   <span [class]="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + getRoleBadgeClass(user.role)">
                     {{ user.role || 'N/A' }}
                   </span>
                 </td>
 
-                <!-- Status Badge -->
+                
                 <td class="py-4 px-4">
                   <span [class]="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + getStatusBadgeClass(user)">
                     {{ getStatusText(user) }}
                   </span>
                 </td>
 
-                <!-- Created At -->
+                
                 <td class="py-4 px-4 text-gray-700">
                   {{ formatDate(user.createdAt) }}
                 </td>
 
-                <!-- Actions -->
+                
                 <td class="py-4 px-4">
                   <button
                     (click)="onEditUser(user)"
@@ -126,7 +126,7 @@
       </div>
     </div>
 
-    <!-- Pagination (if needed) -->
+    
     @if (totalPages > 1) {
       <div class="mt-6 flex items-center justify-between">
         <div class="text-sm text-gray-700">
@@ -153,7 +153,7 @@
   </div>
 </div>
 
-<!-- User Form Modal -->
+
 <app-user-form
   [user]="selectedUser"
   [isOpen]="showUserForm"

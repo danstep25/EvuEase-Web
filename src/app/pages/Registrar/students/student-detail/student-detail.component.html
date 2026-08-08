@@ -1,0 +1,215 @@
+<div class="evaluator-page evaluator-page--detail">
+  <a routerLink="/registrar/students" class="back-link">← Back to Students List</a>
+
+  <header class="evaluator-page__header page-header">
+    <div class="page-header__titles">
+      <h1 class="evaluator-page__title">{{ pageTitle }}</h1>
+      <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
+    </div>
+    @if (student && !isLoading && !loadError) {
+      <div class="page-header__actions">
+        <a
+          [routerLink]="['/registrar/students', student.id, 'academic-records']"
+          class="btn-records"
+        >
+          <svg class="btn-records__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <span>Academic Records</span>
+        </a>
+        <button type="button" class="btn-edit" (click)="onEdit()">
+          <svg class="btn-edit__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+            />
+          </svg>
+          <span>Edit</span>
+        </button>
+      </div>
+    }
+  </header>
+
+  @if (isLoading) {
+    <div class="state-card" role="status">
+      <div class="state-card__loading">
+        <svg class="state-card__spinner animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+        <span>Loading student…</span>
+      </div>
+    </div>
+  } @else if (loadError) {
+    <div class="state-card state-card--error" role="alert">
+      {{ loadError }}
+    </div>
+  } @else if (student) {
+    <div class="detail-top">
+      <section class="detail-card detail-card--personal" aria-labelledby="personal-heading">
+        <h2 id="personal-heading" class="detail-card__title">Personal Information</h2>
+        <dl class="detail-fields">
+          <div class="detail-fields__row">
+            <dt class="detail-fields__label">Student Number</dt>
+            <dd class="detail-fields__value">{{ displayOrDash(student.studentNumber) }}</dd>
+          </div>
+          <div class="detail-fields__row">
+            <dt class="detail-fields__label">Program</dt>
+            <dd class="detail-fields__value">{{ displayOrDash(student.programCode) }}</dd>
+          </div>
+          <div class="detail-fields__row">
+            <dt class="detail-fields__label">Full Name</dt>
+            <dd class="detail-fields__value">{{ getFullName(student) }}</dd>
+          </div>
+          <div class="detail-fields__row">
+            <dt class="detail-fields__label">Gender</dt>
+            <dd class="detail-fields__value">{{ displayOrDash(student.gender) }}</dd>
+          </div>
+          <div class="detail-fields__row">
+            <dt class="detail-fields__label">Birthdate</dt>
+            <dd class="detail-fields__value">{{ formatBirthdate(student.birthdate) }}</dd>
+          </div>
+          <div class="detail-fields__row">
+            <dt class="detail-fields__label">Address</dt>
+            <dd class="detail-fields__value">{{ displayOrDash(student.address) }}</dd>
+          </div>
+          <div class="detail-fields__row">
+            <dt class="detail-fields__label">Contact Number</dt>
+            <dd class="detail-fields__value">{{ displayOrDash(student.contactNumber) }}</dd>
+          </div>
+          <div class="detail-fields__row">
+            <dt class="detail-fields__label">Email</dt>
+            <dd class="detail-fields__value">{{ displayOrDash(student.email) }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="detail-card detail-card--academic" aria-labelledby="academic-heading">
+        <h2 id="academic-heading" class="detail-card__title">Academic Status</h2>
+        <dl class="detail-academic">
+          <div class="detail-academic__block">
+            <dt class="detail-fields__label">Year Level</dt>
+            <dd class="detail-fields__value">{{ displayYearTerm(student.yearLevel) }}</dd>
+          </div>
+          <div class="detail-academic__block">
+            <dt class="detail-fields__label">Status</dt>
+            <dd>
+              <span [class]="getStatusBadgeClass(student.status)">{{ student.status || '—' }}</span>
+            </dd>
+          </div>
+          <div class="detail-academic__block">
+            <dt class="detail-fields__label">Student Type</dt>
+            <dd>
+              <span [class]="getTypeBadgeClass(student.type)">{{ student.type || '—' }}</span>
+            </dd>
+          </div>
+        </dl>
+      </section>
+    </div>
+
+    <section class="detail-card detail-card--subjects" aria-labelledby="subjects-heading">
+      <h2 id="subjects-heading" class="detail-card__title">Class roster enrollments</h2>
+      <p class="detail-card__hint">
+        From faculty class rosters. The clock icon marks subjects without a final grade yet (in progress).
+      </p>
+      @if (enrollmentsLoadError) {
+        <p class="detail-card__warn mb-3" role="alert">{{ enrollmentsLoadError }}</p>
+      }
+      <div class="table-wrap">
+        <table class="subjects-table">
+          <thead>
+            <tr>
+              <th scope="col">Course Code</th>
+              <th scope="col">Course Title</th>
+              <th scope="col">Units</th>
+              <th scope="col">School Year</th>
+              <th scope="col">Semester</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (enrolledSubjects.length === 0) {
+              <tr>
+                <td colspan="6" class="subjects-table__empty">No class roster enrollments yet.</td>
+              </tr>
+            } @else {
+              @for (row of enrolledSubjects; track row.courseCode + row.semester + row.schoolYear) {
+                <tr>
+                  <td class="subjects-table__code">
+                    @if (row.isCurrent) {
+                      <svg
+                        class="subjects-table__clock"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    }
+                    {{ row.courseCode }}
+                  </td>
+                  <td>{{ row.courseTitle }}</td>
+                  <td>{{ row.units }}</td>
+                  <td>{{ row.schoolYear }}</td>
+                  <td>{{ row.semester }}</td>
+                  <td>
+                    <button type="button" class="link-action" (click)="onViewHistory(row)">View History</button>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    @if (academicSummary) {
+      <section class="summary-panel" aria-labelledby="summary-heading">
+        <h2 id="summary-heading" class="summary-panel__title">Overall Academic Summary</h2>
+        <div class="summary-panel__grid">
+          <div class="summary-card">
+            <div class="summary-card__label">Total Units Completed</div>
+            <div class="summary-card__value summary-card__value--units">
+              {{ academicSummary.totalUnitsCompleted }}
+            </div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card__label">Cumulative GWA</div>
+            <div class="summary-card__value summary-card__value--gpa">
+              {{ formatGpa(academicSummary.cumulativeGpa) }}
+            </div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card__label">Failed Subjects</div>
+            <div class="summary-card__value summary-card__value--failed">
+              {{ academicSummary.failedSubjects }}
+            </div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card__label">Retaken Subjects</div>
+            <div class="summary-card__value summary-card__value--retake">
+              {{ academicSummary.retakenSubjects }}
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+  }
+</div>

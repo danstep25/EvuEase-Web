@@ -1,12 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { BaseResponse } from '../models/base-response.model';
 import { LoginRequest, LoginResponseData, User } from '../models/user.model';
 import { API_URL } from '../../shared/constants/api.url.constant';
+import { resolveMockLogin } from '../../../mock-data/auth/mock-login-resolver';
 
 @Injectable({
   providedIn: 'root'
@@ -20,17 +21,17 @@ export class AuthService {
   readonly currentUser$ = this.currentUserSubject.asObservable();
 
   login(credentials: LoginRequest): Observable<BaseResponse<LoginResponseData>> {
-    return this.http.post<BaseResponse<LoginResponseData>>(
-      this.apiUrl,
-      credentials
-    ).pipe(
-      tap(response => {
+    const stream$ = environment.useMockAuth
+      ? of(resolveMockLogin(credentials))
+      : this.http.post<BaseResponse<LoginResponseData>>(this.apiUrl, credentials);
+
+    return stream$.pipe(
+      tap((response) => {
         if (response.success && response.data) {
           this.storeAuthData(response.data);
-          // Extract user ID from JWT token if available
           const userId = this.extractUserIdFromToken(response.data.token);
           this.currentUserSubject.next({
-            id: userId || 0, // Use 0 as fallback if ID not found in token
+            id: userId || 0,
             email: response.data.email,
             name: response.data.name,
             role: response.data.role
@@ -62,7 +63,6 @@ export class AuthService {
       return false;
     }
 
-    // Check if token is expired using expiresAt
     const expiresAt = localStorage.getItem('expires_at');
     if (expiresAt) {
       const expirationDate = new Date(expiresAt);
@@ -72,7 +72,6 @@ export class AuthService {
       }
     }
 
-    // Also check JWT expiration as fallback
     return !this.isTokenExpired(token);
   }
 
@@ -89,7 +88,6 @@ export class AuthService {
 
   private storeAuthData(data: LoginResponseData): void {
     localStorage.setItem('auth_token', data.token);
-    // Extract user ID from token
     const userId = this.extractUserIdFromToken(data.token);
     localStorage.setItem('user', JSON.stringify({
       id: userId || 0,
@@ -114,7 +112,6 @@ export class AuthService {
   private extractUserIdFromToken(token: string): number | null {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      // Try different possible property names for user ID
       const userId = payload.UserId || payload.userId || payload.id || payload.sub;
       return userId ? Number(userId) : null;
     } catch {

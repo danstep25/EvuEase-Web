@@ -1,0 +1,455 @@
+<div class="evaluator-page">
+  <header class="evaluator-page__header">
+    <h1 class="evaluator-page__title">{{ pageTitle }}</h1>
+    <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
+  </header>
+
+  
+  <div class="curriculum-tabs-bar">
+    <nav class="curriculum-tabs-nav" aria-label="Curriculum management sections">
+      <button
+        type="button"
+        (click)="onTabChange(CurriculumTab.Curricula)"
+        class="curriculum-tab"
+        [class.curriculum-tab--active]="activeTab === CurriculumTab.Curricula"
+      >
+        <svg class="curriculum-tab__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+          />
+        </svg>
+        <span class="curriculum-tab__label">Curricula</span>
+      </button>
+      <button
+        type="button"
+        (click)="onTabChange(CurriculumTab.Courses)"
+        class="curriculum-tab"
+        [class.curriculum-tab--active]="activeTab === CurriculumTab.Courses"
+      >
+        <svg class="curriculum-tab__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+          />
+        </svg>
+        <span class="curriculum-tab__label">Courses</span>
+      </button>
+      <button
+        type="button"
+        (click)="onTabChange(CurriculumTab.Fees)"
+        class="curriculum-tab"
+        [class.curriculum-tab--active]="activeTab === CurriculumTab.Fees"
+      >
+        <svg class="curriculum-tab__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <span class="curriculum-tab__label">Fees & Charges</span>
+      </button>
+    </nav>
+  </div>
+
+  
+  @if (activeTab === CurriculumTab.Curricula) {
+    <div class="curriculum-view">
+      <div class="curriculum-view__search-card curriculum-view__fees-toolbar">
+        <div class="curriculum-view__search-field curriculum-view__fees-toolbar-search">
+          <svg class="curriculum-view__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+          <form [formGroup]="searchForm" class="curriculum-view__search-form">
+            <input
+              type="search"
+              class="curriculum-view__search-input"
+              formControlName="search"
+              placeholder="Search curricula..."
+              autocomplete="off"
+            />
+          </form>
+        </div>
+        <button type="button" class="curriculum-view__fees-add-btn" (click)="onAddCurricula()">
+          + Add Curriculum
+        </button>
+      </div>
+
+      @if (selectedCurriculumProgram) {
+        <div class="curriculum-view__detail-card">
+          <button type="button" class="curriculum-view__back-link" (click)="backToProgramCards()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Programs
+          </button>
+
+          <div class="curriculum-view__detail-header">
+            <div class="curriculum-view__detail-icon-wrap" aria-hidden="true">
+              <svg class="curriculum-view__detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.75"
+                  d="M12 14l9-5-9-5-9 5 9 5z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.75"
+                  d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.75"
+                  d="M12 14v7M5.176 10.576L12 14l6.824-3.424M12 3v4"
+                />
+              </svg>
+            </div>
+            <div class="curriculum-view__detail-heading">
+              <h2 class="curriculum-view__detail-title">{{ selectedCurriculumProgram }}</h2>
+              <p class="curriculum-view__detail-meta">
+                {{ programVersionCountLabel(selectedProgramVersionCount) }}
+                <span class="curriculum-view__detail-meta-sep" aria-hidden="true">•</span>
+                <span class="curriculum-view__detail-meta-active">
+                  {{ programActiveCountLabel(selectedProgramActiveCount) }}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          @if (filteredCurriculaVersions.length === 0) {
+            <div class="curriculum-view__empty">No curricula match your search.</div>
+          } @else {
+            <div class="curriculum-view__table-scroll curriculum-view__table-scroll--detail">
+              <table class="curriculum-view__table curriculum-view__table--versions">
+                <thead>
+                  <tr>
+                    <th scope="col">Curriculum ID</th>
+                    <th scope="col">Version</th>
+                    <th scope="col">School Year</th>
+                    <th scope="col">Effective Date</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of filteredCurriculaVersions; track row.id) {
+                    <tr>
+                      <td class="curriculum-view__cell-strong">{{ row.curriculumId }}</td>
+                      <td>{{ row.version }}</td>
+                      <td>{{ row.schoolYear }}</td>
+                      <td>{{ row.effectiveDate }}</td>
+                      <td>
+                        @if (isActiveCurriculumRow(row)) {
+                          <span class="curriculum-view__pill curriculum-view__pill--active">
+                            {{ curriculumRowStatusLabel(row) }}
+                          </span>
+                        } @else {
+                          <span class="curriculum-view__pill curriculum-view__pill--inactive">
+                            {{ curriculumRowStatusLabel(row) }}
+                          </span>
+                        }
+                      </td>
+                      <td class="curriculum-view__cell-actions">
+                        <div class="curriculum-view__fee-actions">
+                          <button
+                            type="button"
+                            class="curriculum-view__fee-action curriculum-view__fee-action--edit"
+                            title="Edit curriculum"
+                            (click)="onEditCurriculaFromRow(row)"
+                          >
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            class="curriculum-view__fee-action curriculum-view__fee-action--delete"
+                            title="Delete curriculum"
+                            (click)="onDeleteCurriculaFromRow(row)"
+                          >
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      } @else {
+        @if (isLoading) {
+          <div class="curriculum-view__empty curriculum-view__empty--programs">Loading programs...</div>
+        } @else if (filteredProgramCards.length === 0) {
+          <div class="curriculum-view__empty curriculum-view__empty--programs">No programs match your search.</div>
+        } @else {
+          <div class="curriculum-view__program-grid" role="list">
+            @for (card of filteredProgramCards; track card.programCode) {
+              <article class="curriculum-view__program-card" role="listitem">
+                <div class="curriculum-view__program-card-body">
+                  <div class="curriculum-view__program-icon-wrap" aria-hidden="true">
+                    <svg class="curriculum-view__program-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.75"
+                        d="M12 14l9-5-9-5-9 5 9 5z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.75"
+                        d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.75"
+                        d="M12 14v7M5.176 10.576L12 14l6.824-3.424M12 3v4"
+                      />
+                    </svg>
+                  </div>
+                  <h3 class="curriculum-view__program-code">{{ card.programCode }}</h3>
+                  <p class="curriculum-view__program-meta curriculum-view__program-meta--versions">
+                    {{ programVersionCountLabel(card.versionCount) }}
+                  </p>
+                  <p class="curriculum-view__program-meta curriculum-view__program-meta--active">
+                    {{ programActiveCountLabel(card.activeCount) }}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="curriculum-view__program-card-action"
+                  (click)="openProgramCurricula(card.programCode)"
+                >
+                  <span>View Curricula</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </article>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+
+  
+  @if (activeTab === CurriculumTab.Courses) {
+    
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div class="flex items-center justify-between">
+        
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-1">View Mode</h3>
+          <p class="text-sm text-gray-600">Choose how you want to view courses.</p>
+        </div>
+        
+        
+        <div class="flex gap-3">
+          <button
+            (click)="onViewModeChange(CourseViewMode.List)"
+            [class]="'px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ' + (viewMode === CourseViewMode.List ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300')"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+            </svg>
+            List View
+          </button>
+          <button
+            (click)="onViewModeChange(CourseViewMode.Table)"
+            [class]="'px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ' + (viewMode === CourseViewMode.Table ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300')"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+            Curriculum Table View
+          </button>
+        </div>
+      </div>
+    </div>
+
+    @if (viewMode === CourseViewMode.List) {
+      <app-list-view
+        [courses]="courses"
+        [programs]="programs"
+        [curricula]="courseFilterCurricula"
+        [isLoadingCourses]="isLoadingCourses"
+        [isLoadingCurricula]="isLoadingCurricula"
+        [courseSearchTerm]="courseSearchTerm"
+        [selectedProgramFilter]="selectedProgramFilter"
+        [selectedCurriculumFilter]="selectedCurriculumFilter"
+        [selectedYearFilter]="selectedYearFilter"
+        [selectedSemesterFilter]="selectedSemesterFilter"
+        [currentPageInput]="currentPage"
+        [totalPagesInput]="totalPages"
+        [pageSizeInput]="pageSize"
+        [totalRecordsInput]="totalRecords"
+        (searchTermChange)="onListViewSearchTermChange($event)"
+        (programFilterChange)="onListViewProgramFilterChange($event)"
+        (curriculumFilterChange)="onListViewCurriculumFilterChange($event)"
+        (yearFilterChange)="onListViewYearFilterChange($event)"
+        (semesterFilterChange)="onListViewSemesterFilterChange($event)"
+        (addCourse)="onAddCourse()"
+        (editCourse)="onEditCourse($event)"
+        (deleteCourse)="onDeleteCourse($event)"
+        (pageChange)="onListViewPageChange($event)"
+      ></app-list-view>
+    }
+
+    @if (viewMode === CourseViewMode.Table) {
+      <app-curriculum-table-view
+        [programs]="programs"
+        [curricula]="courseFilterCurricula"
+        [isLoadingCurricula]="isLoadingCurricula"
+        [selectedProgramFilter]="selectedProgramFilter"
+        [selectedCurriculumFilter]="selectedCurriculumFilter"
+        [reloadToken]="tableViewReloadToken"
+        (programFilterChange)="onTableViewProgramFilterChange($event)"
+        (curriculumFilterChange)="onTableViewCurriculumFilterChange($event)"
+        (batchUpload)="onBatchUploadCourses()"
+      ></app-curriculum-table-view>
+    }
+  }
+
+  
+  @if (activeTab === CurriculumTab.Fees) {
+    
+    <div class="tabs-container mb-6">
+      <div class="flex border-b border-gray-200">
+        <button
+          (click)="onFeeTabChange(FeeTab.TuitionFees)"
+          [class]="'tab-button ' + (activeFeeTab === FeeTab.TuitionFees ? 'active' : '')"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Tuition Fees
+        </button>
+        <button
+          (click)="onFeeTabChange(FeeTab.OtherSchoolFees)"
+          [class]="'tab-button ' + (activeFeeTab === FeeTab.OtherSchoolFees ? 'active' : '')"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+          Other School Fees
+        </button>
+        <button
+          (click)="onFeeTabChange(FeeTab.MiscellaneousFees)"
+          [class]="'tab-button ' + (activeFeeTab === FeeTab.MiscellaneousFees ? 'active' : '')"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+          Miscellaneous Fees
+        </button>
+        <button
+          (click)="onFeeTabChange(FeeTab.Downpayment)"
+          [class]="'tab-button ' + (activeFeeTab === FeeTab.Downpayment ? 'active' : '')"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="7.5" cy="7.5" r="2.5" stroke-width="2" />
+            <circle cx="16.5" cy="16.5" r="2.5" stroke-width="2" />
+            <path stroke-linecap="round" stroke-width="2" d="M5 19L19 5" />
+          </svg>
+          Downpayment %
+        </button>
+        <button
+          (click)="onFeeTabChange(FeeTab.PaymentScheme)"
+          [class]="'tab-button ' + (activeFeeTab === FeeTab.PaymentScheme ? 'active' : '')"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Payment Scheme
+        </button>
+      </div>
+    </div>
+
+    
+    @if (activeFeeTab === FeeTab.TuitionFees) {
+      <app-tuition-fees></app-tuition-fees>
+    }
+
+    
+    @if (activeFeeTab === FeeTab.OtherSchoolFees) {
+      <app-other-school-fees></app-other-school-fees>
+    }
+
+    
+    @if (activeFeeTab === FeeTab.MiscellaneousFees) {
+      <app-miscellaneous-fees></app-miscellaneous-fees>
+    }
+
+    
+    @if (activeFeeTab === FeeTab.Downpayment) {
+      <app-downpayments />
+    }
+
+    @if (activeFeeTab === FeeTab.PaymentScheme) {
+      <app-payment-schemes />
+    }
+  }
+</div>
+
+
+<app-curricula-form
+  [curricula]="selectedCurricula"
+  [isOpen]="showCurriculaForm"
+  (close)="onCloseCurriculaForm()"
+  (save)="onSaveCurricula($event)"
+></app-curricula-form>
+
+
+<app-course-form
+  [course]="selectedCourse"
+  [createPrefill]="courseCreatePrefill"
+  [isOpen]="showCourseForm"
+  (close)="onCloseCourseForm()"
+  (save)="onSaveCourse($event)"
+></app-course-form>
+
+<app-course-batch-upload-modal
+  [isOpen]="showCourseBatchUploadModal"
+  [programs]="programs"
+  (closed)="onCloseCourseBatchUploadModal()"
+  (imported)="onCourseBatchImported($event)"
+></app-course-batch-upload-modal>
+
+
+<app-confirmation-modal
+  [isOpen]="showDeleteConfirmation"
+  [config]="deleteConfirmationConfig"
+  (confirm)="onConfirmDelete()"
+  (cancel)="onCancelDelete()"
+></app-confirmation-modal>
+

@@ -1,0 +1,361 @@
+<div class="evaluator-page academic-records-page">
+  <a [routerLink]="studentId ? ['/registrar/students', studentId] : '/registrar/students'" class="back-link">
+    ← Back to Student Details
+  </a>
+
+  @if (isLoadingStudent) {
+    <div class="state-card" role="status">
+      <div class="state-card__loading">
+        <svg class="state-card__spinner animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+        <span>Loading…</span>
+      </div>
+    </div>
+  } @else if (loadError) {
+    <div class="state-card state-card--error" role="alert">{{ loadError }}</div>
+  } @else {
+    <header class="records-head">
+      <div class="records-head__text">
+        <div class="records-head__title-row">
+          <h1 class="records-head__title">{{ pageTitle }}</h1>
+          @if (isCandidateForGraduation) {
+            <span class="grad-badge" role="status" title="This student has passed all required curriculum subjects.">
+              <svg class="grad-badge__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 3 1 9l11 6 9-4.909V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
+              </svg>
+              Candidate for Graduation
+            </span>
+          }
+        </div>
+        <p class="records-head__subtitle">{{ subtitle }}</p>
+        @if (curriculumLabel) {
+          <p class="records-head__curriculum">Curriculum: {{ curriculumLabel }}</p>
+        }
+        @if (isCandidateForGraduation) {
+          <p class="grad-note" role="note">
+            This student has completed all required curriculum subjects and is a candidate for graduation.
+          </p>
+        }
+        <p class="records-head__note">
+          @if (viewMode === 'curriculum') {
+            @if (usesCurriculumPlan) {
+              Subjects are listed by curriculum year and semester. Rows with grades come from class roster; subjects not yet taken are shown as placeholders.
+            } @else {
+              Grouped by academic term from class roster. Grades and remarks follow Grade Roster rules (e.g. numeric ≤ 3.0 = PASSED).
+            }
+          } @else {
+            Showing enrollments for the previous term
+            @if (previousTermLabel) {
+              ({{ previousTermLabel }}).
+            } @else {
+              .
+            }
+          }
+        </p>
+      </div>
+      <div class="records-head__actions">
+        <div class="records-view-toggle" role="group" aria-label="Academic records view">
+          <button
+            type="button"
+            class="records-view-btn"
+            [class.records-view-btn--active]="viewMode === 'term'"
+            (click)="setViewMode('term')"
+          >
+            <svg class="records-view-btn__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.75"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            Term
+          </button>
+          <button
+            type="button"
+            class="records-view-btn"
+            [class.records-view-btn--active]="viewMode === 'curriculum'"
+            (click)="setViewMode('curriculum')"
+          >
+            <svg class="records-view-btn__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.75"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+            Curriculum
+          </button>
+        </div>
+      </div>
+    </header>
+
+    @if (viewMode === 'curriculum' && usesCurriculumPlan) {
+      <div class="records-legend" aria-label="Academic records legend">
+        <span class="records-legend__item records-legend__item--taken">Taken / enrolled</span>
+        <span class="records-legend__item records-legend__item--pending">Grade pending</span>
+        <span class="records-legend__item records-legend__item--not-taken">Not yet taken</span>
+      </div>
+    }
+
+    @if (recordsLoadError) {
+      <p class="records-banner" role="alert">{{ recordsLoadError }}</p>
+    }
+    @if (curriculumLoadWarning) {
+      <p class="records-banner" role="status">{{ curriculumLoadWarning }}</p>
+    }
+    @if (viewMode === 'term' && currentTermWarning) {
+      <p class="records-banner" role="status">{{ currentTermWarning }}</p>
+    }
+
+    <div class="records-body">
+      @if (viewMode === 'term') {
+        @if (recentTermBlock) {
+          <ng-container
+            [ngTemplateOutlet]="semesterBlock"
+            [ngTemplateOutletContext]="{ $implicit: recentTermBlock, sid: 'recent-term' }"
+          />
+        } @else {
+          <p class="records-empty">
+            @if (previousTermLabel) {
+              No academic records to display for {{ previousTermLabel }}.
+            } @else {
+              No academic records to display for the previous term.
+            }
+          </p>
+        }
+      } @else {
+        @for (pair of overallSemesterPairs; track pair.schoolYearKey) {
+          <div class="semester-pair-row">
+            @if (pair.left) {
+              <ng-container
+                [ngTemplateOutlet]="semesterBlock"
+                [ngTemplateOutletContext]="{ $implicit: pair.left, sid: 'sem-l-' + $index }"
+              />
+            } @else {
+              <div class="semester-slot semester-slot--empty" aria-hidden="true"></div>
+            }
+            @if (pair.right) {
+              <ng-container
+                [ngTemplateOutlet]="semesterBlock"
+                [ngTemplateOutletContext]="{ $implicit: pair.right, sid: 'sem-r-' + $index }"
+              />
+            } @else {
+              <div class="semester-slot semester-slot--empty" aria-hidden="true"></div>
+            }
+          </div>
+        }
+        @for (block of overallSemesterFullWidth; track block.rawAcademicTerm) {
+          <ng-container
+            [ngTemplateOutlet]="semesterBlock"
+            [ngTemplateOutletContext]="{ $implicit: block, sid: 'sem-fw-' + $index }"
+          />
+        }
+        @if (!hasCurriculumRecords) {
+          <p class="records-empty">No academic records to display.</p>
+        }
+      }
+    </div>
+
+    <ng-template #semesterBlock let-block let-sid="sid">
+      <section class="semester-card" [attr.aria-labelledby]="sid">
+        <h2 [id]="sid" class="semester-card__banner">{{ block.label }}</h2>
+        <div class="semester-card__table-wrap">
+          <table class="grades-table">
+            <thead>
+              <tr>
+                <th scope="col">Course Code</th>
+                <th scope="col">Subject Description</th>
+                <th scope="col">Units</th>
+                <th scope="col">Grade</th>
+                <th scope="col">Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of block.courses; track trackCourseRow($index, row)) {
+                <tr
+                  [class.grades-table__row--retake]="row.isRetake"
+                  [class.grades-table__row--not-taken]="row.isNotTaken"
+                >
+                  <td class="grades-table__code">{{ row.courseCode }}</td>
+                  <td class="grades-table__desc">
+                    <div class="grades-table__line grades-table__line--subject">
+                      <span class="grades-table__desc-text">{{ row.subjectDescription }}</span>
+                      @if (row.isRetake) {
+                        <span class="sr-only">Retake enrollment.</span>
+                        <svg
+                          class="grades-table__retake-icon grades-table__retake-icon--subject"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      }
+                    </div>
+                  </td>
+                  <td class="grades-table__num">{{ row.units }}</td>
+                  <td class="grades-table__num grades-table__grade">
+                    <div class="grades-table__line grades-table__line--grade">
+                      <span>{{ formatGrade(row.grade) }}</span>
+                      @if (row.isRetake) {
+                        <button
+                          type="button"
+                          class="grades-table__retake-grade-btn"
+                          (click)="openCourseHistory(row.courseCode); $event.stopPropagation()"
+                          [attr.aria-label]="'View enrollment history for course ' + row.courseCode"
+                          title="View history for this course"
+                        >
+                          <svg
+                            class="grades-table__retake-icon grades-table__retake-icon--grade"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="2"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        </button>
+                      }
+                    </div>
+                  </td>
+                  <td class="grades-table__remarks">
+                    <div
+                      class="grades-table__remarks-stack"
+                      [class.remarks--passed]="row.remarkKind === 'passed'"
+                      [class.remarks--failed]="row.remarkKind === 'failed'"
+                      [class.remarks--incomplete]="row.remarkKind === 'incomplete'"
+                      [class.remarks--pending]="row.remarkKind === 'pending'"
+                      [class.remarks--not-taken]="row.remarkKind === 'not-taken'"
+                      [class.remarks--neutral]="row.remarkKind === 'neutral'"
+                    >
+                      <span class="grades-table__remarks-primary">{{ row.remarks }}</span>
+                      @if (row.remarksSub) {
+                        <span class="grades-table__remarks-sub">{{ row.remarksSub }}</span>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+              <tr class="grades-table__footer-row">
+                <td colspan="2" class="grades-table__footer-label">
+                  @if (viewMode === 'curriculum' && usesCurriculumPlan) {
+                    Units (taken / planned)
+                  } @else {
+                    Total Units
+                  }
+                </td>
+                <td class="grades-table__num grades-table__footer-units">
+                  @if (viewMode === 'curriculum' && usesCurriculumPlan) {
+                    {{ takenUnits(block.courses) }} / {{ totalUnits(block.courses) }}
+                  } @else {
+                    {{ totalUnits(block.courses) }}
+                  }
+                </td>
+                <td colspan="2" class="grades-table__footer-rest"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </ng-template>
+
+    @if (courseHistoryOpen) {
+      <div
+        class="course-history-modal"
+        role="presentation"
+        (click)="closeCourseHistory()"
+      >
+        <div class="course-history-modal__backdrop" aria-hidden="true"></div>
+        <div
+          class="course-history-modal__panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="course-history-title"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="course-history-modal__head">
+            <h3 id="course-history-title" class="course-history-modal__title">
+              Course history — {{ courseHistoryCode }}
+            </h3>
+            <button
+              type="button"
+              class="course-history-modal__close"
+              (click)="closeCourseHistory()"
+              aria-label="Close"
+            >
+              <svg class="course-history-modal__close-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <p class="course-history-modal__hint">
+            All class roster enrollments for this course code, oldest term first. Retakes after the first attempt are
+            marked.
+          </p>
+          <div class="course-history-modal__table-wrap">
+            <table class="course-history-table">
+              <thead>
+                <tr>
+                  <th scope="col">Academic term</th>
+                  <th scope="col">Units</th>
+                  <th scope="col">Grade</th>
+                  <th scope="col">Remarks</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (h of courseHistoryRows; track h.termLabel + $index) {
+                  <tr>
+                    <td>{{ h.termLabel }}</td>
+                    <td class="course-history-table__num">{{ h.units }}</td>
+                    <td class="course-history-table__num">{{ h.gradeDisplay }}</td>
+                    <td class="course-history-table__remarks">
+                      <div
+                        class="grades-table__remarks-stack"
+                        [class.remarks--passed]="h.remarkKind === 'passed'"
+                        [class.remarks--failed]="h.remarkKind === 'failed'"
+                        [class.remarks--incomplete]="h.remarkKind === 'incomplete'"
+                        [class.remarks--pending]="h.remarkKind === 'pending'"
+                        [class.remarks--neutral]="h.remarkKind === 'neutral'"
+                      >
+                        <span class="grades-table__remarks-primary">{{ h.remarksPrimary }}</span>
+                        @if (h.remarksSub) {
+                          <span class="grades-table__remarks-sub">{{ h.remarksSub }}</span>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="course-history-modal__footer">
+            <button type="button" class="course-history-modal__done" (click)="closeCourseHistory()">Done</button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

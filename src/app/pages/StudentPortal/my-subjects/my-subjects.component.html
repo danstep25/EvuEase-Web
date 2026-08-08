@@ -1,0 +1,43 @@
+<div class="evaluator-page">
+  <header class="evaluator-page__header">
+    <h1 class="evaluator-page__title">My Subjects</h1>
+    <p class="evaluator-page__subtitle">Subjects enrolled for your current term ({{ currentTerm }}).</p>
+  </header>
+
+  @if (isLoading) {
+    <p class="sp-empty">Loading subjects…</p>
+  } @else if (rows.length === 0) {
+    <div class="evaluator-surface evaluator-surface--padded">
+      <p class="sp-empty">No subjects found for your current term.</p>
+    </div>
+  } @else {
+    <div class="evaluator-surface evaluator-surface--table">
+      <div class="sp-table-wrap">
+        <table class="sp-data-table">
+          <thead>
+            <tr>
+              <th scope="col" class="sp-data-table__th--center">Course Code</th>
+              <th scope="col">Subject</th>
+              <th scope="col" class="sp-data-table__th--center">Section</th>
+              <th scope="col" class="sp-data-table__th--center">Units</th>
+              <th scope="col" class="sp-data-table__th--center">Grade</th>
+              <th scope="col" class="sp-data-table__th--center">Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows; track row.enrollmentId) {
+              <tr>
+                <td class="sp-data-table__cell-code">{{ row.courseCode }}</td>
+                <td>{{ row.courseTitle }}</td>
+                <td class="sp-data-table__cell--center">{{ row.section || '—' }}</td>
+                <td class="sp-data-table__cell--center">{{ row.units }}</td>
+                <td class="sp-data-table__cell--center">{{ row.officialGrade || '—' }}</td>
+                <td class="sp-data-table__cell--center">{{ row.remarks || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

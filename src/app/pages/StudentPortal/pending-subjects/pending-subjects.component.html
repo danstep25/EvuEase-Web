@@ -1,0 +1,46 @@
+<div class="evaluator-page">
+  <header class="evaluator-page__header">
+    <h1 class="evaluator-page__title">My Curriculum</h1>
+    <p class="evaluator-page__subtitle">Curriculum subjects you have not yet completed, grouped by year and term.</p>
+  </header>
+
+  @if (isLoading) {
+    <p class="sp-empty">Loading pending subjects…</p>
+  } @else if (groups.length === 0) {
+    <div class="evaluator-surface evaluator-surface--padded">
+      <p class="sp-empty">No pending subjects found for your curriculum.</p>
+    </div>
+  } @else {
+    <div class="evaluator-surface evaluator-surface--table">
+      <div class="sp-table-wrap">
+        <table class="sp-data-table">
+          <thead>
+            <tr>
+              <th scope="col" class="sp-data-table__th--center">Course Code</th>
+              <th scope="col">Subject Description</th>
+              <th scope="col" class="sp-data-table__th--center">Pre-requisite(s)</th>
+              <th scope="col" class="sp-data-table__th--center">Units</th>
+              <th scope="col" class="sp-data-table__th--center">Component</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (group of groups; track trackGroup($index, group)) {
+              <tr class="sp-term-row">
+                <td colspan="5">{{ group.label }}</td>
+              </tr>
+              @for (row of group.rows; track trackRow($index, row)) {
+                <tr>
+                  <td class="sp-data-table__cell-code">{{ row.courseCode }}</td>
+                  <td>{{ row.subjectDescription }}</td>
+                  <td class="sp-data-table__cell--center">{{ row.prerequisite }}</td>
+                  <td class="sp-data-table__cell--center">{{ row.units }}</td>
+                  <td class="sp-data-table__cell--center">{{ row.component }}</td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

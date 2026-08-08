@@ -1,0 +1,445 @@
+<div class="evaluator-page add-credit-request" [appUnsavedChangesWarning]="hasUnsavedChanges.bind(this)">
+  <button type="button" class="add-credit-request__back" (click)="onCancel()">
+    <svg class="add-credit-request__back-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+    </svg>
+    Back to Credit Requests
+  </button>
+
+  <header class="evaluator-page__header add-credit-request__header">
+    <h1 class="evaluator-page__title add-credit-request__title">{{ pageTitle }}</h1>
+    <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
+  </header>
+
+  <section class="evaluator-surface add-credit-request__card">
+    @if (errorMessage) {
+      <div class="add-credit-request__error" role="alert">{{ errorMessage }}</div>
+    }
+
+    <div class="add-credit-request__stepper" aria-label="Progress">
+      <div class="add-credit-request__stepper-track">
+        <div
+          class="add-credit-request__step"
+          [class.add-credit-request__step--active]="isStepActive(1)"
+          [class.add-credit-request__step--completed]="isStepCompleted(1)"
+        >
+          <div
+            class="add-credit-request__step-circle"
+            [attr.aria-current]="isStepActive(1) ? 'step' : null"
+          >
+            1
+          </div>
+          <span class="add-credit-request__step-label">Student Info</span>
+        </div>
+        <div
+          class="add-credit-request__rail"
+          [class.add-credit-request__rail--completed]="isRailCompleted(1)"
+          aria-hidden="true"
+        ></div>
+        <div
+          class="add-credit-request__step"
+          [class.add-credit-request__step--active]="isStepActive(2)"
+          [class.add-credit-request__step--completed]="isStepCompleted(2)"
+        >
+          <div
+            class="add-credit-request__step-circle"
+            [attr.aria-current]="isStepActive(2) ? 'step' : null"
+          >
+            2
+          </div>
+          <span class="add-credit-request__step-label">Course Credit</span>
+        </div>
+        <div
+          class="add-credit-request__rail"
+          [class.add-credit-request__rail--completed]="isRailCompleted(2)"
+          aria-hidden="true"
+        ></div>
+        <div
+          class="add-credit-request__step"
+          [class.add-credit-request__step--active]="isStepActive(3)"
+          [class.add-credit-request__step--completed]="isStepCompleted(3)"
+        >
+          <div
+            class="add-credit-request__step-circle"
+            [attr.aria-current]="isStepActive(3) ? 'step' : null"
+          >
+            3
+          </div>
+          <span class="add-credit-request__step-label">Preview</span>
+        </div>
+      </div>
+    </div>
+
+    @if (currentStep === 1) {
+      <form class="add-credit-request__form" [formGroup]="studentForm" (ngSubmit)="onNext()">
+        <div class="add-credit-request__field">
+          <label class="add-credit-request__label" for="acr-student-number">
+            Student Number <span class="add-credit-request__req" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="acr-student-number"
+            type="text"
+            class="add-credit-request__input"
+            formControlName="studentNumber"
+            placeholder="e.g. 010000145050"
+            (blur)="onStudentNumberBlur()"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="add-credit-request__row add-credit-request__row--3">
+          <div class="add-credit-request__field">
+            <label class="add-credit-request__label" for="acr-first-name">
+              First Name <span class="add-credit-request__req" aria-hidden="true">*</span>
+            </label>
+            <input
+              id="acr-first-name"
+              type="text"
+              class="add-credit-request__input"
+              formControlName="firstName"
+              placeholder="First Name"
+              autocomplete="given-name"
+            />
+          </div>
+          <div class="add-credit-request__field">
+            <label class="add-credit-request__label" for="acr-middle-name">Middle Name (Optional)</label>
+            <input
+              id="acr-middle-name"
+              type="text"
+              class="add-credit-request__input"
+              formControlName="middleName"
+              placeholder="Middle Name (Optional)"
+              autocomplete="additional-name"
+            />
+          </div>
+          <div class="add-credit-request__field">
+            <label class="add-credit-request__label" for="acr-last-name">
+              Last Name <span class="add-credit-request__req" aria-hidden="true">*</span>
+            </label>
+            <input
+              id="acr-last-name"
+              type="text"
+              class="add-credit-request__input"
+              formControlName="lastName"
+              placeholder="Last Name"
+              autocomplete="family-name"
+            />
+          </div>
+        </div>
+
+        <div class="add-credit-request__row add-credit-request__row--2">
+          <div class="add-credit-request__field">
+            <span class="add-credit-request__label" id="acr-program-lbl">
+              Program <span class="add-credit-request__req" aria-hidden="true">*</span>
+            </span>
+            <app-searchable-select
+              [options]="programOptions"
+              [hideSearchIcon]="true"
+              [optionDisplayInline]="true"
+              [listHeading]="'Select Program'"
+              ariaLabelledBy="acr-program-lbl"
+              placeholder="Select Program"
+              emptyText="No programs found."
+              [selectedId]="studentForm.controls.programId.value"
+              (selectedIdChange)="studentForm.patchValue({ programId: $event })"
+            />
+          </div>
+          <div class="add-credit-request__field">
+            <span class="add-credit-request__label" id="acr-term-lbl">
+              School Year &amp; Term <span class="add-credit-request__req" aria-hidden="true">*</span>
+            </span>
+            <app-searchable-select
+              [options]="termOptions"
+              [hideSearchIcon]="true"
+              [optionDisplayInline]="true"
+              [listHeading]="'Select School Year & Term'"
+              panelPlacement="above"
+              ariaLabelledBy="acr-term-lbl"
+              placeholder="Select School Year & Term"
+              emptyText="No terms found."
+              [selectedId]="studentForm.controls.syId.value"
+              (selectedIdChange)="studentForm.patchValue({ syId: $event })"
+            />
+          </div>
+        </div>
+
+        <div class="add-credit-request__actions">
+          <button type="button" class="add-credit-request__btn add-credit-request__btn--cancel" (click)="onCancel()">
+            Cancel
+          </button>
+          <button type="submit" class="add-credit-request__btn add-credit-request__btn--next" [disabled]="studentForm.invalid">
+            Next
+          </button>
+        </div>
+      </form>
+    } @else if (currentStep === 2) {
+      <div class="add-credit-request__mapping" [formGroup]="courseForm">
+        <div class="add-credit-request__mapping-scroll">
+          <div class="add-credit-request__mapping-grid">
+            <div class="add-credit-request__mapping-band add-credit-request__mapping-band--applied">
+              Course Applied for Crediting
+            </div>
+            <div class="add-credit-request__mapping-band add-credit-request__mapping-band--sti">
+              Equivalent STI Course
+            </div>
+
+            <span class="add-credit-request__mapping-th">Course Code</span>
+            <span class="add-credit-request__mapping-th">Course Title</span>
+            <span class="add-credit-request__mapping-th add-credit-request__mapping-th--narrow">Lec</span>
+            <span class="add-credit-request__mapping-th add-credit-request__mapping-th--narrow">Lab</span>
+            <span class="add-credit-request__mapping-th add-credit-request__mapping-th--units">Total Unit</span>
+            <span class="add-credit-request__mapping-th add-credit-request__mapping-th--grade">Grade</span>
+            <span class="add-credit-request__mapping-th">Course Code</span>
+            <span class="add-credit-request__mapping-th">Course Title</span>
+            <span class="add-credit-request__mapping-th add-credit-request__mapping-th--units">Total Units</span>
+
+            <div class="add-credit-request__mapping-entries" formArrayName="rows">
+              @for (row of courseRows.controls; track trackRowControl(row); let i = $index) {
+                <div class="add-credit-request__mapping-entry" [formGroupName]="i">
+                  <div class="add-credit-request__mapping-row">
+                  <input
+                    type="text"
+                    class="add-credit-request__mapping-input"
+                    formControlName="appliedCode"
+                    placeholder="CODE"
+                    autocomplete="off"
+                    [attr.aria-label]="'Course code row ' + (i + 1)"
+                  />
+                  <input
+                    type="text"
+                    class="add-credit-request__mapping-input add-credit-request__mapping-input--title"
+                    formControlName="appliedTitle"
+                    placeholder="Course Title"
+                    autocomplete="off"
+                    [attr.aria-label]="'Course title row ' + (i + 1)"
+                  />
+                  <div class="add-credit-request__unit-stepper">
+                    <input
+                      type="number"
+                      class="add-credit-request__unit-stepper-input"
+                      formControlName="lecUnits"
+                      [min]="minUnitValue"
+                      [max]="maxUnitValue"
+                      step="0.01"
+                      inputmode="decimal"
+                      [attr.aria-label]="'Lecture units row ' + (i + 1)"
+                    />
+                    <div class="add-credit-request__unit-stepper-controls" aria-hidden="true">
+                      <button
+                        type="button"
+                        class="add-credit-request__unit-stepper-btn add-credit-request__unit-stepper-btn--up"
+                        tabindex="-1"
+                        (click)="adjustUnits(i, 'lecUnits', 1)"
+                      ></button>
+                      <button
+                        type="button"
+                        class="add-credit-request__unit-stepper-btn add-credit-request__unit-stepper-btn--down"
+                        tabindex="-1"
+                        (click)="adjustUnits(i, 'lecUnits', -1)"
+                      ></button>
+                    </div>
+                  </div>
+                  <div class="add-credit-request__unit-stepper">
+                    <input
+                      type="number"
+                      class="add-credit-request__unit-stepper-input"
+                      formControlName="labUnits"
+                      [min]="minUnitValue"
+                      [max]="maxUnitValue"
+                      step="0.01"
+                      inputmode="decimal"
+                      [attr.aria-label]="'Lab units row ' + (i + 1)"
+                    />
+                    <div class="add-credit-request__unit-stepper-controls" aria-hidden="true">
+                      <button
+                        type="button"
+                        class="add-credit-request__unit-stepper-btn add-credit-request__unit-stepper-btn--up"
+                        tabindex="-1"
+                        (click)="adjustUnits(i, 'labUnits', 1)"
+                      ></button>
+                      <button
+                        type="button"
+                        class="add-credit-request__unit-stepper-btn add-credit-request__unit-stepper-btn--down"
+                        tabindex="-1"
+                        (click)="adjustUnits(i, 'labUnits', -1)"
+                      ></button>
+                    </div>
+                  </div>
+                  <div class="add-credit-request__mapping-readonly" aria-live="polite">
+                    {{ getAppliedTotalUnits(i) }}
+                  </div>
+                  <div class="add-credit-request__unit-stepper add-credit-request__unit-stepper--grade">
+                    <input
+                      type="number"
+                      class="add-credit-request__unit-stepper-input"
+                      formControlName="grade"
+                      [step]="gradeStep"
+                      inputmode="decimal"
+                      [attr.aria-label]="'Grade row ' + (i + 1)"
+                    />
+                    <div class="add-credit-request__unit-stepper-controls" aria-hidden="true">
+                      <button
+                        type="button"
+                        class="add-credit-request__unit-stepper-btn add-credit-request__unit-stepper-btn--up"
+                        tabindex="-1"
+                        (click)="adjustGrade(i, gradeStep)"
+                      ></button>
+                      <button
+                        type="button"
+                        class="add-credit-request__unit-stepper-btn add-credit-request__unit-stepper-btn--down"
+                        tabindex="-1"
+                        (click)="adjustGrade(i, -gradeStep)"
+                      ></button>
+                    </div>
+                  </div>
+                  <input
+                    type="text"
+                    class="add-credit-request__mapping-input add-credit-request__mapping-input--readonly"
+                    formControlName="equivalentCode"
+                    placeholder="CODE"
+                    readonly
+                    tabindex="-1"
+                    [attr.aria-label]="'Equivalent course code row ' + (i + 1)"
+                  />
+                  <div class="add-credit-request__mapping-select-wrap">
+                    <select
+                      class="add-credit-request__mapping-select"
+                      formControlName="equivalentCourseId"
+                      [attr.aria-label]="'Equivalent STI course row ' + (i + 1)"
+                      (change)="onEquivalentCourseChange(i)"
+                    >
+                      <option value="">Select Equivalent Course</option>
+                      @for (course of equivalentCourses; track course.id) {
+                        <option [value]="course.id">{{ course.title }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div
+                    class="add-credit-request__mapping-readonly add-credit-request__mapping-readonly--equiv"
+                    aria-live="polite"
+                  >
+                    {{ getEquivalentUnitsDisplay(i) }}
+                  </div>
+                  </div>
+                  @if (getCourseMappingWarnings(i); as rowWarnings) {
+                    <div class="add-credit-request__mapping-warnings" role="status">
+                      @if (rowWarnings.codeMismatch) {
+                        <p class="add-credit-request__mapping-warning">
+                          <svg
+                            class="add-credit-request__mapping-warning-icon"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                            />
+                          </svg>
+                          <span>
+                            Course codes do not match: applied
+                            <strong>{{ rowWarnings.appliedCode }}</strong> vs STI
+                            <strong>{{ rowWarnings.equivalentCode }}</strong
+                            >. Verify the equivalent course selection.
+                          </span>
+                        </p>
+                      }
+                      @if (rowWarnings.unitsMismatch) {
+                        <p class="add-credit-request__mapping-warning">
+                          <svg
+                            class="add-credit-request__mapping-warning-icon"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                            />
+                          </svg>
+                          <span>
+                            Total units do not match: applied
+                            <strong>{{ rowWarnings.appliedTotal }}</strong> vs STI
+                            <strong>{{ rowWarnings.equivalentTotal }}</strong
+                            >. Confirm unit mapping before continuing.
+                          </span>
+                        </p>
+                      }
+                    </div>
+                  }
+                  @if (canRemoveCourseRow()) {
+                    <button
+                      type="button"
+                      class="add-credit-request__remove-row"
+                      (click)="removeCourseRow(i)"
+                      [attr.aria-label]="'Remove course row ' + (i + 1)"
+                    >
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                      Remove
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="add-credit-request__add-course-btn" (click)="addAnotherCourse()">
+          + Add Another Course
+        </button>
+
+        <aside class="add-credit-request__info" aria-label="Course credit mapping instructions">
+          <p class="add-credit-request__info-title">Course Credit Mapping</p>
+          <p class="add-credit-request__info-text">
+            Fill in the original course details from the previous institution and select the equivalent STI course. You
+            can add multiple courses by clicking 'Add Another Course' button.
+          </p>
+        </aside>
+
+        <div class="add-credit-request__actions add-credit-request__actions--mapping">
+          <button type="button" class="add-credit-request__btn add-credit-request__btn--cancel" (click)="onBack()">
+            Previous
+          </button>
+          <button type="button" class="add-credit-request__btn add-credit-request__btn--next" (click)="onNext()">
+            Next
+          </button>
+        </div>
+      </div>
+    } @else {
+      <div class="add-credit-request__preview">
+        <app-credit-request-print-form [creditRequest]="getPreviewCreditRequest()" />
+
+        <aside class="add-credit-request__preview-review" aria-label="Review before submitting">
+          <p class="add-credit-request__preview-review-title">Review Before Submitting</p>
+          <p class="add-credit-request__preview-review-text">
+            Please review the Course Credit Application Form above. Once submitted, this request will be sent to the
+            Registrar for approval.
+          </p>
+        </aside>
+
+        <div class="add-credit-request__actions add-credit-request__actions--preview">
+          <button type="button" class="add-credit-request__btn add-credit-request__btn--cancel" (click)="onBack()">
+            Previous
+          </button>
+          <button type="button" class="add-credit-request__btn add-credit-request__btn--print" [disabled]="isSaving" (click)="onSaveAndPrint()">
+            {{ isSaving ? 'Saving…' : 'Save &amp; Print' }}
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+
+

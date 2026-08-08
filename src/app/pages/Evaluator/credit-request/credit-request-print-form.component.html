@@ -1,0 +1,176 @@
+<div class="credit-request-print" id="credit-request-preview-print">
+  <article class="credit-request-print__form" aria-label="Course Credit Application Form">
+    <h2 class="credit-request-print__form-title">Course Credit Application Form</h2>
+
+    <div class="credit-request-print__student-grid">
+      <div class="credit-request-print__field">
+        <span class="credit-request-print__field-label">Last Name</span>
+        <span class="credit-request-print__field-value">{{ creditRequest.lastName || '—' }}</span>
+      </div>
+      <div class="credit-request-print__field">
+        <span class="credit-request-print__field-label">First Name</span>
+        <span class="credit-request-print__field-value">{{ creditRequest.firstName || '—' }}</span>
+      </div>
+      <div class="credit-request-print__field">
+        <span class="credit-request-print__field-label">Middle Name</span>
+        <span class="credit-request-print__field-value">{{ creditRequest.middleName || '—' }}</span>
+      </div>
+      <div class="credit-request-print__field">
+        <span class="credit-request-print__field-label">Student No.</span>
+        <span class="credit-request-print__field-value">{{ creditRequest.studentNumber || '—' }}</span>
+      </div>
+      <div class="credit-request-print__field">
+        <span class="credit-request-print__field-label">Program</span>
+        <span class="credit-request-print__field-value">{{ creditRequest.programCode || '—' }}</span>
+      </div>
+      <div class="credit-request-print__field">
+        <span class="credit-request-print__field-label">Term &amp; Academic Year</span>
+        <span class="credit-request-print__field-value">{{ termLabel }}</span>
+      </div>
+    </div>
+
+    <div class="credit-request-print__course-table-wrap">
+      <table class="credit-request-print__course-table">
+        <colgroup>
+          <col class="credit-request-print__col-applied-code" />
+          <col class="credit-request-print__col-applied-title" />
+          <col class="credit-request-print__col-applied-narrow" />
+          <col class="credit-request-print__col-applied-narrow" />
+          <col class="credit-request-print__col-applied-grade" />
+          <col class="credit-request-print__col-check" />
+          <col class="credit-request-print__col-equiv-code" />
+          <col class="credit-request-print__col-equiv-title" />
+          <col class="credit-request-print__col-equiv-narrow" />
+          <col class="credit-request-print__col-equiv-narrow" />
+          <col class="credit-request-print__col-equiv-units" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th colspan="5" class="credit-request-print__band">To be filled out by Student</th>
+            <th colspan="6" class="credit-request-print__band">To be filled out by Program Head</th>
+          </tr>
+          <tr>
+            <th colspan="5" class="credit-request-print__subband">Course Applied for Crediting</th>
+            <th colspan="6" class="credit-request-print__subband">Equivalent STI Course</th>
+          </tr>
+          <tr class="credit-request-print__column-headers">
+            <th scope="col">Course Code</th>
+            <th scope="col">Course Title</th>
+            <th scope="col">Lec</th>
+            <th scope="col">Lab</th>
+            <th scope="col">Grade</th>
+            <th scope="col" class="credit-request-print__table-check-col">
+              <span class="visually-hidden">Status</span>
+            </th>
+            <th scope="col">Course Code</th>
+            <th scope="col">Course Title</th>
+            <th scope="col">Lec</th>
+            <th scope="col">Lab</th>
+            <th scope="col">Units</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of previewRows; track $index) {
+            <tr [class.credit-request-print__table-row--highlight]="isPreviewRowHighlighted($index)">
+              <td>{{ row.appliedCode }}</td>
+              <td class="credit-request-print__cell-title">{{ row.appliedTitle }}</td>
+              <td>{{ row.lecDisplay }}</td>
+              <td>{{ row.labDisplay }}</td>
+              <td>{{ row.gradeDisplay }}</td>
+              <td class="credit-request-print__table-check-col">
+                @if (row.hasEquivalent) {
+                  <svg class="credit-request-print__check" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2.5"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                }
+              </td>
+              <td>{{ row.equivalentCode }}</td>
+              <td class="credit-request-print__cell-title">{{ row.equivalentTitle }}</td>
+              <td>{{ row.equivalentLecDisplay }}</td>
+              <td>{{ row.equivalentLabDisplay }}</td>
+              <td>{{ row.unitsDisplay }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="credit-request-print__remarks">
+      <span class="credit-request-print__remarks-label">Remarks:</span>
+    </div>
+
+    <p class="credit-request-print__eligibility">{{ previewEligibilityText }}</p>
+
+    <div class="credit-request-print__rules">
+      <div class="credit-request-print__rules-box">
+        <h3 class="credit-request-print__rules-title">{{ previewStiRules.title }}</h3>
+        <div class="credit-request-print__rules-section">
+          <h4 class="credit-request-print__rules-heading">To CHED:</h4>
+          <ul class="credit-request-print__rules-list">
+            @for (item of previewStiRules.toChed; track item) {
+              <li>{{ item }}</li>
+            }
+          </ul>
+        </div>
+        <div class="credit-request-print__rules-section">
+          <h4 class="credit-request-print__rules-heading">To TESDA:</h4>
+          <ul class="credit-request-print__rules-list">
+            @for (item of previewStiRules.toTesda; track item) {
+              <li>{{ item }}</li>
+            }
+          </ul>
+        </div>
+      </div>
+
+      <div class="credit-request-print__rules-box">
+        <h3 class="credit-request-print__rules-title">{{ previewNonStiRules.title }}</h3>
+        <div class="credit-request-print__rules-section">
+          <h4 class="credit-request-print__rules-heading">To CHED:</h4>
+          <ul class="credit-request-print__rules-list">
+            @for (item of previewNonStiRules.toChed; track item) {
+              <li>{{ item }}</li>
+            }
+          </ul>
+        </div>
+        <div class="credit-request-print__rules-section">
+          <h4 class="credit-request-print__rules-heading">To TESDA:</h4>
+          <ul class="credit-request-print__rules-list">
+            @for (item of previewNonStiRules.toTesda; track item) {
+              <li>{{ item }}</li>
+            }
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="credit-request-print__signatures">
+      <div class="credit-request-print__declaration">
+        <h3 class="credit-request-print__declaration-title">Declaration of Applicant</h3>
+        <p class="credit-request-print__declaration-text">{{ previewDeclarationText }}</p>
+        <div class="credit-request-print__signature-line-wrap">
+          <span class="credit-request-print__signature-line" aria-hidden="true"></span>
+          <span class="credit-request-print__signature-caption">Student's Signature</span>
+        </div>
+      </div>
+
+      <div class="credit-request-print__approvals">
+        <div class="credit-request-print__approval-box">
+          <span class="credit-request-print__approval-label">Evaluated By:</span>
+          <span class="credit-request-print__signature-line" aria-hidden="true"></span>
+          <span class="credit-request-print__signature-caption">Program Head's Name &amp; Signature</span>
+        </div>
+        <div class="credit-request-print__approval-box">
+          <span class="credit-request-print__approval-label">Approved By:</span>
+          <span class="credit-request-print__signature-line" aria-hidden="true"></span>
+          <span class="credit-request-print__signature-caption">Academic Head's Name &amp; Signature</span>
+        </div>
+      </div>
+    </div>
+  </article>
+</div>

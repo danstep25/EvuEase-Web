@@ -1,0 +1,18 @@
+<div class="evaluator-page student-permanent-records">
+  <header class="evaluator-page__header">
+    <h1 class="evaluator-page__title student-permanent-records__title">{{ pageTitle }}</h1>
+    <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
+  </header>
+
+  @if (loadError) {
+    <section class="evaluator-surface student-permanent-records__card">
+      <div class="student-permanent-records__alert" role="alert">{{ loadError }}</div>
+    </section>
+  } @else {
+    <app-evaluator-academic-records-view
+      [studentOptions]="studentOptions"
+      [isLoadingStudents]="isLoadingStudents"
+      [(selectedStudentId)]="selectedStudentId"
+    />
+  }
+</div>

@@ -1,0 +1,89 @@
+
+.evaluator-page {
+  padding: 1.25rem;
+  width: 100%;
+  box-sizing: border-box;
+  color: #111827;
+  min-height: 100%;
+}
+
+.evaluator-page--form {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.evaluator-page--detail {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.evaluator-page__header {
+  margin-bottom: 1rem;
+}
+
+.evaluator-page__title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #0d214f;
+  letter-spacing: -0.02em;
+}
+
+.evaluator-page__subtitle {
+  margin: 0.35rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  color: #6b7280;
+  line-height: 1.45;
+}
+
+.evaluator-surface {
+  background: #fff;
+  border: 1px solid #e8ecf1;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(13, 33, 73, 0.06);
+  margin-bottom: 1rem;
+}
+
+.evaluator-surface--padded {
+  padding: 0.9rem 1rem 1rem;
+}
+
+.evaluator-surface--search {
+  padding: 0.85rem 1rem;
+}
+
+.evaluator-surface--table {
+  padding: 0;
+  overflow: hidden;
+}
+
+.evaluator-surface__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0d214f;
+}
+
+.evaluator-placeholder-lead {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #6b7280;
+  line-height: 1.55;
+}
+
+.evaluator-page .stat-card {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.evaluator-page .stat-value {
+  color: #0d214f;
+}
+
+@media (max-width: 640px) {
+  .evaluator-page {
+    padding: 1rem;
+  }
+}
+

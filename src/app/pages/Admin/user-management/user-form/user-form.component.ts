@@ -4,6 +4,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { User, CreateUserRequest, UpdateUserRequest } from '../../../../core/models/user.model';
 import { USER_ROLES, ROLE_MAP, DEFAULT_ROLE } from '../../../../shared/constants/role.constant';
 import { USER_STATUSES, STATUS_MAP, DEFAULT_STATUS } from '../../../../shared/constants/status.constant';
+import { FormDiscardService } from '../../../../shared/services/form-discard.service';
+import { attemptFormClose, validateFormForSubmit } from '../../../../shared/utils/form-state.util';
 
 @Component({
   selector: 'app-user-form',
@@ -14,6 +16,7 @@ import { USER_STATUSES, STATUS_MAP, DEFAULT_STATUS } from '../../../../shared/co
 })
 export class UserFormComponent implements OnInit, OnChanges {
   private readonly fb = inject(FormBuilder);
+  private readonly formDiscard = inject(FormDiscardService);
 
   @Input() user: User | null = null;
   @Input() isOpen = false;
@@ -22,6 +25,7 @@ export class UserFormComponent implements OnInit, OnChanges {
 
   userForm!: FormGroup;
   isSubmitting = false;
+  submitted = false;
   errorMessage: string | null = null;
 
   roles = USER_ROLES;
@@ -70,6 +74,7 @@ export class UserFormComponent implements OnInit, OnChanges {
       role: [this.getUserRole() || DEFAULT_ROLE, [Validators.required]],
       status: [this.getUserStatus(), [Validators.required]]
     });
+    this.userForm.markAsPristine();
     this.errorMessage = null;
   }
 
@@ -93,6 +98,14 @@ export class UserFormComponent implements OnInit, OnChanges {
   }
 
   onClose(): void {
+    void attemptFormClose({
+      form: this.userForm,
+      discardService: this.formDiscard,
+      close: () => this.finishClose()
+    });
+  }
+
+  private finishClose(): void {
     this.userForm.reset({
       fullName: '',
       email: '',
@@ -100,23 +113,26 @@ export class UserFormComponent implements OnInit, OnChanges {
       role: DEFAULT_ROLE,
       status: DEFAULT_STATUS
     });
+    this.userForm.markAsPristine();
+    this.submitted = false;
     this.errorMessage = null;
     this.close.emit();
   }
 
   onSubmit(): void {
-    if (this.userForm.invalid) {
-      this.markFormGroupTouched(this.userForm);
+    const result = validateFormForSubmit(this.userForm, { isEditMode: this.isEditMode });
+    this.submitted = result.submitted;
+    if (!result.canSubmit) {
+      this.errorMessage = result.errorMessage;
       return;
     }
+    this.errorMessage = null;
 
     this.isSubmitting = true;
-    this.errorMessage = null;
 
     const formValue = this.userForm.value;
     
     if (this.isEditMode) {
-      // For edit mode, use UpdateUserRequest format matching backend
       if (!this.user) {
         this.errorMessage = 'User information is missing';
         this.isSubmitting = false;
@@ -131,8 +147,6 @@ export class UserFormComponent implements OnInit, OnChanges {
       };
       this.save.emit(updateUserData);
     } else {
-      // For create mode, use CreateUserRequest format matching backend
-      // Backend expects role and status as numbers
       const createUserData: CreateUserRequest = {
         fullName: formValue.fullName,
         email: formValue.email,
@@ -142,13 +156,6 @@ export class UserFormComponent implements OnInit, OnChanges {
       };
       this.save.emit(createUserData);
     }
-  }
-
-  private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.keys(formGroup.controls).forEach(key => {
-      const control = formGroup.get(key);
-      control?.markAsTouched();
-    });
   }
 
   get formControls() {

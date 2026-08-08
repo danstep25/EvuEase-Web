@@ -1,0 +1,108 @@
+<div class="evaluator-page">
+  <header class="evaluator-page__header">
+    <h1 class="evaluator-page__title">{{ pageTitle }}</h1>
+    <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
+  </header>
+
+  <section class="stats-grid">
+    <article class="stat-card">
+      <div class="stat-content">
+        <p class="stat-label">Active programs</p>
+        <p class="stat-value">{{ activePrograms }}</p>
+      </div>
+      <span class="stat-icon stat-icon--navy" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+        </svg>
+      </span>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-content">
+        <p class="stat-label">Active students</p>
+        <p class="stat-value">{{ activeStudents }}</p>
+      </div>
+      <span class="stat-icon stat-icon--yellow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      </span>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-content">
+        <p class="stat-label">Current school year</p>
+        <p class="stat-value stat-value--text">{{ currentSchoolYear }}</p>
+      </div>
+      <span class="stat-icon stat-icon--navy" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+      </span>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-content">
+        <p class="stat-label">Current semester</p>
+        <p class="stat-value stat-value--text">{{ currentSemester }}</p>
+      </div>
+      <span class="stat-icon stat-icon--yellow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+      </span>
+    </article>
+  </section>
+
+  <section class="evaluator-surface evaluator-surface--padded">
+    <h2 class="evaluator-surface__title">Quick actions</h2>
+    <div class="actions-grid">
+      @for (action of quickActions; track action.route) {
+        <button
+          type="button"
+          class="action-card"
+          [class]="'action-card action-card--' + action.accent"
+          (click)="onOpenQuickAction(action.route)"
+        >
+          <p class="action-title">{{ action.title }}</p>
+          <p class="action-description">{{ action.description }}</p>
+        </button>
+      }
+    </div>
+  </section>
+
+  <section class="evaluator-surface evaluator-surface--padded">
+    <h2 class="evaluator-surface__title">Recent activity</h2>
+    <div class="evaluation-list">
+      @if (recentActivity.length === 0) {
+        <article class="evaluation-item">
+          <div class="evaluation-main">
+            <p class="evaluation-student">No recent activity yet</p>
+            <p class="evaluation-details">System activity logs will appear here when available.</p>
+          </div>
+          <p class="evaluation-time">—</p>
+        </article>
+      } @else {
+        @for (activity of recentActivity; track activity.title + activity.when) {
+          <article class="evaluation-item">
+            <div class="evaluation-main">
+              <p class="evaluation-student">{{ activity.title }}</p>
+              <p class="evaluation-details">{{ activity.description }}</p>
+            </div>
+            <p class="evaluation-time">{{ activity.when }}</p>
+          </article>
+        }
+      }
+    </div>
+  </section>
+</div>

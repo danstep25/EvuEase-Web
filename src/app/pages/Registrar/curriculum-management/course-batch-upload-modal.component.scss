@@ -1,0 +1,52 @@
+:host {
+  display: contents;
+}
+
+.batch-units-input {
+  width: 3.25rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.375rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  outline: none;
+}
+
+.batch-units-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgb(59 130 246 / 0.25);
+}
+
+.batch-units-input--total {
+  font-weight: 600;
+}
+
+.batch-title-input {
+  width: min(18rem, 100%);
+  min-width: 12rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  resize: vertical;
+  outline: none;
+}
+
+.batch-title-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgb(59 130 246 / 0.25);
+}
+
+.batch-title-count {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.batch-title-count--over {
+  color: #b45309;
+  font-weight: 600;
+}

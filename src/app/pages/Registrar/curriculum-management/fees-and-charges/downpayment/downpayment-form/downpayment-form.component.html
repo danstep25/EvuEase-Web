@@ -1,0 +1,114 @@
+@if (isOpen) {
+  <div class="dp-form-backdrop" role="presentation">
+    <div class="dp-form-panel" (click)="$event.stopPropagation()">
+      <div class="dp-form-head">
+        <h2 class="dp-form-title">{{ title }}</h2>
+        <button type="button" class="dp-form-close" (click)="onClose()" aria-label="Close">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      @if (isLoadingPrograms || !form) {
+        <div class="dp-form-body dp-form-body--loading">Loading programs…</div>
+      } @else {
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="dp-form-body">
+        @if (errorMessage) {
+          <div class="dp-form-error">{{ errorMessage }}</div>
+        }
+
+        <div class="dp-form-grid">
+          <div class="dp-field">
+            <label for="dp-programCode">Program <span class="req">*</span></label>
+            <select
+              id="dp-programCode"
+              formControlName="programCode"
+              class="dp-input"
+              (change)="onProgramCodePicked()"
+              [class.dp-input--invalid]="form.get('programCode')?.invalid && form.get('programCode')?.touched"
+            >
+              <option value="">Select program</option>
+              @for (p of programs; track p.programId + '-' + p.programCode) {
+                <option [value]="p.programCode">{{ p.programCode }} — {{ p.programTitle }}</option>
+              }
+            </select>
+            @if (form.get('programCode')?.errors?.['duplicateProgramCode'] && form.get('programCode')?.touched) {
+              <p class="dp-field-hint dp-field-hint--error">
+                A downpayment rule already exists for this program. Edit that rule or choose another program.
+              </p>
+            }
+          </div>
+          <div class="dp-field dp-field--full">
+            <label for="dp-programTitle">Program title <span class="req">*</span></label>
+            <input
+              id="dp-programTitle"
+              type="text"
+              formControlName="programTitle"
+              class="dp-input dp-input--readonly"
+              readonly
+              [class.dp-input--invalid]="form.get('programTitle')?.invalid && form.get('programTitle')?.touched"
+              placeholder="Filled from program"
+            />
+          </div>
+          <div class="dp-field">
+            <label for="dp-batch">Batch <span class="req">*</span></label>
+            <select
+              id="dp-batch"
+              formControlName="batch"
+              class="dp-input"
+              [class.dp-input--invalid]="form.get('batch')?.invalid && form.get('batch')?.touched"
+            >
+              @for (y of batchYears; track y) {
+                <option [value]="'' + y">{{ y }}</option>
+              }
+            </select>
+          </div>
+          <div class="dp-field">
+            <label for="dp-percent">Downpayment % <span class="req">*</span></label>
+            <input
+              id="dp-percent"
+              type="number"
+              formControlName="downpaymentPercent"
+              class="dp-input"
+              min="0"
+              max="100"
+              step="0.01"
+              [class.dp-input--invalid]="form.get('downpaymentPercent')?.invalid && form.get('downpaymentPercent')?.touched"
+            />
+            @if (form.get('downpaymentPercent')?.invalid && form.get('downpaymentPercent')?.touched) {
+              <p class="dp-field-hint dp-field-hint--error">
+                @if (form.get('downpaymentPercent')?.errors?.['required']) {
+                  Downpayment % is required
+                } @else if (form.get('downpaymentPercent')?.errors?.['nonNegativeAmount'] || form.get('downpaymentPercent')?.errors?.['min']) {
+                  Downpayment % cannot be negative
+                } @else if (form.get('downpaymentPercent')?.errors?.['max']) {
+                  Downpayment % cannot exceed 100
+                }
+              </p>
+            }
+          </div>
+          <div class="dp-field dp-field--full">
+            <label for="dp-sy">Effective school year <span class="req">*</span></label>
+            <input
+              id="dp-sy"
+              type="text"
+              formControlName="effectiveSchoolYear"
+              class="dp-input"
+              [class.dp-input--invalid]="form.get('effectiveSchoolYear')?.invalid && form.get('effectiveSchoolYear')?.touched"
+              placeholder="e.g. 2025-2026"
+            />
+          </div>
+        </div>
+
+        <div class="dp-form-actions">
+          <button type="button" class="dp-btn dp-btn--muted" (click)="onClose()">Cancel</button>
+          <button type="submit" class="dp-btn dp-btn--primary" [disabled]="isSubmitting || form.invalid">
+            {{ submitLabel }}
+          </button>
+        </div>
+      </form>
+      }
+    </div>
+  </div>
+}

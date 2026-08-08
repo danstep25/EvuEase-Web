@@ -1,0 +1,75 @@
+<div class="analytics-grid-chart" [class]="'analytics-grid-chart--' + variant">
+  <div class="analytics-grid-chart__y-axis" aria-hidden="true">
+    @for (tick of yTicks; track tick) {
+      <span class="analytics-grid-chart__y-label">{{ tick }}</span>
+    }
+  </div>
+
+  <div class="analytics-grid-chart__plot">
+    <svg class="analytics-grid-chart__grid-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      @for (tick of yTicks; track tick) {
+        <line
+          class="analytics-grid-chart__grid-line analytics-grid-chart__grid-line--h"
+          x1="0"
+          [attr.y1]="gridLineY(tick)"
+          x2="100"
+          [attr.y2]="gridLineY(tick)"
+        />
+      }
+      @for (item of items; track trackItem($index, item); let i = $index) {
+        <line
+          class="analytics-grid-chart__grid-line analytics-grid-chart__grid-line--v"
+          [attr.x1]="verticalLineX(i)"
+          y1="0"
+          [attr.x2]="verticalLineX(i)"
+          y2="100"
+        />
+        <line
+          class="analytics-grid-chart__grid-line analytics-grid-chart__grid-line--v"
+          [attr.x1]="verticalLineX(i + 1)"
+          y1="0"
+          [attr.x2]="verticalLineX(i + 1)"
+          y2="100"
+        />
+      }
+      <line class="analytics-grid-chart__axis" x1="0" y1="100" x2="100" y2="100" />
+    </svg>
+
+    <div class="analytics-grid-chart__columns">
+      @for (item of items; track trackItem($index, item); let i = $index) {
+        <div
+          class="analytics-grid-chart__column"
+          [class.analytics-grid-chart__column--active]="isHovered(i)"
+          (mouseenter)="onColumnEnter(i)"
+          (mouseleave)="onColumnLeave()"
+          role="presentation"
+        >
+          <div class="analytics-grid-chart__highlight"></div>
+          @if (isHovered(i)) {
+            <div class="analytics-grid-chart__tooltip">
+              <p class="analytics-grid-chart__tooltip-title">{{ item.label }}</p>
+              <p class="analytics-grid-chart__tooltip-value">Students : {{ item.count }}</p>
+            </div>
+          }
+          <div class="analytics-grid-chart__bar-wrap">
+            <div
+              class="analytics-grid-chart__bar"
+              [style.height.%]="barHeightPercent(item.count)"
+            ></div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="analytics-grid-chart__x-labels">
+    @for (item of items; track trackItem($index, item)) {
+      <span class="analytics-grid-chart__x-label" [class.analytics-grid-chart__x-label--small]="labelsSmall">{{ item.label }}</span>
+    }
+  </div>
+
+  <div class="analytics-grid-chart__legend">
+    <span class="analytics-grid-chart__legend-swatch"></span>
+    <span>Students</span>
+  </div>
+</div>

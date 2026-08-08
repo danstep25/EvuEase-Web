@@ -1,0 +1,203 @@
+@if (open && student) {
+  <div
+    class="usg-backdrop fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-[2px]"
+    role="presentation"
+  >
+    <div
+      class="usg-dialog relative w-full max-w-lg rounded-xl bg-white shadow-xl border border-gray-200 overflow-hidden max-h-[min(90vh,720px)] flex flex-col"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="usg-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="px-6 pt-5 pb-4 border-b border-gray-100 shrink-0">
+        <h2 id="usg-title" class="text-lg font-bold text-gray-900">Update Student Grade</h2>
+        <p class="mt-1 text-sm font-medium text-gray-800">{{ headline }}</p>
+        <p class="mt-0.5 text-xs text-gray-600">{{ programYearLine }}</p>
+      </div>
+
+      <div class="px-6 py-4 space-y-5 overflow-y-auto flex-1 min-h-0">
+        <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Current Grade</p>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-base font-semibold text-gray-900">{{ displayGrade(student.officialGrade) }}</span>
+            @if (student.remarks) {
+              <span [class]="remarkBadgeClass(student.remarks)">{{ student.remarks }}</span>
+            }
+          </div>
+        </div>
+
+        <div>
+          <p id="usg-mode-label" class="block text-xs font-semibold text-gray-700 mb-2">How do you want to set the grade?</p>
+          <div
+            class="flex rounded-lg border border-gray-200 p-0.5 bg-gray-100 gap-0.5"
+            role="group"
+            aria-labelledby="usg-mode-label"
+          >
+            <button
+              type="button"
+              class="flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+              [class.bg-white]="gradeMode === 'numeric'"
+              [class.text-gray-900]="gradeMode === 'numeric'"
+              [class.shadow-sm]="gradeMode === 'numeric'"
+              [class.text-gray-600]="gradeMode !== 'numeric'"
+              [disabled]="saving"
+              (click)="setGradeMode('numeric')"
+            >
+              Numeric (raw score)
+            </button>
+            <button
+              type="button"
+              class="flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-1"
+              [class.bg-white]="gradeMode === 'inc'"
+              [class.text-gray-900]="gradeMode === 'inc'"
+              [class.shadow-sm]="gradeMode === 'inc'"
+              [class.text-gray-600]="gradeMode !== 'inc'"
+              [disabled]="saving"
+              (click)="setGradeMode('inc')"
+            >
+              Incomplete (INC)
+            </button>
+          </div>
+          <p class="mt-2 text-xs text-gray-500">
+            @if (gradeMode === 'numeric') {
+              Enter the student mark; the official grade follows your Class Assignment scale for this term.
+            } @else {
+              Record an Incomplete when requirements are not met. Add a short note for your records (optional).
+            }
+          </p>
+        </div>
+
+        @if (gradeMode === 'numeric') {
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1" for="usgRawMark">
+              Raw score (mark)
+              <span class="text-red-600" aria-hidden="true">*</span>
+            </label>
+            <input
+              id="usgRawMark"
+              name="usgRawMark"
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              [(ngModel)]="rawMarkInput"
+              placeholder="e.g. 75.50 or 59.55"
+              class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-white text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              [disabled]="saving || isLoadingScale"
+            />
+            @if (isLoadingScale) {
+              <p class="mt-1.5 text-xs text-gray-500">Loading grade scale for this term…</p>
+            }
+            @if (scaleLoadError) {
+              <p class="mt-1.5 text-xs text-amber-700">{{ scaleLoadError }}</p>
+            }
+          </div>
+
+          <div class="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3">
+            <p class="text-xs font-semibold text-sky-900/90 mb-2">Preview (from Class Assignment scale)</p>
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+              <span class="text-gray-600">Official grade:</span>
+              @if (computedOfficialGrade) {
+                <span class="font-semibold text-gray-900">{{ computedOfficialGrade }}</span>
+              } @else if (parsedRawMark != null && !isLoadingScale && !scaleLoadError && gradeScaleRows.length > 0) {
+                <span class="text-amber-800 font-medium">—</span>
+              } @else {
+                <span class="text-gray-400">Enter a valid score</span>
+              }
+            </div>
+            @if (belowScaleMessage) {
+              <p class="mt-2 text-xs text-amber-800">{{ belowScaleMessage }}</p>
+            }
+            <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
+              <span class="text-gray-600">New remarks:</span>
+              @if (previewRemarksNumeric) {
+                <span [class]="remarkBadgeClass(previewRemarksNumeric)">{{ previewRemarksNumeric }}</span>
+              } @else {
+                <span class="text-gray-400">—</span>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="rounded-lg border border-amber-200 bg-amber-50/90 px-4 py-3">
+            <p class="text-sm font-semibold text-amber-950">Incomplete (INC)</p>
+            <p class="mt-1 text-xs text-amber-900/85 leading-relaxed">
+              The official grade will be saved as <span class="font-mono font-semibold">INC</span>. Remarks will show as
+              <span class="font-semibold">Incomplete</span> unless you add a note below (shown on the roster).
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1" for="usgIncNote">
+              Note for INC <span class="font-normal text-gray-500">(optional)</span>
+            </label>
+            <textarea
+              id="usgIncNote"
+              name="usgIncNote"
+              rows="3"
+              maxlength="2000"
+              [(ngModel)]="incRemarksInput"
+              placeholder="e.g. Did not take the final exam; may complete requirements by …"
+              class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none resize-y min-h-[5rem]"
+              [disabled]="saving"
+            ></textarea>
+            <p class="mt-1 text-xs text-gray-500">Visible to faculty/registrar on the roster alongside the Incomplete status.</p>
+          </div>
+
+          <div class="rounded-lg border border-violet-200 bg-violet-50 px-4 py-3">
+            <p class="text-xs font-semibold text-violet-900/90 mb-2">Preview</p>
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+              <span class="text-gray-600">Official grade:</span>
+              <span class="font-mono font-semibold text-gray-900">INC</span>
+            </div>
+            <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
+              <span class="text-gray-600">Remarks:</span>
+              @if (incNotePreview) {
+                <span class="text-gray-800 text-sm leading-snug max-w-full">{{ incNotePreview }}</span>
+              } @else {
+                <span [class]="remarkBadgeClass('Incomplete')">Incomplete</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-gray-50/80 shrink-0">
+        <button
+          type="button"
+          (click)="onCancel()"
+          [disabled]="saving"
+          class="px-4 py-2.5 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 disabled:opacity-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          (click)="onSubmit()"
+          [disabled]="!canSubmit || !hasChanges || saving"
+          class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          @if (saving) {
+            <svg class="animate-spin h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          } @else {
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l3 3m0 0l3-3m-3 3V4"
+              />
+            </svg>
+          }
+          Update Grade
+        </button>
+      </div>
+    </div>
+  </div>
+}

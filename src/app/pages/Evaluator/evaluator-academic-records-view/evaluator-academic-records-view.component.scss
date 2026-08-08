@@ -1,0 +1,626 @@
+.earv {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.earv__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2563eb;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.earv__back:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.earv__back-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.earv__card {
+  border: 1px solid #e8ecf1;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(13, 32, 79, 0.08);
+  background: #fff;
+}
+
+.earv__card--select {
+  padding: 1.5625rem 1.5rem 1.5rem;
+}
+
+.earv__card--info {
+  padding: 1.375rem 1.5rem 1.5rem;
+}
+
+.earv__card--records {
+  padding: 0;
+  overflow: hidden;
+}
+
+.earv__info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.earv__info-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.earv__info-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0d214f;
+  letter-spacing: -0.01em;
+}
+
+.earv__grad-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+  white-space: nowrap;
+}
+
+.earv__grad-badge-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex-shrink: 0;
+}
+
+.earv__grad-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.25rem 0 0;
+  padding: 0.7rem 0.95rem;
+  border-radius: 10px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.earv__grad-note-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+}
+
+.earv__migrate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.9rem;
+  border: 0;
+  border-radius: 6px;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+.earv__migrate-btn:hover {
+  background: #6d28d9;
+}
+
+.earv__migrate-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.earv__info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem 2rem;
+}
+
+.earv__info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.earv__info-item {
+  min-width: 0;
+}
+
+.earv__info-label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #6b7280;
+  line-height: 1.35;
+}
+
+.earv__info-value {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #0d214f;
+  line-height: 1.35;
+}
+
+.earv__info-value--inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+}
+
+.earv__history-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #2563eb;
+  cursor: pointer;
+  line-height: 1.3;
+}
+
+.earv__history-link:hover {
+  text-decoration: underline;
+}
+
+.earv__history-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
+}
+
+.earv__tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #e8ecf1;
+  padding: 0 1.5rem;
+}
+
+.earv__tab {
+  margin: 0;
+  padding: 0.9rem 1.25rem 0.75rem;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  line-height: 1.3;
+}
+
+.earv__tab--active {
+  color: #16a34a;
+  border-bottom-color: #16a34a;
+}
+
+.earv__panel {
+  padding: 1.25rem 1.5rem 1.75rem;
+}
+
+.earv__panel--plan {
+  padding: 1.25rem 1.5rem 1.75rem;
+}
+
+.earv__panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.earv__panel-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0d214f;
+}
+
+.earv__view-toggle {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.earv__view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  line-height: 1.3;
+}
+
+.earv__view-btn-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.earv__view-btn--active {
+  border-color: #16a34a;
+  color: #16a34a;
+  background: #f0fdf4;
+}
+
+.earv__semesters {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.earv__semester {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.earv__semester--recent {
+  border-color: #86efac;
+}
+
+.earv__semester-banner {
+  margin: 0;
+  padding: 0.65rem 1rem;
+  text-align: center;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #fff;
+  background: #0d214f;
+}
+
+.earv__semester--recent .earv__semester-banner {
+  color: #14532d;
+  background: #dcfce7;
+}
+
+.earv__table-wrap {
+  overflow-x: auto;
+}
+
+.earv__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.earv__table--term {
+  table-layout: fixed;
+}
+
+.earv__table--term thead th:nth-child(1) {
+  width: 14%;
+}
+
+.earv__table--term thead th:nth-child(2) {
+  width: 40%;
+}
+
+.earv__table--term thead th:nth-child(3) {
+  width: 10%;
+}
+
+.earv__table--term thead th:nth-child(4) {
+  width: 12%;
+}
+
+.earv__table--term thead th:nth-child(5) {
+  width: 24%;
+}
+
+.earv__table thead th {
+  padding: 0.65rem 0.75rem;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #111827;
+  text-align: left;
+}
+
+.earv__table--term thead th:nth-child(3),
+.earv__table--term thead th:nth-child(4),
+.earv__table--term thead th:nth-child(5) {
+  text-align: center;
+}
+
+.earv__table tbody td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #eef1f5;
+  color: #374151;
+  vertical-align: middle;
+}
+
+.earv__table tbody tr:nth-child(even) td {
+  background: #fafbfc;
+}
+
+.earv__cell-code {
+  font-weight: 600;
+  color: #0d214f;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.earv__cell-desc {
+  min-width: 0;
+  word-break: break-word;
+  line-height: 1.35;
+  vertical-align: top;
+}
+
+.earv__cell-center {
+  text-align: center;
+}
+
+.earv__grade-with-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.earv__grade-history-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.earv__remarks {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+}
+
+.earv__remarks--passed {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.earv__remarks--failed {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.earv__remarks--not-taken {
+  color: #64748b;
+  background: #f1f5f9;
+}
+
+.earv__remarks--pending {
+  color: #6b7280;
+  background: #f3f4f6;
+}
+
+.earv__remarks--incomplete {
+  color: #b45309;
+  background: #fffbeb;
+}
+
+.earv__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.85rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.earv__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+
+  &::before {
+    content: '';
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
+}
+
+.earv__legend-item--taken::before {
+  background: #15803d;
+}
+
+.earv__legend-item--pending::before {
+  background: #6b7280;
+}
+
+.earv__legend-item--not-taken::before {
+  background: #cbd5e1;
+  border: 1px dashed #94a3b8;
+}
+
+.earv__row--not-taken {
+  background: #f8fafc;
+
+  .earv__cell-code {
+    color: #64748b;
+  }
+
+  .earv__cell-desc {
+    color: #334155;
+  }
+}
+
+
+.earv__table tfoot td {
+  padding: 0.65rem 0.75rem;
+  background: #f3f4f6;
+  border-top: 1px solid #e5e7eb;
+}
+
+.earv__total-label {
+  text-align: right;
+  font-weight: 700;
+  color: #0d214f;
+}
+
+.earv__total-value {
+  text-align: center;
+  font-weight: 700;
+  color: #0d214f;
+}
+
+.earv__curriculum-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.earv__curriculum-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.earv__curriculum-term {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.earv__curriculum-banner {
+  margin: 0;
+  padding: 0.65rem 1rem;
+  text-align: center;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #fff;
+  background: #0d214f;
+}
+
+.earv__curriculum-slot--empty {
+  min-height: 0;
+}
+
+.earv__table--curriculum thead th:last-child,
+.earv__table--curriculum tbody td.earv__cell-units,
+.earv__table--curriculum tfoot .earv__total-value--units {
+  text-align: right;
+}
+
+.earv__cell-prereq {
+  color: #374151;
+}
+
+.earv__cell-prereq em {
+  font-style: italic;
+  color: #9ca3af;
+}
+
+.earv__cell-units {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.earv__table--curriculum tfoot .earv__total-label {
+  text-align: right;
+}
+
+.earv__empty,
+.earv__plan-placeholder {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .earv__curriculum-row {
+    grid-template-columns: 1fr;
+  }
+
+  .earv__curriculum-slot--empty {
+    display: none;
+  }
+  .earv__info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .earv__info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .earv__info-header,
+  .earv__panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .earv__card--select,
+  .earv__card--info {
+    padding: 1.25rem 1rem;
+  }
+
+  .earv__panel {
+    padding: 1rem;
+  }
+
+  .earv__tabs {
+    padding: 0 1rem;
+  }
+}

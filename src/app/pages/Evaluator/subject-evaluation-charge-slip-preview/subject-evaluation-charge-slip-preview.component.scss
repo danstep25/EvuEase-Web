@@ -1,0 +1,263 @@
+:host {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.se-charge-slip {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.se-charge-slip__document {
+  width: 100%;
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.35rem 1rem;
+  border: 1px solid #111827;
+  background: #fff;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #111827;
+}
+
+.se-charge-slip__title {
+  margin: 0 0 1rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.se-charge-slip__student-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 2rem;
+  margin-bottom: 1rem;
+}
+
+.se-charge-slip__student-col {
+  min-width: 0;
+}
+
+.se-charge-slip__student-col--right {
+  text-align: right;
+}
+
+.se-charge-slip__student-line {
+  margin: 0 0 0.35rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.se-charge-slip__student-label {
+  font-weight: 600;
+  margin-right: 0.2rem;
+}
+
+.se-charge-slip__student-value--underline {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.se-charge-slip__student-value--strong {
+  font-weight: 700;
+}
+
+.se-charge-slip__tables {
+  display: flex;
+  flex-direction: column;
+}
+
+.se-charge-slip__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+  font-size: 0.6875rem;
+  table-layout: fixed;
+
+  thead th,
+  tbody td,
+  tbody th {
+    border: 1px solid #111827;
+    padding: 0.28rem 0.4rem;
+    vertical-align: middle;
+    line-height: 1.25;
+  }
+
+  thead th {
+    background: #e5e7eb;
+    font-weight: 700;
+    text-align: left;
+    font-size: 0.625rem;
+    padding: 0.3rem 0.35rem;
+  }
+}
+
+.se-charge-slip__col--num {
+  width: 4%;
+}
+
+.se-charge-slip__col--subject {
+  width: 26%;
+}
+
+.se-charge-slip__col--units {
+  width: 6%;
+}
+
+.se-charge-slip__col--component {
+  width: 11%;
+}
+
+.se-charge-slip__col--curriculum {
+  width: 11%;
+}
+
+.se-charge-slip__col--level {
+  width: 8%;
+}
+
+.se-charge-slip__col--cash,
+.se-charge-slip__col--low-monthly {
+  width: 17%;
+}
+
+.se-charge-slip__th--num,
+.se-charge-slip__th--center {
+  text-align: center;
+}
+
+.se-charge-slip__th--amount {
+  text-align: right;
+}
+
+.se-charge-slip__th--cash,
+.se-charge-slip__th--low-monthly {
+  text-align: center;
+  line-height: 1.15;
+}
+
+.se-charge-slip__td--center {
+  text-align: center;
+}
+
+.se-charge-slip__td--amount {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.se-charge-slip__section-row th {
+  background: #e5e7eb;
+  font-weight: 700;
+}
+
+.se-charge-slip__section-title {
+  text-align: left;
+}
+
+.se-charge-slip__section-amount-cell {
+  background: #e5e7eb;
+  padding: 0.28rem 0.4rem;
+}
+
+.se-charge-slip__section-amount-header {
+  background: #e5e7eb;
+  text-align: center;
+  font-size: 0.625rem;
+}
+
+.se-charge-slip__fee-label {
+  text-align: left;
+}
+
+.se-charge-slip__total-row td {
+  font-weight: 700;
+}
+
+.se-charge-slip__total-label {
+  font-weight: 700;
+  text-align: left;
+}
+
+.se-charge-slip__total-value {
+  font-weight: 700;
+}
+
+.se-charge-slip__footer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  margin-top: 1rem;
+  align-items: stretch;
+}
+
+.se-charge-slip__signature-line {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  margin: 0 0 0.25rem;
+  font-size: 0.8125rem;
+}
+
+.se-charge-slip__signature-line--date {
+  margin-top: 0.85rem;
+}
+
+.se-charge-slip__signature-label {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.se-charge-slip__signature-rule {
+  flex: 1;
+  min-width: 0;
+  border-bottom: 1px solid #111827;
+  height: 1rem;
+}
+
+.se-charge-slip__signature-rule--short {
+  flex: 0 1 7.5rem;
+  max-width: 7.5rem;
+}
+
+.se-charge-slip__signature-caption {
+  margin: 0 0 0.35rem;
+  padding-left: 4.25rem;
+  font-size: 0.75rem;
+  color: #374151;
+}
+
+.se-charge-slip__disclaimer {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #111827;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.se-charge-slip__disclaimer-text {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-style: italic;
+  color: #374151;
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .se-charge-slip__document {
+    max-width: none;
+    overflow-x: auto;
+  }
+
+  .se-charge-slip__student-grid,
+  .se-charge-slip__footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .se-charge-slip__student-col--right {
+    text-align: left;
+  }
+}

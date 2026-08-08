@@ -1,0 +1,297 @@
+<div class="evaluator-page analytics-page">
+  <header class="analytics-page__header">
+    <div class="analytics-page__header-text">
+      <h1 class="evaluator-page__title">{{ pageTitle }}</h1>
+      <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
+    </div>
+    <button type="button" class="analytics-page__export-btn" (click)="onExportReport()" [disabled]="!dashboard">
+      Export Report
+    </button>
+  </header>
+
+  <section class="evaluator-surface analytics-page__filters" aria-label="Analytics filters">
+    <div class="analytics-page__filter">
+      <label class="analytics-page__filter-label" for="an-filter-program">Program</label>
+      <select id="an-filter-program" class="analytics-page__select" [(ngModel)]="filters.programCode" (ngModelChange)="onFilterChange()">
+        @for (opt of programFilterOptions; track trackFilter($index, opt)) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
+    <div class="analytics-page__filter">
+      <label class="analytics-page__filter-label" for="an-filter-year">Year Level</label>
+      <select id="an-filter-year" class="analytics-page__select" [(ngModel)]="filters.yearLevel" (ngModelChange)="onFilterChange()">
+        @for (opt of yearLevelFilterOptions; track trackFilter($index, opt)) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
+    <div class="analytics-page__filter">
+      <label class="analytics-page__filter-label" for="an-filter-sy">S.Y.</label>
+      <select id="an-filter-sy" class="analytics-page__select" [(ngModel)]="filters.schoolYear" (ngModelChange)="onFilterChange()">
+        @for (opt of schoolYearFilterOptions; track trackFilter($index, opt)) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
+  </section>
+
+  @if (isLoading) {
+    <p class="analytics-page__status">Loading analytics...</p>
+  } @else if (loadError) {
+    <p class="analytics-page__status analytics-page__status--error">{{ loadError }}</p>
+  } @else if (dashboard) {
+    <div class="analytics-page__kpis">
+      <article class="analytics-kpi analytics-kpi--blue">
+        <div class="analytics-kpi__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        </div>
+        <div>
+          <p class="analytics-kpi__label">Total Students</p>
+          <p class="analytics-kpi__value">{{ dashboard.kpis.totalStudents }}</p>
+          <p class="analytics-kpi__hint">Across all programs</p>
+        </div>
+      </article>
+      <article class="analytics-kpi analytics-kpi--green">
+        <div class="analytics-kpi__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+        </div>
+        <div>
+          <p class="analytics-kpi__label">Total Evaluations</p>
+          <p class="analytics-kpi__value">{{ dashboard.kpis.totalEvaluations }}</p>
+          <p class="analytics-kpi__hint analytics-kpi__hint--up">{{ dashboard.kpis.completionRatePercent }}% completion rate</p>
+        </div>
+      </article>
+      <article class="analytics-kpi analytics-kpi--red">
+        <div class="analytics-kpi__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        </div>
+        <div>
+          <p class="analytics-kpi__label">Failed Subjects</p>
+          <p class="analytics-kpi__value">{{ dashboard.kpis.failedSubjects }}</p>
+          <p class="analytics-kpi__hint analytics-kpi__hint--warn">Require re-evaluation</p>
+        </div>
+      </article>
+      <article class="analytics-kpi analytics-kpi--purple">
+        <div class="analytics-kpi__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2zM9 4h2v5l-1-.75L9 9V4zm6 0h2v7h-2V4zM6 20V4h1v9.25L12 18l5-4.75V4h1v16H6z"/></svg>
+        </div>
+        <div>
+          <p class="analytics-kpi__label">Average Units</p>
+          <p class="analytics-kpi__value">{{ averageUnitsDisplay }}</p>
+          <p class="analytics-kpi__hint">Per student per term</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="analytics-page__charts analytics-page__charts--row1">
+      <section class="evaluator-surface analytics-chart-card">
+        <h2 class="analytics-chart-card__title">
+          <svg class="analytics-chart-card__title-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+          Monthly Evaluation Trend
+        </h2>
+        <div class="analytics-line-chart">
+          <svg
+            [attr.viewBox]="'0 0 ' + lineChart.width + ' ' + lineChart.height"
+            class="analytics-line-chart__svg"
+            role="img"
+            aria-label="Monthly evaluation trend"
+          >
+            @for (tick of lineYAxisTicks; track tick) {
+              <text class="analytics-line-chart__y-label" x="8" [attr.y]="lineYToSvg(tick) + 4">{{ tick }}</text>
+              <line
+                class="analytics-line-chart__grid analytics-line-chart__grid--h"
+                [attr.x1]="lineChart.padLeft"
+                [attr.y1]="lineYToSvg(tick)"
+                [attr.x2]="lineChart.width - lineChart.padRight"
+                [attr.y2]="lineYToSvg(tick)"
+              />
+            }
+            @for (band of lineColumnBands; track trackBand($index, band)) {
+              <line
+                class="analytics-line-chart__grid analytics-line-chart__grid--v"
+                [attr.x1]="band.centerX"
+                [attr.y1]="lineChart.padTop"
+                [attr.x2]="band.centerX"
+                [attr.y2]="lineChart.plotBottom"
+              />
+            }
+            <line
+              class="analytics-line-chart__axis"
+              [attr.x1]="lineChart.padLeft"
+              [attr.y1]="lineChart.plotBottom"
+              [attr.x2]="lineChart.width - lineChart.padRight"
+              [attr.y2]="lineChart.plotBottom"
+            />
+            @if (lineEvalPath) {
+              <path class="analytics-line-chart__line analytics-line-chart__line--eval" [attr.d]="lineEvalPath" />
+            }
+            @if (lineChargePath) {
+              <path class="analytics-line-chart__line analytics-line-chart__line--charge" [attr.d]="lineChargePath" />
+            }
+            @for (p of linePoints; track $index; let i = $index) {
+              <circle class="analytics-line-chart__point analytics-line-chart__point--eval" [attr.cx]="p.x" [attr.cy]="p.yEval" r="4" />
+              <circle class="analytics-line-chart__point analytics-line-chart__point--charge" [attr.cx]="p.x" [attr.cy]="p.yCharge" r="4" />
+            }
+            @for (band of lineColumnBands; track trackBand($index, band)) {
+              <rect
+                class="analytics-line-chart__hover-col"
+                [class.analytics-line-chart__hover-col--active]="hoveredLineIndex === band.index"
+                [attr.x]="band.left"
+                [attr.y]="lineChart.padTop"
+                [attr.width]="band.width"
+                [attr.height]="lineChart.plotBottom - lineChart.padTop"
+                (mouseenter)="setLineHover(band.index)"
+                (mouseleave)="clearLineHover()"
+              />
+            }
+            @if (hoveredLineMonth && hoveredLineIndex != null) {
+              <foreignObject
+                class="analytics-line-chart__tooltip-wrap"
+                [attr.x]="lineColumnBands[hoveredLineIndex].centerX - 52"
+                [attr.y]="lineChart.padTop + 8"
+                width="104"
+                height="72"
+              >
+                <div xmlns="http://www.w3.org/1999/xhtml" class="analytics-line-chart__tooltip">
+                  <p class="analytics-line-chart__tooltip-title">{{ hoveredLineMonth.monthLabel }}</p>
+                  <p class="analytics-line-chart__tooltip-row analytics-line-chart__tooltip-row--eval">
+                    Evaluations : {{ hoveredLineMonth.evaluations }}
+                  </p>
+                  <p class="analytics-line-chart__tooltip-row analytics-line-chart__tooltip-row--charge">
+                    Charge Slips : {{ hoveredLineMonth.chargeSlips }}
+                  </p>
+                </div>
+              </foreignObject>
+            }
+            @for (p of dashboard.monthlyTrend; track trackMonth($index, p); let i = $index) {
+              <text class="analytics-line-chart__x-label" [attr.x]="linePoints[i].x" [attr.y]="lineChart.height - 8">{{ p.monthLabel }}</text>
+            }
+          </svg>
+          <div class="analytics-line-chart__legend">
+            <span class="analytics-line-chart__legend-item"><span class="analytics-line-chart__dot analytics-line-chart__dot--eval"></span> Evaluations</span>
+            <span class="analytics-line-chart__legend-item"><span class="analytics-line-chart__dot analytics-line-chart__dot--charge"></span> Charge Slips</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="evaluator-surface analytics-chart-card">
+        <h2 class="analytics-chart-card__title">Subject Status Distribution</h2>
+        <div class="analytics-pie">
+          <div
+            class="analytics-pie__ring"
+            [style.background]="'conic-gradient(#22c55e 0 ' + pieSlicePercent(dashboard.subjectStatus.passed) + '%, #ef4444 ' + pieSlicePercent(dashboard.subjectStatus.passed) + '% ' + (pieSlicePercent(dashboard.subjectStatus.passed) + pieSlicePercent(dashboard.subjectStatus.failed)) + '%, #d1d5db ' + (pieSlicePercent(dashboard.subjectStatus.passed) + pieSlicePercent(dashboard.subjectStatus.failed)) + '% 100%)'"
+          ></div>
+          <ul class="analytics-pie__legend">
+            <li><span class="analytics-pie__swatch analytics-pie__swatch--passed"></span> Passed {{ pieSlicePercent(dashboard.subjectStatus.passed) | number:'1.0-0' }}%</li>
+            <li><span class="analytics-pie__swatch analytics-pie__swatch--failed"></span> Failed {{ pieSlicePercent(dashboard.subjectStatus.failed) | number:'1.0-0' }}%</li>
+            <li><span class="analytics-pie__swatch analytics-pie__swatch--progress"></span> In Progress {{ pieSlicePercent(dashboard.subjectStatus.inProgress) | number:'1.0-0' }}%</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <div class="analytics-page__charts analytics-page__charts--row2">
+      <section class="evaluator-surface analytics-chart-card">
+        <h2 class="analytics-chart-card__title">
+          <svg class="analytics-chart-card__title-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+          </svg>
+          Student Distribution by Program
+        </h2>
+        <app-analytics-bar-chart
+          chartKey="program"
+          [items]="dashboard.studentsByProgram"
+          variant="purple"
+        />
+      </section>
+
+      <section class="evaluator-surface analytics-chart-card">
+        <h2 class="analytics-chart-card__title">
+          <svg class="analytics-chart-card__title-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M18 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2zM9 4h2v5l-1-.75L9 9V4zm6 0h2v7h-2V4zM6 20V4h1v9.25L12 18l5-4.75V4h1v16H6z"/>
+          </svg>
+          Student Distribution by Year Level
+        </h2>
+        <app-analytics-bar-chart
+          chartKey="yearLevel"
+          [items]="dashboard.studentsByYearLevel"
+          variant="blue"
+        />
+      </section>
+    </div>
+
+    <div class="analytics-page__charts analytics-page__charts--row2">
+      <section class="evaluator-surface analytics-chart-card">
+        <h2 class="analytics-chart-card__title">
+          <svg class="analytics-chart-card__title-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M4 20V10M10 20V4M16 20v-6M22 20H2" />
+          </svg>
+          Unit Load Distribution
+        </h2>
+        <app-analytics-bar-chart
+          chartKey="unitLoad"
+          [items]="dashboard.unitLoadDistribution"
+          variant="teal"
+          [labelsSmall]="true"
+        />
+      </section>
+
+      <section class="evaluator-surface analytics-chart-card analytics-chart-card--table">
+        <h2 class="analytics-chart-card__title">Top 10 Courses with Highest Failure Rate</h2>
+        <div class="analytics-failure-table-wrap">
+          <table class="analytics-failure-table">
+            <thead>
+              <tr>
+                <th>Course Code</th>
+                <th>Failed</th>
+                <th>Total</th>
+                <th>Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of dashboard.topFailedCourses; track trackCourse($index, row)) {
+                <tr>
+                  <td>{{ row.courseCode }}</td>
+                  <td>{{ row.failed }}</td>
+                  <td>{{ row.total }}</td>
+                  <td>
+                    <div class="analytics-failure-table__rate">
+                      <div class="analytics-failure-table__bar-track">
+                        <div class="analytics-failure-table__bar-fill" [style.width.%]="row.ratePercent" [class.analytics-failure-table__bar-fill--hot]="row.ratePercent > 0"></div>
+                      </div>
+                      <span>{{ row.ratePercent }}%</span>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <section class="evaluator-surface analytics-quick-stats">
+      <h2 class="analytics-chart-card__title">Quick Statistics Summary</h2>
+      <div class="analytics-quick-stats__grid">
+        <article class="analytics-quick-stat analytics-quick-stat--green">
+          <p class="analytics-quick-stat__label">Pass Rate</p>
+          <p class="analytics-quick-stat__value">{{ dashboard.quickStatistics.passRatePercent }}%</p>
+          <p class="analytics-quick-stat__hint">Overall performance</p>
+        </article>
+        <article class="analytics-quick-stat analytics-quick-stat--red">
+          <p class="analytics-quick-stat__label">Failure Rate</p>
+          <p class="analytics-quick-stat__value">{{ dashboard.quickStatistics.failureRatePercent }}%</p>
+          <p class="analytics-quick-stat__hint">Need attention</p>
+        </article>
+        <article class="analytics-quick-stat analytics-quick-stat--blue">
+          <p class="analytics-quick-stat__label">Average Subjects per Student</p>
+          <p class="analytics-quick-stat__value">{{ dashboard.quickStatistics.averageSubjectsPerStudent }}</p>
+          <p class="analytics-quick-stat__hint">Subjects enrolled</p>
+        </article>
+      </div>
+    </section>
+  }
+</div>

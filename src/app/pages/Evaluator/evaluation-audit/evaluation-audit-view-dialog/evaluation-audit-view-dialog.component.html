@@ -1,0 +1,119 @@
+@if (isOpen) {
+  <div
+    class="eavd__overlay"
+    role="presentation"
+    (click)="onBackdropClick()"
+    (keydown.escape)="onClose()"
+  >
+    <div
+      class="eavd__dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="eavd-dialog-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="eavd__header">
+        <div class="eavd__header-text">
+          <h2 id="eavd-dialog-title" class="eavd__title">Evaluation Details</h2>
+          @if (detail) {
+            <p class="eavd__subtitle">{{ detail.studentName }} · {{ detail.schoolYearTerm }}</p>
+          }
+        </div>
+        <button type="button" class="eavd__close-icon-btn" (click)="onClose()" aria-label="Close dialog">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </header>
+
+      <div class="eavd__body">
+        @if (isLoading) {
+          <p class="eavd__loading">Loading evaluation…</p>
+        } @else if (!detail) {
+          <p class="eavd__empty">Evaluation record could not be loaded.</p>
+        } @else {
+          <div class="eavd__meta">
+            <div class="eavd__meta-item">
+              <span class="eavd__meta-label">Student Number</span>
+              <span class="eavd__meta-value">{{ detail.studentNumber }}</span>
+            </div>
+            <div class="eavd__meta-item">
+              <span class="eavd__meta-label">Program / Year Level</span>
+              <span class="eavd__meta-value">{{ detail.programYearLevel }}</span>
+            </div>
+            <div class="eavd__meta-item">
+              <span class="eavd__meta-label">Units Selected</span>
+              <span class="eavd__meta-value">{{ detail.totalUnitsSelected }}</span>
+            </div>
+            <div class="eavd__meta-item">
+              <span class="eavd__meta-label">Evaluated By</span>
+              <span class="eavd__meta-value">{{ detail.evaluatedBy }}</span>
+            </div>
+            <div class="eavd__meta-item">
+              <span class="eavd__meta-label">Evaluated At</span>
+              <span class="eavd__meta-value">{{ formatDate(detail.evaluatedAt) }}</span>
+            </div>
+          </div>
+
+          <div class="eavd__tabs" role="tablist" aria-label="Evaluation details">
+            <button
+              type="button"
+              class="eavd__tab"
+              role="tab"
+              [class.eavd__tab--active]="activeTab === 'subjects'"
+              [attr.aria-selected]="activeTab === 'subjects'"
+              (click)="setActiveTab('subjects')"
+            >
+              Selected Subjects
+            </button>
+            <button
+              type="button"
+              class="eavd__tab"
+              role="tab"
+              [class.eavd__tab--active]="activeTab === 'charge-slip'"
+              [attr.aria-selected]="activeTab === 'charge-slip'"
+              (click)="setActiveTab('charge-slip')"
+            >
+              Charge Slip Preview
+            </button>
+          </div>
+
+          @if (activeTab === 'subjects') {
+            <section class="eavd__panel" role="tabpanel" aria-labelledby="eavd-tab-subjects">
+              @if ((detail.evaluationData?.selectedSubjects?.length ?? 0) === 0) {
+                <p class="eavd__empty">No selected subjects recorded for this evaluation.</p>
+              } @else {
+                <div class="eavd__table-wrap">
+                  <table class="eavd__table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Course Code</th>
+                        <th scope="col">Subject</th>
+                        <th scope="col" class="eavd__th--center">Units</th>
+                        <th scope="col">Year/Term</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (row of detail.evaluationData?.selectedSubjects ?? []; track row.id) {
+                        <tr>
+                          <td class="eavd__cell-code">{{ row.courseCode }}</td>
+                          <td>{{ row.subjectDescription }}</td>
+                          <td class="eavd__td--center">{{ row.units }}</td>
+                          <td>{{ row.yearTerm }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </section>
+          } @else {
+            <section class="eavd__panel" role="tabpanel" aria-labelledby="eavd-tab-charge-slip">
+              <app-subject-evaluation-charge-slip-preview [preview]="detail.evaluationData?.chargeSlipPreview ?? null" />
+            </section>
+          }
+        }
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,49 @@
+<div class="evaluator-page view-credit-request">
+  <button type="button" class="view-credit-request__back" (click)="onBack()">
+    <svg class="view-credit-request__back-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+    </svg>
+    Back to Credit Requests
+  </button>
+
+  @if (isLoading) {
+    <section class="evaluator-surface view-credit-request__panel view-credit-request__panel--loading">
+      <p class="view-credit-request__loading-text">Loading credit request…</p>
+    </section>
+  } @else if (errorMessage) {
+    <section class="evaluator-surface view-credit-request__panel view-credit-request__panel--error" role="alert">
+      <p class="view-credit-request__error-text">{{ errorMessage }}</p>
+      <button type="button" class="view-credit-request__btn view-credit-request__btn--secondary" (click)="onBack()">
+        Return to list
+      </button>
+    </section>
+  } @else if (creditRequest) {
+    <header class="view-credit-request__header">
+      <div class="view-credit-request__header-copy">
+        <p class="view-credit-request__eyebrow">Credit Request</p>
+        <h1 class="evaluator-page__title view-credit-request__title">{{ creditRequest.creditRequestNo }}</h1>
+        <p class="evaluator-page__subtitle view-credit-request__subtitle">
+          {{ creditRequest.studentName }} · {{ creditRequest.studentNumber }}
+        </p>
+      </div>
+      <div class="view-credit-request__header-actions">
+        <span class="view-credit-request__status" [ngClass]="getStatusClass()">{{ getStatusLabel() }}</span>
+        <button type="button" class="view-credit-request__btn view-credit-request__btn--print" (click)="onPrint()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+            />
+          </svg>
+          Print Form
+        </button>
+      </div>
+    </header>
+
+    <section class="evaluator-surface view-credit-request__panel view-credit-request__panel--form">
+      <app-credit-request-print-form [creditRequest]="creditRequest" />
+    </section>
+  }
+</div>

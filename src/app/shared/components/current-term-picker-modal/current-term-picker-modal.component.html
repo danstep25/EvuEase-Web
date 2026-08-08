@@ -1,0 +1,172 @@
+@if (isOpen) {
+  <div
+    class="current-term-modal__backdrop"
+    role="presentation"
+  >
+    <div
+      class="current-term-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="current-term-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="current-term-modal__header">
+        <div>
+          <h2 id="current-term-modal-title" class="current-term-modal__title">Set Current Term</h2>
+          <p class="current-term-modal__subtitle">
+            Choose the school year and semester that should be active across the system.
+          </p>
+        </div>
+        <button
+          type="button"
+          class="current-term-modal__close"
+          aria-label="Close"
+          [disabled]="isSubmitting"
+          (click)="onClose()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </header>
+
+      @if (errorMessage) {
+        <div class="current-term-modal__error" role="alert">{{ errorMessage }}</div>
+      }
+
+      <div class="current-term-modal__steps" aria-label="Selection progress">
+        <button
+          type="button"
+          class="current-term-modal__step"
+          [class.current-term-modal__step--active]="activeStep === 'schoolYear'"
+          [class.current-term-modal__step--done]="!!selectedSchoolYear"
+          (click)="goToSchoolYearStep()"
+        >
+          <span class="current-term-modal__step-index">1</span>
+          <span class="current-term-modal__step-label">School Year</span>
+          @if (selectedSchoolYear) {
+            <span class="current-term-modal__step-value">{{ selectedSchoolYear }}</span>
+          }
+        </button>
+        <span class="current-term-modal__step-divider" aria-hidden="true"></span>
+        <button
+          type="button"
+          class="current-term-modal__step"
+          [class.current-term-modal__step--active]="activeStep === 'semester'"
+          [class.current-term-modal__step--done]="!!selectedSemester"
+          [disabled]="!selectedSchoolYear"
+          (click)="activeStep = 'semester'"
+        >
+          <span class="current-term-modal__step-index">2</span>
+          <span class="current-term-modal__step-label">Semester</span>
+          @if (selectedSemester) {
+            <span class="current-term-modal__step-value">{{ selectedSemester }}</span>
+          }
+        </button>
+      </div>
+
+      <div class="current-term-modal__search-wrap">
+        <svg class="current-term-modal__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="M20 20l-3.5-3.5" />
+        </svg>
+        <input
+          type="search"
+          class="current-term-modal__search"
+          [placeholder]="activeStep === 'schoolYear' ? 'Search school years...' : 'Search semesters...'"
+          [(ngModel)]="searchText"
+          [disabled]="isLoading || isSubmitting"
+        />
+      </div>
+
+      <div class="current-term-modal__body">
+        @if (isLoading) {
+          <div class="current-term-modal__state">
+            <span class="current-term-modal__spinner" aria-hidden="true"></span>
+            Loading school year terms...
+          </div>
+        } @else if (activeStep === 'schoolYear') {
+          @if (filteredSchoolYears.length === 0) {
+            <div class="current-term-modal__state">No school years found.</div>
+          } @else {
+            <ul class="current-term-modal__list" role="listbox" aria-label="School years">
+              @for (year of filteredSchoolYears; track year) {
+                <li role="option" [attr.aria-selected]="isSelectedSchoolYear(year)">
+                  <button
+                    type="button"
+                    class="current-term-modal__option"
+                    [class.current-term-modal__option--selected]="isSelectedSchoolYear(year)"
+                    (click)="selectSchoolYear(year)"
+                  >
+                    <span class="current-term-modal__option-primary">{{ year }}</span>
+                    @if (isSelectedSchoolYear(year)) {
+                      <span class="current-term-modal__option-badge">Selected</span>
+                    }
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        } @else if (!selectedSchoolYear) {
+          <div class="current-term-modal__state">Select a school year first.</div>
+        } @else if (filteredSemesters.length === 0) {
+          <div class="current-term-modal__state">No semesters found for {{ selectedSchoolYear }}.</div>
+        } @else {
+          <ul class="current-term-modal__list" role="listbox" aria-label="Semesters">
+            @for (term of filteredSemesters; track term.syId) {
+              <li role="option" [attr.aria-selected]="isSelectedSemester(term)">
+                <button
+                  type="button"
+                  class="current-term-modal__option"
+                  [class.current-term-modal__option--selected]="isSelectedSemester(term)"
+                  (click)="selectSemester(term)"
+                >
+                  <span class="current-term-modal__option-primary">{{ term.sySemester }}</span>
+                  <span class="current-term-modal__option-secondary">{{ term.syCode }}</span>
+                  @if (isCurrentTerm(term)) {
+                    <span class="current-term-modal__option-badge current-term-modal__option-badge--current">Current</span>
+                  } @else if (isSelectedSemester(term)) {
+                    <span class="current-term-modal__option-badge">Selected</span>
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      <footer class="current-term-modal__footer">
+        <p class="current-term-modal__preview">
+          @if (selectedTerm) {
+            New current term:
+            <strong>{{ selectedTerm.syYear }} · {{ selectedTerm.sySemester }}</strong>
+          } @else {
+            Select a school year and semester to continue.
+          }
+        </p>
+        <div class="current-term-modal__actions">
+          <button
+            type="button"
+            class="current-term-modal__btn current-term-modal__btn--secondary"
+            [disabled]="isSubmitting"
+            (click)="onClose()"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="current-term-modal__btn current-term-modal__btn--primary"
+            [disabled]="!canConfirm"
+            (click)="onConfirm()"
+          >
+            @if (isSubmitting) {
+              Saving...
+            } @else {
+              Set as Current
+            }
+          </button>
+        </div>
+      </footer>
+    </div>
+  </div>
+}

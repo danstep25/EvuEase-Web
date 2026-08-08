@@ -1,0 +1,179 @@
+:host {
+  display: contents;
+}
+
+.curriculum-view__tuition-delete-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.45);
+  box-sizing: border-box;
+}
+
+.curriculum-view__tuition-delete-dialog {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 26rem;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+}
+
+.curriculum-view__tuition-delete-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.125rem 1.25rem 0.5rem;
+}
+
+.curriculum-view__tuition-delete-title {
+  margin: 0;
+  padding-top: 0.125rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #000000;
+  line-height: 1.25;
+  font-family: inherit;
+}
+
+.curriculum-view__tuition-delete-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: -0.125rem -0.125rem 0 0;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+
+  svg {
+    width: 1.125rem;
+    height: 1.125rem;
+    stroke-width: 2;
+  }
+
+  &:hover {
+    color: #6b7280;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+}
+
+.curriculum-view__tuition-delete-body {
+  padding: 0.75rem 1.5rem 1.25rem;
+  text-align: center;
+}
+
+.curriculum-view__tuition-delete-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.75rem;
+  height: 4.75rem;
+  margin: 0 auto 1.125rem;
+  border-radius: 50%;
+  background: #e5a000;
+}
+
+.curriculum-view__tuition-delete-icon-char {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #ffffff;
+  font-family: inherit;
+  transform: translateY(-0.05rem);
+}
+
+.curriculum-view__tuition-delete-message {
+  margin: 0 0 0.5rem;
+  padding: 0 0.25rem;
+  font-size: 1rem;
+  font-weight: 400;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.curriculum-view__tuition-delete-detail {
+  margin: 0;
+  padding: 0 0.25rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.4;
+}
+
+.curriculum-view__tuition-delete-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.25rem 1.25rem 1.25rem;
+}
+
+.curriculum-view__tuition-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.375rem;
+  padding: 0.4375rem 1.375rem;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #ffffff;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.curriculum-view__tuition-delete-btn--cancel {
+  background: #6b7280;
+
+  &:hover {
+    background: #4b5563;
+  }
+}
+
+.curriculum-view__tuition-delete-btn--delete {
+  background: #ef4444;
+
+  &:hover {
+    background: #dc2626;
+  }
+}
+
+@media (max-width: 480px) {
+  .curriculum-view__tuition-delete-dialog {
+    max-width: 100%;
+  }
+
+  .curriculum-view__tuition-delete-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .curriculum-view__tuition-delete-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

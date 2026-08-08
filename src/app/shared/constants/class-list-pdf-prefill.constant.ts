@@ -1,0 +1,1 @@
+export const CLASS_LIST_PDF_COURSE_PREFILL_STORAGE_KEY = 'evuease_classListPdfCoursePrefill';

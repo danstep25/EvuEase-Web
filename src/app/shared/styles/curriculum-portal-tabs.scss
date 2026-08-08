@@ -1,0 +1,67 @@
+
+.curriculum-tabs-bar {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+  padding: 0.65rem 1rem;
+}
+
+.curriculum-tabs-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.curriculum-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  line-height: 1.25;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover:not(.curriculum-tab--active) {
+    background-color: #f9fafb;
+    color: #4b5563;
+  }
+}
+
+.curriculum-tab--active {
+  border-color: #132a57;
+  color: #132a57;
+  font-weight: 700;
+  background: #fff;
+}
+
+.curriculum-tab__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  color: #2563eb;
+}
+
+.curriculum-tab--active .curriculum-tab__icon {
+  color: #132a57;
+}
+
+.curriculum-tab__label {
+  white-space: nowrap;
+}
+
+.curriculum-tab__suffix {
+  font-weight: inherit;
+}
+

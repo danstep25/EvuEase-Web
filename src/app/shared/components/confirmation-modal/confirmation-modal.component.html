@@ -1,0 +1,47 @@
+@if (isOpen) {
+  <div
+    class="fixed inset-0 z-[120] flex items-center justify-center bg-black bg-opacity-50"
+    appModalBackdrop
+    [dismissOnBackdrop]="true"
+    (backdropDismiss)="onCancel()"
+  >
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4" (click)="$event.stopPropagation()">
+      <div class="p-6">
+        <div class="flex justify-center mb-4">
+          <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
+            <svg class="w-10 h-10 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+        </div>
+
+        <h2 class="text-xl font-bold text-gray-900 text-center mb-3">
+          {{ config.title }}
+        </h2>
+
+        <div class="text-gray-600 text-center mb-6 leading-relaxed whitespace-pre-line">
+          {{ config.message }}
+        </div>
+
+        <div class="flex gap-3 justify-center">
+          <button
+            type="button"
+            (click)="onCancel()"
+            class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors duration-200"
+          >
+            {{ config.cancelText || 'Cancel' }}
+          </button>
+
+          <button
+            type="button"
+            (click)="onConfirm()"
+            [class]="'px-6 py-2 text-white rounded-lg font-medium transition-colors duration-200 ' + (config.confirmButtonClass || 'bg-yellow-500 hover:bg-yellow-600')"
+          >
+            {{ config.confirmText || 'Confirm' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+

@@ -1,0 +1,226 @@
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+  
+  <div class="flex items-center justify-between gap-4 mb-4">
+    
+    <div class="flex-1 relative">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+      </div>
+      <input
+        type="text"
+        [ngModel]="courseSearchTerm"
+        (ngModelChange)="onSearchChange($event)"
+        placeholder="Search courses..."
+        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+      />
+    </div>
+
+    @if (!readOnly) {
+      <button
+        type="button"
+        (click)="onAddCourseClick()"
+        class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 shadow-sm shrink-0"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        <span>Add Course</span>
+      </button>
+    }
+  </div>
+
+  <hr class="border-gray-200 mb-4" />
+
+  
+  <div class="grid grid-cols-4 gap-4">
+    
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-2">Filter by Program</label>
+      <select
+        [ngModel]="selectedProgramFilter"
+        (ngModelChange)="onProgramFilterChange($event)"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+      >
+        <option [ngValue]="null">All Programs</option>
+        @for (program of programs; track program.programId) {
+          <option [ngValue]="program.programId">{{ program.programCode }} - {{ program.programTitle }}</option>
+        }
+      </select>
+    </div>
+
+    
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-2">Filter by Curriculum</label>
+      <select
+        [ngModel]="selectedCurriculumFilter"
+        (ngModelChange)="onCurriculumFilterChange($event)"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+        [disabled]="!selectedProgramFilter || isLoadingCurricula"
+      >
+        <option [ngValue]="null">All Curricula</option>
+        @if (isLoadingCurricula) {
+          <option [ngValue]="null" disabled>Loading...</option>
+        } @else {
+          @for (curriculum of curricula; track curriculum.curriculumCode) {
+            <option [ngValue]="curriculum.curriculumCode">
+              {{ curriculum.version ? curriculum.version + ' (' + (curriculum.programCode || curriculum.curriculumCode) + ')' : curriculum.curriculumCode }}
+            </option>
+          }
+        }
+      </select>
+    </div>
+
+    
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-2">Filter by Year</label>
+      <select
+        [ngModel]="selectedYearFilter"
+        (ngModelChange)="onYearFilterChange($event)"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+      >
+        <option [value]="''">All Years</option>
+        <option [value]="YearLevel.Year1">{{ YearLevel.Year1 }}</option>
+        <option [value]="YearLevel.Year2">{{ YearLevel.Year2 }}</option>
+        <option [value]="YearLevel.Year3">{{ YearLevel.Year3 }}</option>
+        <option [value]="YearLevel.Year4">{{ YearLevel.Year4 }}</option>
+        <option [value]="YearLevel.Year5">{{ YearLevel.Year5 }}</option>
+      </select>
+    </div>
+
+    
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-2">Filter by Semester</label>
+      <select
+        [ngModel]="selectedSemesterFilter"
+        (ngModelChange)="onSemesterFilterChange($event)"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+      >
+        <option [value]="''">All Semesters</option>
+        <option [value]="Semester.First">{{ Semester.First }}</option>
+        <option [value]="Semester.Second">{{ Semester.Second }}</option>
+        <option [value]="Semester.Summer">{{ Semester.Summer }}</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+
+<div class="content-area">
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        
+        <thead>
+          <tr class="border-b-2 border-gray-200 bg-gray-50">
+            <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">CURRICULUM</th>
+            <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">PROGRAM</th>
+            <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">COURSE CODE</th>
+            <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">COURSE TITLE</th>
+            <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">COMPONENT</th>
+            <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">UNITS</th>
+            <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">PRE-REQUISITE(S)</th>
+            <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">YEAR/SEM</th>
+            <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">DESCRIPTION</th>
+            @if (!readOnly) {
+              <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">ACTIONS</th>
+            }
+          </tr>
+        </thead>
+
+        
+        <tbody>
+          @if (isLoadingCourses) {
+            <tr>
+              <td [attr.colspan]="readOnly ? 9 : 10" class="py-8 text-center text-gray-500">
+                <div class="flex items-center justify-center">
+                  <svg class="animate-spin h-5 w-5 mr-3 text-purple-600" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Loading courses...
+                </div>
+              </td>
+            </tr>
+          } @else if (courses.length === 0) {
+            <tr>
+              <td [attr.colspan]="readOnly ? 9 : 10" class="py-8 text-center text-gray-500">
+                No courses found
+              </td>
+            </tr>
+          } @else {
+            @for (course of courses; track course.courseCode) {
+              <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4 text-gray-700">{{ course.curriculumCode || 'N/A' }}</td>
+                <td class="py-4 px-4 text-gray-700">{{ course.programCode || 'N/A' }}</td>
+                <td class="py-4 px-4 text-gray-900 font-medium">{{ course.courseCode }}</td>
+                <td class="py-4 px-4 text-gray-700">{{ course.courseTitle }}</td>
+                <td class="py-4 px-4 text-gray-700">{{ course.courseComponent || 'N/A' }}</td>
+                <td class="py-4 px-4 text-gray-700">{{ course.courseTotalUnits }}</td>
+                <td class="py-4 px-4 text-gray-700">{{ course.prerequisites || 'None' }}</td>
+                <td class="py-4 px-4 text-gray-700">{{ course.courseYearLevel }} - {{ course.courseSemester }}</td>
+                <td class="py-4 px-4 text-gray-700">{{ course.description || 'N/A' }}</td>
+                @if (!readOnly) {
+                  <td class="py-4 px-4">
+                    <div class="flex items-center gap-3">
+                      <button
+                        type="button"
+                        (click)="onEditCourseClick(course)"
+                        class="text-blue-600 hover:text-blue-800 transition-colors"
+                        title="Edit course"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        (click)="onDeleteCourseClick(course)"
+                        class="text-red-600 hover:text-red-800 transition-colors"
+                        title="Delete course"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                }
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  
+  @if (totalPages > 1) {
+    <div class="mt-6 flex items-center justify-between">
+      <div class="text-sm text-gray-700">
+        Showing {{ getDisplayRange() }} courses
+      </div>
+      <div class="flex gap-2">
+        <button
+          (click)="onPreviousPageClick()"
+          [disabled]="currentPage === 1"
+          class="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+        >
+          Previous
+        </button>
+        <button
+          (click)="onNextPageClick()"
+          [disabled]="currentPage === totalPages"
+          class="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  }
+</div>
+
+
+

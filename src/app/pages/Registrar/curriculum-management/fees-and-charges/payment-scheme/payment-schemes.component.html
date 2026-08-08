@@ -1,0 +1,167 @@
+<div class="ps-page">
+  <header class="ps-header">
+    <div class="ps-header__text">
+      <h2 class="ps-header__title">Payment Scheme</h2>
+      <p class="ps-header__subtitle">Define installment schedules per semester</p>
+    </div>
+    @if (!readOnly) {
+      <button type="button" class="ps-header__add" (click)="onAdd()">
+        <svg class="ps-header__add-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Add Scheme
+      </button>
+    }
+  </header>
+
+  <form [formGroup]="filterForm" class="ps-filters">
+    <label class="ps-filter">
+      <select formControlName="schoolYear" class="ps-filter__select" aria-label="Filter by school year">
+        <option value="">All School Years</option>
+        @for (y of schoolYearOptions; track y) {
+          @if (y) {
+            <option [value]="y">{{ y }}</option>
+          }
+        }
+      </select>
+    </label>
+    <label class="ps-filter">
+      <select formControlName="semester" class="ps-filter__select" aria-label="Filter by semester">
+        <option value="">All Semesters</option>
+        @for (s of semesterOptions; track s) {
+          @if (s) {
+            <option [value]="s">{{ s }}</option>
+          }
+        }
+      </select>
+    </label>
+  </form>
+
+  @if (isLoading) {
+    <div class="ps-state">Loading payment schemes…</div>
+  } @else if (filteredRows.length === 0) {
+    <div class="ps-state ps-state--muted">No payment schemes found.</div>
+  } @else {
+    <div class="ps-schemes">
+      @for (row of filteredRows; track row.id) {
+        <article class="ps-card" [class.ps-card--expanded]="isExpanded(row)">
+          <div class="ps-card__header">
+            <button type="button" class="ps-card__toggle" (click)="toggleExpand(row)">
+              <div class="ps-card__tags">
+                <span class="ps-tag ps-tag--year">{{ row.schoolYear }}</span>
+                <span class="ps-tag ps-tag--sem">{{ row.semester }}</span>
+              </div>
+              <p class="ps-card__desc">{{ schemeDescription(row) }}</p>
+              <p class="ps-card__count">{{ row.installmentCount }} installment(s)</p>
+            </button>
+
+            <div class="ps-card__actions">
+              @if (!readOnly) {
+                <button type="button" class="ps-action ps-action--edit" (click)="onEdit(row)" aria-label="Edit">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button type="button" class="ps-action ps-action--delete" (click)="onDelete(row)" aria-label="Delete">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              }
+              <button
+                type="button"
+                class="ps-action ps-action--chevron"
+                (click)="toggleExpand(row)"
+                [attr.aria-expanded]="isExpanded(row)"
+                aria-label="Toggle details"
+              >
+                <svg
+                  class="ps-action__chevron"
+                  [class.ps-action__chevron--open]="isExpanded(row)"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          @if (isExpanded(row)) {
+            <div class="ps-card__body">
+              <div class="ps-legend">
+                @for (inst of row.installments; track inst.id || inst.installmentOrder; let i = $index) {
+                  <div class="ps-legend__item">
+                    <span class="ps-legend__dot" [style.background]="installmentColor(i)"></span>
+                    <span class="ps-legend__text">
+                      {{ inst.paymentName }} — {{ formatDueDate(inst.dueDate) }}
+                    </span>
+                  </div>
+                }
+              </div>
+
+              <div class="ps-calendar">
+                <div class="ps-calendar__header">
+                  <button type="button" class="ps-calendar__nav" (click)="prevMonth()" aria-label="Previous month">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <span class="ps-calendar__title">{{ calendarTitle() }}</span>
+                  <button type="button" class="ps-calendar__nav" (click)="nextMonth()" aria-label="Next month">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="ps-calendar__weekdays">
+                  <span>Sun</span>
+                  <span>Mon</span>
+                  <span>Tue</span>
+                  <span>Wed</span>
+                  <span>Thu</span>
+                  <span>Fri</span>
+                  <span>Sat</span>
+                </div>
+                <div class="ps-calendar__grid">
+                  @for (cell of calendarCells(); track $index) {
+                    <div class="ps-calendar__cell" [class.ps-calendar__cell--muted]="!cell.inMonth">
+                      @if (cell.date) {
+                        <span class="ps-calendar__day">{{ cell.date.getDate() }}</span>
+                        @if (installmentForDate(cell); as hit) {
+                          <div
+                            class="ps-calendar__bar"
+                            [style.background]="installmentColor(installmentIndexForDate(cell))"
+                          >
+                            {{ hit.paymentName }}
+                          </div>
+                        }
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </article>
+      }
+    </div>
+  }
+</div>
+
+<app-payment-scheme-form
+  [paymentScheme]="selected"
+  [isOpen]="showForm"
+  [takenCombos]="takenCombos"
+  (close)="onCloseForm()"
+  (save)="onSave($event)"
+/>
+
+<app-confirmation-modal
+  [isOpen]="showDeleteConfirmation"
+  [config]="deleteConfirmationConfig"
+  (confirm)="onConfirmDelete()"
+  (cancel)="onCancelDelete()"
+/>

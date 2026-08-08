@@ -1,0 +1,404 @@
+<div class="earv">
+  @if (showBackLink) {
+    <button type="button" class="earv__back" (click)="onBack()">
+      <svg class="earv__back-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      Back to Finished Subjects Review
+    </button>
+  }
+
+  <section class="evaluator-surface earv__card earv__card--select">
+    <app-searchable-select
+      [options]="studentOptions"
+      [isLoading]="isLoadingStudents"
+      label="Select Student"
+      placeholder="Type to search or click to select..."
+      emptyText="No students match your search."
+      [selectedId]="selectedStudentId"
+      (selectedIdChange)="onSelectedStudentIdChange($event)"
+    />
+  </section>
+
+  @if (isLoadingProfile) {
+    <section class="evaluator-surface earv__card">
+      <p class="earv__empty">Loading student records...</p>
+    </section>
+  } @else if (profileLoadError) {
+    <section class="evaluator-surface earv__card">
+      <p class="earv__empty" role="alert">{{ profileLoadError }}</p>
+    </section>
+  } @else if (profile) {
+    <section class="evaluator-surface earv__card earv__card--info" aria-labelledby="earv-info-heading">
+      <div class="earv__info-header">
+        <div class="earv__info-title-row">
+          <h2 id="earv-info-heading" class="earv__info-title">Student Information</h2>
+          @if (profile.isCandidateForGraduation) {
+            <span class="earv__grad-badge" role="status" title="This student has passed all required curriculum subjects.">
+              <svg class="earv__grad-badge-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 3 1 9l11 6 9-4.909V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
+              </svg>
+              Candidate for Graduation
+            </span>
+          }
+        </div>
+        <button type="button" class="earv__migrate-btn" (click)="onOpenMigrateCurriculum()">
+          <svg class="earv__migrate-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.75"
+              d="M4 4v5h5M20 20v-5h-5M20 8a8 8 0 00-14.9-3M4 16a8 8 0 0014.9 3"
+            />
+          </svg>
+          Migrate Curriculum
+        </button>
+      </div>
+
+      <div class="earv__info-grid">
+        <div class="earv__info-col">
+          <div class="earv__info-item">
+            <span class="earv__info-label">Student Number</span>
+            <span class="earv__info-value">{{ profile.studentNumber }}</span>
+          </div>
+          <div class="earv__info-item">
+            <span class="earv__info-label">Year Level</span>
+            <span class="earv__info-value">{{ profile.yearLevel }}</span>
+          </div>
+        </div>
+        <div class="earv__info-col">
+          <div class="earv__info-item">
+            <span class="earv__info-label">Name</span>
+            <span class="earv__info-value">{{ profile.fullName }}</span>
+          </div>
+          <div class="earv__info-item">
+            <span class="earv__info-label">Status</span>
+            <span class="earv__info-value">{{ profile.status }}</span>
+          </div>
+        </div>
+        <div class="earv__info-col">
+          <div class="earv__info-item">
+            <span class="earv__info-label">Program</span>
+            <span class="earv__info-value">{{ profile.program }}</span>
+          </div>
+          <div class="earv__info-item earv__info-item--curriculum">
+            <span class="earv__info-label">Current Curriculum</span>
+            <span class="earv__info-value earv__info-value--inline">
+              {{ profile.currentCurriculum }}
+              <button type="button" class="earv__history-link" (click)="onOpenCurriculumHistory()">
+                <svg class="earv__history-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.75"
+                    d="M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                View History
+              </button>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      @if (profile.isCandidateForGraduation) {
+        <p class="earv__grad-note" role="note">
+          <svg class="earv__grad-note-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 3 1 9l11 6 9-4.909V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
+          </svg>
+          This student has completed all required curriculum subjects and is a candidate for graduation.
+        </p>
+      }
+    </section>
+
+    <section class="evaluator-surface earv__card earv__card--records">
+      <div class="earv__tabs" role="tablist" aria-label="Academic record sections">
+        <button
+          type="button"
+          class="earv__tab"
+          role="tab"
+          [class.earv__tab--active]="activeTab === 'academic-records'"
+          [attr.aria-selected]="activeTab === 'academic-records'"
+          (click)="setTab('academic-records')"
+        >
+          Academic Records
+        </button>
+        <button
+          type="button"
+          class="earv__tab"
+          role="tab"
+          [class.earv__tab--active]="activeTab === 'academic-plan'"
+          [attr.aria-selected]="activeTab === 'academic-plan'"
+          (click)="setTab('academic-plan')"
+        >
+          Academic Plan
+        </button>
+      </div>
+
+      @if (activeTab === 'academic-records') {
+        <div class="earv__panel" role="tabpanel">
+          <div class="earv__panel-header">
+            <h3 class="earv__panel-title">Academic Records</h3>
+            <div class="earv__view-toggle" role="group" aria-label="Academic records view">
+              <button
+                type="button"
+                class="earv__view-btn"
+                [class.earv__view-btn--active]="viewMode === 'term'"
+                (click)="setViewMode('term')"
+              >
+                <svg class="earv__view-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.75"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                Term
+              </button>
+              <button
+                type="button"
+                class="earv__view-btn"
+                [class.earv__view-btn--active]="viewMode === 'curriculum'"
+                (click)="setViewMode('curriculum')"
+              >
+                <svg class="earv__view-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.75"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+                Curriculum
+              </button>
+            </div>
+          </div>
+
+          @if (viewMode === 'term') {
+            @if (usesCurriculumRoadmap) {
+              <div class="earv__legend" aria-label="Academic records legend">
+                <span class="earv__legend-item earv__legend-item--taken">Taken / enrolled</span>
+                <span class="earv__legend-item earv__legend-item--pending">Grade pending</span>
+                <span class="earv__legend-item earv__legend-item--not-taken">Not yet taken</span>
+              </div>
+            }
+            @if (hasTermRecords) {
+              <div class="earv__semesters">
+                @for (semester of termSemesters; track trackSemester($index, semester)) {
+                  <article
+                    class="earv__semester"
+                    [class.earv__semester--recent]="semester.headerVariant === 'recent'"
+                  >
+                    <h4 class="earv__semester-banner">{{ semester.label }}</h4>
+                    <div class="earv__table-wrap">
+                      <table class="earv__table earv__table--term">
+                        <thead>
+                          <tr>
+                            <th scope="col">Course Code</th>
+                            <th scope="col">Subject Description</th>
+                            <th scope="col">Units</th>
+                            <th scope="col">Grade</th>
+                            <th scope="col">Remarks</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (row of semester.courses; track trackCourse($index, row)) {
+                            <tr [class.earv__row--not-taken]="row.isNotTaken">
+                              <td class="earv__cell-code">{{ row.courseCode }}</td>
+                              <td class="earv__cell-desc">{{ row.subjectDescription }}</td>
+                              <td class="earv__cell-center">{{ row.units }}</td>
+                              <td class="earv__cell-center">
+                                @if (row.showGradeHistoryIcon) {
+                                  <span class="earv__grade-with-icon">
+                                    {{ row.grade }}
+                                    <svg class="earv__grade-history-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                      <path
+                                        stroke="currentColor"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.75"
+                                        d="M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                      />
+                                    </svg>
+                                  </span>
+                                } @else {
+                                  {{ row.grade }}
+                                }
+                              </td>
+                              <td class="earv__cell-center">
+                                @if (isFailedRemark(row.remarks)) {
+                                  <span class="earv__remarks earv__remarks--failed">{{ row.remarks }}</span>
+                                } @else if (isPassedRemark(row.remarks)) {
+                                  <span class="earv__remarks earv__remarks--passed">{{ row.remarks }}</span>
+                                } @else if (isNotTakenRemark(row.remarks)) {
+                                  <span class="earv__remarks earv__remarks--not-taken">{{ row.remarks }}</span>
+                                } @else if (isPendingRemark(row.remarks)) {
+                                  <span class="earv__remarks earv__remarks--pending">{{ row.remarks }}</span>
+                                } @else if (isIncompleteRemark(row.remarks)) {
+                                  <span class="earv__remarks earv__remarks--incomplete">{{ row.remarks }}</span>
+                                } @else {
+                                  {{ row.remarks }}
+                                }
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td colspan="2" class="earv__total-label">
+                              @if (usesCurriculumRoadmap) {
+                                Units (taken / planned)
+                              } @else {
+                                Total Units
+                              }
+                            </td>
+                            <td class="earv__total-value">
+                              @if (usesCurriculumRoadmap) {
+                                {{ takenUnits(semester.courses) }} / {{ semester.totalUnits }}
+                              } @else {
+                                {{ semester.totalUnits }}
+                              }
+                            </td>
+                            <td colspan="2"></td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </article>
+                }
+              </div>
+            } @else {
+              <p class="earv__empty">
+                No academic records to display through the student's current term
+                @if (profile?.currentTermLabel) {
+                  ({{ profile.currentTermLabel }}).
+                } @else {
+                  .
+                }
+              </p>
+            }
+          } @else {
+            @if (usesCurriculumRoadmap) {
+              <div class="earv__legend" aria-label="Curriculum records legend">
+                <span class="earv__legend-item earv__legend-item--taken">Taken / enrolled</span>
+                <span class="earv__legend-item earv__legend-item--pending">Grade pending</span>
+                <span class="earv__legend-item earv__legend-item--not-taken">Not yet taken</span>
+              </div>
+            }
+            @if (hasCurriculumRecords) {
+              <div class="earv__curriculum-grid">
+                @for (pair of curriculumTermPairs; track trackCurriculumPair($index)) {
+                  <div class="earv__curriculum-row">
+                    @for (term of pair; track trackCurriculumTerm($index, term)) {
+                      <article class="earv__curriculum-term">
+                        <h4 class="earv__curriculum-banner">{{ term.label }}</h4>
+                        <div class="earv__table-wrap">
+                          <table class="earv__table earv__table--curriculum">
+                            <thead>
+                              <tr>
+                                <th scope="col">Course Code</th>
+                                <th scope="col">Subject Description</th>
+                                <th scope="col">Pre-requisite(s)</th>
+                                <th scope="col">Units</th>
+                                @if (usesCurriculumRoadmap) {
+                                  <th scope="col">Grade</th>
+                                  <th scope="col">Status</th>
+                                }
+                              </tr>
+                            </thead>
+                            <tbody>
+                              @for (row of term.courses; track trackCurriculumCourse($index, row)) {
+                                <tr [class.earv__row--not-taken]="row.isNotTaken">
+                                  <td class="earv__cell-code">{{ row.courseCode }}</td>
+                                  <td>{{ row.subjectDescription }}</td>
+                                  <td class="earv__cell-prereq">
+                                    @if (isPrerequisiteNone(row.prerequisite)) {
+                                      <em>{{ row.prerequisite }}</em>
+                                    } @else {
+                                      {{ row.prerequisite }}
+                                    }
+                                  </td>
+                                  <td class="earv__cell-units">{{ row.units }}</td>
+                                  @if (usesCurriculumRoadmap) {
+                                    <td class="earv__cell-center">{{ row.grade ?? '—' }}</td>
+                                    <td class="earv__cell-center">
+                                      @if (row.remarks && isFailedRemark(row.remarks)) {
+                                        <span class="earv__remarks earv__remarks--failed">{{ row.remarks }}</span>
+                                      } @else if (row.remarks && isPassedRemark(row.remarks)) {
+                                        <span class="earv__remarks earv__remarks--passed">{{ row.remarks }}</span>
+                                      } @else if (row.remarks && isNotTakenRemark(row.remarks)) {
+                                        <span class="earv__remarks earv__remarks--not-taken">{{ row.remarks }}</span>
+                                      } @else if (row.remarks && isPendingRemark(row.remarks)) {
+                                        <span class="earv__remarks earv__remarks--pending">{{ row.remarks }}</span>
+                                      } @else if (row.remarks && isIncompleteRemark(row.remarks)) {
+                                        <span class="earv__remarks earv__remarks--incomplete">{{ row.remarks }}</span>
+                                      } @else {
+                                        {{ row.remarks ?? '—' }}
+                                      }
+                                    </td>
+                                  }
+                                </tr>
+                              }
+                            </tbody>
+                            <tfoot>
+                              <tr>
+                                <td colspan="3" class="earv__total-label">
+                                  @if (usesCurriculumRoadmap) {
+                                    Units (taken / planned)
+                                  } @else {
+                                    Total Units
+                                  }
+                                </td>
+                                <td class="earv__total-value earv__total-value--units">
+                                  @if (usesCurriculumRoadmap) {
+                                    {{ takenCurriculumUnits(term.courses) }} / {{ term.totalUnits }}
+                                  } @else {
+                                    {{ term.totalUnits }}
+                                  }
+                                </td>
+                                @if (usesCurriculumRoadmap) {
+                                  <td colspan="2"></td>
+                                }
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                      </article>
+                    }
+                    @if (pair.length === 1) {
+                      <div class="earv__curriculum-slot earv__curriculum-slot--empty" aria-hidden="true"></div>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="earv__empty">No curriculum records to display for this student.</p>
+            }
+          }
+        </div>
+      } @else {
+        <div class="earv__panel earv__panel--plan" role="tabpanel">
+          <app-evaluator-academic-plan-panel [plan]="academicPlan" />
+        </div>
+      }
+    </section>
+  }
+
+  <app-evaluator-migrate-curriculum-dialog
+    [isOpen]="showMigrateCurriculumDialog"
+    [studentId]="selectedStudentId"
+    (closed)="onCloseMigrateCurriculum()"
+    (migrated)="onCloseMigrateCurriculum(true)"
+  />
+
+  <app-evaluator-curriculum-history-dialog
+    [isOpen]="showCurriculumHistoryDialog"
+    [studentId]="selectedStudentId"
+    (closed)="onCloseCurriculumHistory()"
+  />
+</div>

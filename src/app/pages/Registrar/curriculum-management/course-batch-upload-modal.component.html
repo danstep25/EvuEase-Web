@@ -1,0 +1,741 @@
+@if (isOpen) {
+
+  <div class="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6" role="presentation">
+
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]" aria-hidden="true"></div>
+
+    <div
+
+      class="relative w-full max-w-6xl max-h-[92vh] flex flex-col rounded-xl bg-white shadow-xl border border-gray-200 overflow-hidden"
+
+      role="dialog"
+
+      aria-modal="true"
+
+      aria-labelledby="course-batch-upload-title"
+
+      (click)="$event.stopPropagation()"
+
+    >
+
+      <div class="flex items-start justify-between gap-4 px-6 pt-5 pb-4 border-b border-gray-100 shrink-0">
+
+        <div class="min-w-0">
+
+          <h2 id="course-batch-upload-title" class="text-lg font-bold text-gray-900">Batch Upload Courses</h2>
+
+          <p class="mt-1 text-sm text-gray-600">
+
+            Upload the official STI <strong>Curriculum Structure</strong> PDF. Multiple pre-requisites use semicolons (<span class="font-mono text-gray-800">;</span>), e.g. <span class="font-mono text-gray-700">PHED1005; PHED1006</span>.
+
+          </p>
+
+        </div>
+
+        <button type="button" (click)="close()" class="shrink-0 rounded-lg p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100" aria-label="Close">
+
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+
+        </button>
+
+      </div>
+
+
+
+      <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/80 shrink-0">
+
+        <ol class="flex flex-wrap items-center gap-2 text-sm">
+
+          <li [class]="step === 'setup' ? 'font-semibold text-blue-700' : 'text-gray-500'">1. Target curriculum</li>
+
+          <li class="text-gray-300" aria-hidden="true">›</li>
+
+          <li [class]="step === 'preview' ? 'font-semibold text-blue-700' : 'text-gray-500'">2. Review & confirm</li>
+
+          <li class="text-gray-300" aria-hidden="true">›</li>
+
+          <li [class]="step === 'complete' ? 'font-semibold text-blue-700' : 'text-gray-500'">3. Done</li>
+
+        </ol>
+
+      </div>
+
+
+
+      <div class="flex-1 min-h-0 overflow-auto px-6 py-5">
+
+        @if (step === 'setup') {
+
+          <section class="max-w-2xl space-y-5">
+
+            <div class="rounded-lg border border-blue-100 bg-blue-50/70 p-4 text-sm text-blue-950">
+
+              <p class="font-semibold">Upload your curriculum PDF first</p>
+
+              <p class="mt-1">The <strong>Reference No.</strong> in the PDF (e.g. BSCS-24-01) is used to auto-select the program and curriculum version. You can still change them manually.</p>
+
+            </div>
+
+
+
+            <div
+
+              class="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50/80 px-6 py-8 text-center transition-colors hover:border-blue-400 hover:bg-blue-50/40"
+
+              (drop)="onFileDrop($event)"
+
+              (dragover)="onDragOver($event)"
+
+            >
+
+              <svg class="mx-auto h-9 w-9 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+
+              </svg>
+
+              <p class="mt-3 text-sm font-medium text-gray-900">Drop curriculum PDF here or browse</p>
+
+              <p class="mt-1 text-xs text-gray-500">Official STI Curriculum Structure · PDF only</p>
+
+              <label class="mt-4 inline-flex cursor-pointer items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+
+                Choose PDF file
+
+                <input type="file" accept=".pdf,application/pdf" class="hidden" (change)="onFileSelected($event)" />
+
+              </label>
+
+              @if (selectedFile) {
+
+                <p class="mt-3 text-sm text-gray-700">Selected: <span class="font-medium">{{ selectedFile.name }}</span></p>
+
+              }
+
+            </div>
+
+
+
+            @if (isDetectingPdf || isPreviewLoading) {
+
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+
+                <svg class="h-4 w-4 animate-spin text-blue-600" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+
+                @if (isPreviewLoading) {
+
+                  Reading PDF and validating courses… scanned files may take a little longer.
+
+                } @else {
+
+                  Reading Reference No. from PDF…
+
+                }
+
+              </div>
+
+            }
+
+
+
+            @if (detectionError) {
+
+              <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900" role="alert">
+
+                {{ detectionError }}
+
+              </div>
+
+            }
+
+
+
+            @if (parseError) {
+
+              <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900" role="alert">
+
+                {{ parseError }}
+
+              </div>
+
+            }
+
+
+
+            @if (pdfDetection?.referenceNumber && pdfDetection?.curriculumFound) {
+
+              <div
+
+                class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950"
+
+                role="status"
+
+              >
+
+                <p class="font-semibold">
+
+                  Reference No. {{ pdfDetection?.referenceNumber }}
+
+                  @if (pdfDetection?.schoolYear) {
+
+                    <span class="font-normal opacity-80">· SY {{ pdfDetection?.schoolYear }}</span>
+
+                  }
+
+                </p>
+
+                <p class="mt-1">Program and curriculum version were filled from the PDF.</p>
+
+              </div>
+
+            }
+
+
+
+            <div>
+
+              <label class="block text-sm font-semibold text-gray-800 mb-2" for="batch-program">Program</label>
+
+              <select
+
+                id="batch-program"
+
+                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none"
+
+                [(ngModel)]="selectedProgramId"
+
+                (ngModelChange)="onProgramChange()"
+
+              >
+
+                <option [ngValue]="null">Select program</option>
+
+                @for (program of programs; track program.programId) {
+
+                  <option [ngValue]="program.programId">{{ program.programCode }} — {{ program.programTitle }}</option>
+
+                }
+
+              </select>
+
+            </div>
+
+            <div>
+
+              <label class="block text-sm font-semibold text-gray-800 mb-2" for="batch-curriculum">Curriculum version</label>
+
+              <select
+
+                id="batch-curriculum"
+
+                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100"
+
+                [(ngModel)]="selectedCurriculumCode"
+
+                (ngModelChange)="onCurriculumChange()"
+
+                [disabled]="!selectedProgramId || isLoadingCurricula"
+
+              >
+
+                <option value="">Select curriculum version</option>
+
+                @for (curriculum of curriculumVersions; track curriculum.id) {
+
+                  <option [value]="curriculum.curriculumCode">{{ curriculum.curriculumCode }}</option>
+
+                }
+
+              </select>
+
+              @if (isLoadingCurricula) {
+
+                <p class="mt-1 text-xs text-gray-500">Loading curriculum versions…</p>
+
+              }
+
+            </div>
+
+            <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-4">
+              <div>
+                <p class="text-sm font-semibold text-gray-900">Supporting document (optional)</p>
+                <p class="mt-1 text-xs text-gray-600">
+                  Attach a reference file for this curriculum version. You can save the curriculum PDF above or upload a different document.
+                </p>
+              </div>
+
+              <label class="inline-flex items-start gap-2 text-sm text-gray-800">
+                <input
+                  type="checkbox"
+                  class="mt-0.5"
+                  [checked]="saveCurriculumPdfAsReference"
+                  [disabled]="!selectedFile || !!supportingDocumentFile"
+                  (change)="onSaveCurriculumPdfAsReferenceChange($any($event.target).checked)"
+                />
+                <span>
+                  Save curriculum PDF as supporting document
+                  @if (selectedFile && !supportingDocumentFile) {
+                    <span class="block text-xs text-gray-500 mt-0.5">{{ selectedFile.name }}</span>
+                  }
+                </span>
+              </label>
+
+              <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50/80 px-4 py-4">
+                <p class="text-sm font-medium text-gray-900">Or upload a different supporting document</p>
+                <p class="mt-1 text-xs text-gray-500">PDF, PNG, JPG, JPEG, WEBP, DOC, or DOCX</p>
+                <div class="mt-3 flex flex-wrap items-center gap-2">
+                  <label class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Choose file
+                    <input
+                      type="file"
+                      accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,application/pdf,image/*"
+                      class="hidden"
+                      (change)="onSupportingDocumentSelected($event)"
+                    />
+                  </label>
+                  @if (supportingDocumentFile) {
+                    <span class="text-sm text-gray-700">{{ supportingDocumentFile.name }}</span>
+                    <button
+                      type="button"
+                      class="text-sm text-red-600 hover:text-red-800"
+                      (click)="clearSupportingDocument()"
+                    >
+                      Remove
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+
+          </section>
+
+        }
+
+
+
+        @if (step === 'preview' && preview) {
+
+          <section class="space-y-4">
+
+            <div class="text-sm text-gray-700">
+
+              Target:
+
+              <span class="font-semibold text-gray-900">{{ selectedProgram?.programCode }}</span>
+
+              ·
+
+              <span class="font-semibold text-gray-900">{{ selectedCurriculumCode }}</span>
+
+              @if (pdfDetection?.referenceNumber) {
+
+                · Ref. <span class="font-mono font-semibold text-gray-900">{{ pdfDetection?.referenceNumber }}</span>
+
+              }
+
+            </div>
+
+
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+
+              <div class="rounded-lg border border-gray-200 bg-white p-3">
+
+                <p class="text-xs uppercase tracking-wide text-gray-500">Total</p>
+
+                <p class="text-2xl font-bold text-gray-900">{{ preview.totalRows }}</p>
+
+              </div>
+
+              <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+
+                <p class="text-xs uppercase tracking-wide text-emerald-700">Valid</p>
+
+                <p class="text-2xl font-bold text-emerald-900">{{ preview.validRows }}</p>
+
+              </div>
+
+              <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+
+                <p class="text-xs uppercase tracking-wide text-amber-700">Warnings</p>
+
+                <p class="text-2xl font-bold text-amber-900">{{ preview.warningRows }}</p>
+
+              </div>
+
+              <div class="rounded-lg border border-red-200 bg-red-50 p-3">
+
+                <p class="text-xs uppercase tracking-wide text-red-700">Errors</p>
+
+                <p class="text-2xl font-bold text-red-900">{{ preview.errorRows }}</p>
+
+              </div>
+
+            </div>
+
+
+
+            @if (willAttachReferenceDocument) {
+              <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-950">
+                Supporting document to save after import:
+                <span class="font-semibold">{{ referenceDocumentLabel }}</span>
+              </div>
+            }
+
+
+
+            @if (hasSelectedDuplicateCourseCodes) {
+              <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="status">
+                <p class="font-semibold">{{ duplicateCourseSelectionCount }} selected course(s) already exist and will be skipped.</p>
+                <p class="mt-1">{{ selectedImportCount }} new course(s) will still be imported.</p>
+              </div>
+            }
+
+            @if (titleLengthIssueCount > 0) {
+
+              <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="alert">
+
+                <p class="font-semibold">{{ titleLengthIssueCount }} course title(s) exceed {{ courseTitleMaxLength }} characters.</p>
+
+                <p class="mt-1">Edit the course titles in the table below before importing. Titles over the limit are marked as warnings and cannot be imported until shortened.</p>
+
+              </div>
+
+            }
+
+
+
+            <div class="flex flex-wrap items-center gap-3">
+
+              <input
+
+                type="search"
+
+                [(ngModel)]="previewSearch"
+
+                placeholder="Search course code, title, year, semester, pre-req…"
+
+                class="flex-1 min-w-[220px] rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+
+              />
+
+              <select [(ngModel)]="previewFilter" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none">
+
+                <option value="all">All statuses</option>
+
+                <option value="Valid">Valid only</option>
+
+                <option value="Warning">Warnings</option>
+
+                <option value="Error">Errors</option>
+
+              </select>
+
+              <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+
+                <input type="checkbox" [checked]="allFilteredRowsSelected()" (change)="toggleAllFilteredRows($any($event.target).checked)" />
+
+                Select shown
+
+              </label>
+
+            </div>
+
+
+
+            <div class="rounded-lg border border-gray-200 overflow-hidden">
+
+              <div class="overflow-x-auto">
+
+                <table class="w-full min-w-[1100px] border-collapse text-left">
+
+                  <thead>
+
+                    <tr class="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+
+                      <th class="py-3 px-3">Import</th>
+
+                      <th class="py-3 px-3">Status</th>
+
+                      <th class="py-3 px-3">Year / Sem</th>
+
+                      <th class="py-3 px-3">Code</th>
+
+                      <th class="py-3 px-3">Description</th>
+
+                      <th class="py-3 px-3">LEC</th>
+
+                      <th class="py-3 px-3">LAB</th>
+
+                      <th class="py-3 px-3">Total</th>
+
+                      <th class="py-3 px-3">Pre-requisites</th>
+
+                      <th class="py-3 px-3">Notes</th>
+
+                    </tr>
+
+                  </thead>
+
+                  <tbody>
+
+                    @if (filteredPreviewRows.length === 0) {
+
+                      <tr><td colspan="10" class="py-8 text-center text-sm text-gray-500">No rows match your filters.</td></tr>
+
+                    } @else {
+
+                      @for (row of filteredPreviewRows; track row.rowNumber) {
+
+                        <tr class="border-b border-gray-100 align-top hover:bg-gray-50/70">
+
+                          <td class="py-2.5 px-3">
+
+                            <input
+
+                              type="checkbox"
+
+                              [checked]="row.selected"
+
+                              [disabled]="row.status === 'Error'"
+
+                              (change)="toggleRowSelection(row, $any($event.target).checked)"
+
+                            />
+
+                          </td>
+
+                          <td class="py-2.5 px-3">
+
+                            <span class="inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold" [ngClass]="statusClass(row.status)">{{ row.status }}</span>
+
+                          </td>
+
+                          <td class="py-2.5 px-3 text-sm text-gray-800 whitespace-nowrap">{{ row.courseYearLevel }}<br /><span class="text-gray-500">{{ row.courseSemester }}</span></td>
+
+                          <td class="py-2.5 px-3 text-sm font-medium text-gray-900 whitespace-nowrap">{{ row.courseCode }}</td>
+
+                          <td class="py-2.5 px-3">
+                            <textarea
+                              class="batch-title-input"
+                              rows="2"
+                              [attr.maxlength]="courseTitleMaxLength"
+                              [ngModel]="row.courseTitle"
+                              (ngModelChange)="onRowCourseTitleChange(row, $event)"
+                              [attr.aria-label]="'Course title for ' + row.courseCode"
+                            ></textarea>
+                            <p class="batch-title-count" [class.batch-title-count--over]="row.courseTitle.length > courseTitleMaxLength">
+                              {{ row.courseTitle.length }} / {{ courseTitleMaxLength }}
+                            </p>
+                          </td>
+
+                          <td class="py-2.5 px-3">
+                            <input
+                              type="number"
+                              class="batch-units-input"
+                              min="0"
+                              max="99"
+                              step="0.01"
+                              [ngModel]="row.courseLecUnits"
+                              (ngModelChange)="onRowLecUnitsChange(row, $event)"
+                              [attr.aria-label]="'LEC units for ' + row.courseCode"
+                            />
+                          </td>
+
+                          <td class="py-2.5 px-3">
+                            <input
+                              type="number"
+                              class="batch-units-input"
+                              min="0"
+                              max="99"
+                              step="0.01"
+                              [ngModel]="row.courseLabUnits"
+                              (ngModelChange)="onRowLabUnitsChange(row, $event)"
+                              [attr.aria-label]="'LAB units for ' + row.courseCode"
+                            />
+                          </td>
+
+                          <td class="py-2.5 px-3">
+                            <input
+                              type="number"
+                              class="batch-units-input batch-units-input--total"
+                              min="0"
+                              max="99"
+                              step="0.01"
+                              [ngModel]="row.courseTotalUnits"
+                              (ngModelChange)="onRowTotalUnitsChange(row, $event)"
+                              [attr.aria-label]="'Total units for ' + row.courseCode"
+                            />
+                          </td>
+
+                          <td class="py-2.5 px-3">
+
+                            <input
+                              type="text"
+                              class="batch-prereq-input w-full min-w-[8rem] rounded border border-gray-200 px-2 py-1 text-xs text-gray-800"
+                              [ngModel]="row.prerequisites ?? ''"
+                              (ngModelChange)="onRowPrerequisitesChange(row, $event)"
+                              (blur)="onRowPrerequisitesBlur(row)"
+                              placeholder="COSC1001; COSC1002"
+                              [attr.aria-label]="'Pre-requisites for ' + row.courseCode"
+                            />
+
+                            @if (prerequisiteChips(row.prerequisites).length > 0) {
+
+                              <div class="mt-1 flex flex-wrap gap-1">
+
+                                @for (code of prerequisiteChips(row.prerequisites); track code) {
+
+                                  <span class="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">{{ code }}</span>
+
+                                }
+
+                              </div>
+
+                            }
+
+                          </td>
+
+                          <td class="py-2.5 px-3 text-xs text-gray-600 max-w-xs">
+
+                            @for (message of row.messages; track message) {
+
+                              <p>{{ message }}</p>
+
+                            }
+
+                          </td>
+
+                        </tr>
+
+                      }
+
+                    }
+
+                  </tbody>
+
+                </table>
+
+              </div>
+
+            </div>
+
+          </section>
+
+        }
+
+
+
+        @if (step === 'complete' && importSummary) {
+
+          <section class="max-w-lg mx-auto text-center py-8">
+
+            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+
+              <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+
+            </div>
+
+            <h3 class="mt-4 text-xl font-bold text-gray-900">Import complete</h3>
+
+            <p class="mt-2 text-sm text-gray-600">
+
+              Imported <span class="font-semibold text-gray-900">{{ importSummary.imported }}</span> course(s).
+
+              @if (importSummary.skipped > 0) {
+
+                Skipped <span class="font-semibold">{{ importSummary.skipped }}</span> row(s).
+
+              }
+
+            </p>
+
+            @if (referenceDocumentSaved) {
+              <p class="mt-2 text-sm text-emerald-700">
+                Supporting document saved for curriculum <span class="font-semibold">{{ selectedCurriculumCode }}</span>.
+              </p>
+            }
+
+          </section>
+
+        }
+
+      </div>
+
+
+
+      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/70 shrink-0 flex items-center justify-between gap-3">
+
+        <div class="text-sm text-gray-600">
+
+          @if (step === 'preview') {
+
+            {{ selectedImportCount }} course(s) selected for import
+
+          }
+
+        </div>
+
+        <div class="flex items-center gap-2">
+
+          @if (step === 'setup') {
+
+            <button type="button" (click)="close()" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">Cancel</button>
+
+            <button
+
+              type="button"
+
+              (click)="continueToReview()"
+
+              [disabled]="!canContinueFromSetup || isPreviewLoading || isDetectingPdf"
+
+              class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+
+            >
+
+              {{ isPreviewLoading ? 'Reading PDF…' : 'Continue' }}
+
+            </button>
+
+          }
+
+          @if (step === 'preview') {
+
+            <button type="button" (click)="backToSetup()" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">Back</button>
+
+            <button
+
+              type="button"
+
+              (click)="confirmImport()"
+
+              [disabled]="selectedImportCount === 0 || isImporting || isUploadingDocument || hasSelectedTitleLengthIssues"
+
+              class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+
+            >
+
+              {{ isImporting || isUploadingDocument ? (isUploadingDocument ? 'Saving document…' : 'Importing…') : 'Confirm import' }}
+
+            </button>
+
+          }
+
+          @if (step === 'complete') {
+
+            <button type="button" (click)="close()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Close</button>
+
+          }
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+}
+
+

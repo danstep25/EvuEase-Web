@@ -1,0 +1,139 @@
+@if (isOpen) {
+  <div
+    class="curriculum-view__tuition-edit-overlay"
+    role="presentation"
+    (keydown.escape)="onClose()"
+  >
+    <div
+      class="curriculum-view__tuition-edit-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Add Miscellaneous Fee"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="curriculum-view__tuition-edit-header curriculum-view__tuition-edit-header--close-only">
+        <button type="button" class="curriculum-view__tuition-edit-close" (click)="onClose()" aria-label="Close">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </header>
+
+      <form
+        class="curriculum-view__tuition-edit-form curriculum-view__tuition-edit-form--add"
+        [formGroup]="addForm"
+        (ngSubmit)="onSubmit()"
+      >
+        @if (errorMessage) {
+          <div class="curriculum-view__tuition-edit-error" role="alert">{{ errorMessage }}</div>
+        }
+
+        <div class="curriculum-view__tuition-edit-row curriculum-view__tuition-edit-row--2">
+          <div class="curriculum-view__tuition-edit-field">
+            <label class="curriculum-view__tuition-edit-label" for="eval-misc-fee-add-syid">
+              School Year ID <span class="curriculum-view__tuition-edit-required">*</span>
+            </label>
+            <div class="curriculum-view__tuition-edit-select-wrap">
+              <select id="eval-misc-fee-add-syid" class="curriculum-view__tuition-edit-select" formControlName="syId">
+                <option value="" disabled>Select School Year</option>
+                @for (opt of schoolYearOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="curriculum-view__tuition-edit-field">
+            <label class="curriculum-view__tuition-edit-label" for="eval-misc-fee-add-batch">
+              Batch <span class="curriculum-view__tuition-edit-required">*</span>
+            </label>
+            <div class="curriculum-view__tuition-edit-select-wrap">
+              <select id="eval-misc-fee-add-batch" class="curriculum-view__tuition-edit-select" formControlName="batch">
+                @for (batch of batchOptions; track batch) {
+                  <option [value]="batch">{{ batch }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="curriculum-view__tuition-edit-row">
+          <div class="curriculum-view__tuition-edit-field">
+            <label class="curriculum-view__tuition-edit-label" for="eval-misc-fee-add-semester">
+              Semester <span class="curriculum-view__tuition-edit-required">*</span>
+            </label>
+            <div class="curriculum-view__tuition-edit-select-wrap">
+              <select id="eval-misc-fee-add-semester" class="curriculum-view__tuition-edit-select" formControlName="semester">
+                <option value="" disabled>Select Semester</option>
+                @for (sem of semesterOptions; track sem) {
+                  <option [value]="sem">{{ sem }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="curriculum-view__tuition-edit-row">
+          <div class="curriculum-view__tuition-edit-field">
+            <label class="curriculum-view__tuition-edit-label" for="eval-misc-fee-add-name">
+              Miscellaneous Fee Name <span class="curriculum-view__tuition-edit-required">*</span>
+            </label>
+            <input
+              id="eval-misc-fee-add-name"
+              type="text"
+              class="curriculum-view__tuition-edit-input"
+              formControlName="miscellaneousFee"
+              placeholder="e.g., ID Card Fee"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <div class="curriculum-view__tuition-edit-row curriculum-view__tuition-edit-row--2">
+          <div class="curriculum-view__tuition-edit-field">
+            <label class="curriculum-view__tuition-edit-label" for="eval-misc-fee-add-cash">
+              Cash Amount <span class="curriculum-view__tuition-edit-required">*</span>
+            </label>
+            <input
+              id="eval-misc-fee-add-cash"
+              type="number"
+              class="curriculum-view__tuition-edit-input"
+              formControlName="cash"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+
+          <div class="curriculum-view__tuition-edit-field">
+            <label class="curriculum-view__tuition-edit-label" for="eval-misc-fee-add-low">
+              Low Monthly Payment <span class="curriculum-view__tuition-edit-required">*</span>
+            </label>
+            <input
+              id="eval-misc-fee-add-low"
+              type="number"
+              class="curriculum-view__tuition-edit-input"
+              formControlName="lowMonthlyPayment"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        <footer class="curriculum-view__tuition-edit-footer">
+          <button type="button" class="curriculum-view__tuition-edit-btn curriculum-view__tuition-edit-btn--cancel" (click)="onClose()">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="curriculum-view__tuition-edit-btn curriculum-view__tuition-edit-btn--submit"
+            [disabled]="isSubmitting"
+          >
+            Add Miscellaneous Fee
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

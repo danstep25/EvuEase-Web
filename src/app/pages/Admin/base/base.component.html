@@ -22,6 +22,12 @@
             @if (item.icon === 'description') {
               <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
             }
+            @if (item.icon === 'audit-trail') {
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 2zm3 12H8v-1.5c0-1.67 3.33-2.5 5-2.5s5 .83 5 2.5V18z"/>
+            }
+            @if (item.icon === 'lock') {
+              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+            }
           </svg>
           <span class="nav-label">{{ item.label }}</span>
         </a>
@@ -29,12 +35,13 @@
     </nav>
 
     <div class="sidebar-footer">
-      <p class="logged-in-text">Logged in as: {{ loggedInUser }}</p>
+      <p class="logged-in-text">Logged in as:</p>
+      <p class="logged-in-name">{{ loggedInUser }}</p>
       <button type="button" class="logout-button" (click)="logout()">
-        <span>Logout</span>
-        <svg class="logout-icon" fill="currentColor" viewBox="0 0 24 24">
+        <svg class="logout-icon" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
         </svg>
+        <span>Logout</span>
       </button>
     </div>
   </aside>

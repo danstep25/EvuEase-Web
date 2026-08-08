@@ -1,0 +1,755 @@
+<div class="evaluator-page">
+  <header class="evaluator-page__header page-header--with-icon">
+    <div class="page-header__title-row">
+      <span class="page-header__icon" aria-hidden="true">
+        <svg class="w-8 h-8 text-slate-600" fill="currentColor" viewBox="0 0 24 24">
+          <path
+            d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z"
+          />
+        </svg>
+      </span>
+      <div>
+        <h1 class="evaluator-page__title">{{ pageTitle }}</h1>
+        <p class="evaluator-page__subtitle">{{ pageSubtitle }}</p>
+      </div>
+    </div>
+  </header>
+
+  <nav class="archive-tabs mb-6" aria-label="Archive categories">
+    <div class="flex flex-wrap gap-1 border-b border-gray-200">
+      <button
+        type="button"
+        (click)="setTab(ArchiveTab.Programs)"
+        [class]="
+          'archive-tab px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ' +
+          (activeTab === ArchiveTab.Programs
+            ? 'border-blue-600 text-blue-600'
+            : 'border-transparent text-gray-600 hover:text-gray-900')
+        "
+        [attr.aria-selected]="activeTab === ArchiveTab.Programs"
+        role="tab"
+      >
+        Programs
+      </button>
+      <button
+        type="button"
+        (click)="setTab(ArchiveTab.Students)"
+        [class]="
+          'archive-tab px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ' +
+          (activeTab === ArchiveTab.Students
+            ? 'border-blue-600 text-blue-600'
+            : 'border-transparent text-gray-600 hover:text-gray-900')
+        "
+        [attr.aria-selected]="activeTab === ArchiveTab.Students"
+        role="tab"
+      >
+        Students
+      </button>
+      <button
+        type="button"
+        (click)="setTab(ArchiveTab.SchoolYears)"
+        [class]="
+          'archive-tab px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ' +
+          (activeTab === ArchiveTab.SchoolYears
+            ? 'border-blue-600 text-blue-600'
+            : 'border-transparent text-gray-600 hover:text-gray-900')
+        "
+        [attr.aria-selected]="activeTab === ArchiveTab.SchoolYears"
+        role="tab"
+      >
+        School Years
+      </button>
+      <button
+        type="button"
+        (click)="setTab(ArchiveTab.Curricula)"
+        [class]="
+          'archive-tab px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ' +
+          (activeTab === ArchiveTab.Curricula
+            ? 'border-blue-600 text-blue-600'
+            : 'border-transparent text-gray-600 hover:text-gray-900')
+        "
+        [attr.aria-selected]="activeTab === ArchiveTab.Curricula"
+        role="tab"
+      >
+        Curricula
+      </button>
+    </div>
+  </nav>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+    <form [formGroup]="filterForm" class="space-y-4">
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </div>
+        <input
+          type="search"
+          formControlName="search"
+          [placeholder]="searchPlaceholder()"
+          class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+          autocomplete="off"
+        />
+      </div>
+
+      <div>
+        <button
+          type="button"
+          (click)="toggleAdvancedFilters()"
+          [attr.aria-expanded]="showAdvancedFilters"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-gray-700 bg-gray-100 border border-gray-200 hover:bg-gray-200 transition-colors"
+        >
+          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+            />
+          </svg>
+          Advanced Filters
+        </button>
+      </div>
+
+      @if (showAdvancedFilters) {
+        @if (activeTab === ArchiveTab.Programs) {
+          <div class="rounded-lg border border-gray-200 p-4 sm:p-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1" for="archYearsCompletion">Years of Completion</label>
+                <select
+                  id="archYearsCompletion"
+                  formControlName="yearsOfCompletion"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                >
+                  <option value="">All Years</option>
+                  @for (y of completionYearOptions; track y) {
+                    <option [value]="y">{{ y }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1" for="archDeletedBy">Deleted By</label>
+                <select
+                  id="archDeletedBy"
+                  formControlName="deletedBy"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                >
+                  <option value="">All Users</option>
+                  @for (opt of deletedByUserOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1" for="archDateFrom">Deleted From</label>
+                <div class="relative">
+                  <input
+                    id="archDateFrom"
+                    type="date"
+                    formControlName="dateFrom"
+                    title="Select start date"
+                    class="w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-gray-900 placeholder:text-gray-400"
+                  />
+                  <span class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-gray-400" aria-hidden="true">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1" for="archDateTo">Deleted To</label>
+                <div class="relative">
+                  <input
+                    id="archDateTo"
+                    type="date"
+                    formControlName="dateTo"
+                    title="Select end date"
+                    class="w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-gray-900"
+                  />
+                  <span class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-gray-400" aria-hidden="true">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        } @else if (activeTab === ArchiveTab.Students) {
+          <div class="rounded-lg border border-gray-200 p-4 sm:p-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 xl:items-start">
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1" for="archStudentProgram">Program</label>
+                <select
+                  id="archStudentProgram"
+                  formControlName="studentProgram"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                >
+                  @for (opt of programFilterOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1" for="archStudentYearLevel">Year Level</label>
+                <select
+                  id="archStudentYearLevel"
+                  formControlName="yearLevel"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                >
+                  @for (opt of yearLevelFilterOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1" for="archStudentDeletedBy">Deleted By</label>
+                <select
+                  id="archStudentDeletedBy"
+                  formControlName="deletedBy"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                >
+                  <option value="">All Users</option>
+                  @for (opt of deletedByUserOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+              <div class="sm:col-span-2 xl:col-span-2">
+                <span class="block text-xs font-semibold text-gray-600 mb-1">Deleted Date Range</span>
+                <div class="flex flex-col min-[480px]:flex-row gap-3 min-[480px]:gap-4">
+                  <div class="flex-1 min-w-0">
+                    <div class="relative">
+                      <input
+                        id="archStudentDateFrom"
+                        type="date"
+                        formControlName="dateFrom"
+                        placeholder="From"
+                        title="From"
+                        aria-label="From"
+                        [class.archive-date-input--empty]="!filterForm.get('dateFrom')?.value"
+                        class="archive-date-input w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-gray-900"
+                      />
+                      @if (!filterForm.get('dateFrom')?.value) {
+                        <span
+                          class="pointer-events-none absolute left-3 top-1/2 z-[1] -translate-y-1/2 text-sm text-gray-400 select-none"
+                          aria-hidden="true"
+                        >From</span>
+                      }
+                      <span class="pointer-events-none absolute inset-y-0 right-2.5 z-[1] flex items-center text-gray-400" aria-hidden="true">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="relative">
+                      <input
+                        id="archStudentDateTo"
+                        type="date"
+                        formControlName="dateTo"
+                        placeholder="To"
+                        title="To"
+                        aria-label="To"
+                        [class.archive-date-input--empty]="!filterForm.get('dateTo')?.value"
+                        class="archive-date-input w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-gray-900"
+                      />
+                      @if (!filterForm.get('dateTo')?.value) {
+                        <span
+                          class="pointer-events-none absolute left-3 top-1/2 z-[1] -translate-y-1/2 text-sm text-gray-400 select-none"
+                          aria-hidden="true"
+                        >To</span>
+                      }
+                      <span class="pointer-events-none absolute inset-y-0 right-2.5 z-[1] flex items-center text-gray-400" aria-hidden="true">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        } @else if (activeTab === ArchiveTab.SchoolYears) {
+          <div class="rounded-lg border border-gray-200 p-4 sm:p-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 xl:items-start">
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1" for="archSchoolYearSemester">Semester</label>
+                <select
+                  id="archSchoolYearSemester"
+                  formControlName="semester"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                >
+                  @for (opt of semesterFilterOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1" for="archSchoolYearDeletedBy">Deleted By</label>
+                <select
+                  id="archSchoolYearDeletedBy"
+                  formControlName="deletedBy"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                >
+                  <option value="">All Users</option>
+                  @for (opt of deletedByUserOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1" for="archSchoolYearDateFrom">Deleted From</label>
+                <div class="relative">
+                  <input
+                    id="archSchoolYearDateFrom"
+                    type="date"
+                    formControlName="dateFrom"
+                    title="Select start date"
+                    class="w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-gray-900"
+                  />
+                  <span class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-gray-400" aria-hidden="true">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1" for="archSchoolYearDateTo">Deleted To</label>
+                <div class="relative">
+                  <input
+                    id="archSchoolYearDateTo"
+                    type="date"
+                    formControlName="dateTo"
+                    title="Select end date"
+                    class="w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-gray-900"
+                  />
+                  <span class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-gray-400" aria-hidden="true">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        } @else {
+          <div class="rounded-lg border border-gray-200 p-4 sm:p-5">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1" for="archDeletedByOther">Deleted By</label>
+                <select
+                  id="archDeletedByOther"
+                  formControlName="deletedBy"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                >
+                  <option value="">All Users</option>
+                  @for (opt of deletedByUserOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1" for="archDateFromOther">Deleted From</label>
+                <div class="relative">
+                  <input
+                    id="archDateFromOther"
+                    type="date"
+                    formControlName="dateFrom"
+                    title="Select start date"
+                    class="w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                  />
+                  <span class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-gray-400" aria-hidden="true">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1" for="archDateToOther">Deleted To</label>
+                <div class="relative">
+                  <input
+                    id="archDateToOther"
+                    type="date"
+                    formControlName="dateTo"
+                    title="Select end date"
+                    class="w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                  />
+                  <span class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-gray-400" aria-hidden="true">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      }
+    </form>
+  </div>
+
+  <div class="content-area">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        @switch (activeTab) {
+          @case (ArchiveTab.Programs) {
+            <table class="w-full border-collapse archive-table">
+              <thead>
+                <tr class="border-b-2 border-gray-200">
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Program code</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Program title</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Years</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Total units</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Deleted at</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Deleted by</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (isLoading) {
+                  <tr>
+                    <td colspan="7" class="py-10 px-4 text-center text-gray-500">
+                      <span class="inline-flex items-center gap-2">
+                        <svg class="animate-spin h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                        Loading…
+                      </span>
+                    </td>
+                  </tr>
+                } @else if (programs.length === 0) {
+                  <tr>
+                    <td colspan="7" class="py-10 px-4 text-center text-gray-500">
+                      No archived programs. When archive endpoints are enabled, deleted programs will appear here.
+                    </td>
+                  </tr>
+                } @else {
+                  @for (row of programs; track row.id) {
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <td class="py-4 px-4 text-gray-900 font-medium">{{ row.programCode }}</td>
+                      <td class="py-4 px-4 text-gray-700">{{ row.programTitle }}</td>
+                      <td class="py-4 px-4 text-gray-700">{{ row.years }}</td>
+                      <td class="py-4 px-4 text-gray-700">{{ row.totalUnits }}</td>
+                      <td class="py-4 px-4 text-gray-700 whitespace-nowrap">{{ row.deletedAt | date: 'mediumDate' }}</td>
+                      <td class="py-4 px-4 text-gray-700">{{ row.deletedBy }}</td>
+                      <td class="py-4 px-4">
+                        <div class="flex items-center gap-2">
+                          <button
+                            type="button"
+                            (click)="onRestoreProgram(row)"
+                            class="p-1.5 rounded-md text-emerald-600 hover:bg-emerald-50 transition-colors"
+                            title="Restore"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            (click)="onPermanentProgram(row)"
+                            class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors"
+                            title="Delete permanently"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          }
+          @case (ArchiveTab.Students) {
+            <table class="w-full border-collapse archive-table">
+              <thead>
+                <tr class="border-b-2 border-gray-200">
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Student number</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Name</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Program</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Deleted at</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Deleted by</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (isLoading) {
+                  <tr>
+                    <td colspan="6" class="py-10 px-4 text-center text-gray-500">Loading…</td>
+                  </tr>
+                } @else if (students.length === 0) {
+                  <tr>
+                    <td colspan="6" class="py-10 px-4 text-center text-gray-500">
+                      No archived students.
+                    </td>
+                  </tr>
+                } @else {
+                  @for (row of students; track row.id) {
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <td class="py-4 px-4 text-gray-900 font-medium tabular-nums">{{ row.studentNumber }}</td>
+                      <td class="py-4 px-4 text-gray-700">{{ row.displayName }}</td>
+                      <td class="py-4 px-4 text-gray-700">{{ row.programCode }}</td>
+                      <td class="py-4 px-4 text-gray-700 whitespace-nowrap">{{ row.deletedAt | date: 'mediumDate' }}</td>
+                      <td class="py-4 px-4 text-gray-700">{{ row.deletedBy }}</td>
+                      <td class="py-4 px-4">
+                        <div class="flex items-center gap-2">
+                          <button
+                            type="button"
+                            (click)="onRestoreStudent(row)"
+                            class="p-1.5 rounded-md text-emerald-600 hover:bg-emerald-50 transition-colors"
+                            title="Restore"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            (click)="onPermanentStudent(row)"
+                            class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors"
+                            title="Delete permanently"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          }
+          @case (ArchiveTab.SchoolYears) {
+            <table class="w-full border-collapse archive-table">
+              <thead>
+                <tr class="border-b-2 border-gray-200">
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">School year / term</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Deleted at</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Deleted by</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (isLoading) {
+                  <tr>
+                    <td colspan="4" class="py-10 px-4 text-center text-gray-500">Loading…</td>
+                  </tr>
+                } @else if (schoolYears.length === 0) {
+                  <tr>
+                    <td colspan="4" class="py-10 px-4 text-center text-gray-500">No archived school years.</td>
+                  </tr>
+                } @else {
+                  @for (row of schoolYears; track row.id) {
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <td class="py-4 px-4 text-gray-900 font-medium">{{ row.label }}</td>
+                      <td class="py-4 px-4 text-gray-700 whitespace-nowrap">{{ row.deletedAt | date: 'mediumDate' }}</td>
+                      <td class="py-4 px-4 text-gray-700">{{ row.deletedBy }}</td>
+                      <td class="py-4 px-4">
+                        <div class="flex items-center gap-2">
+                          <button
+                            type="button"
+                            (click)="onRestoreSchoolYear(row)"
+                            class="p-1.5 rounded-md text-emerald-600 hover:bg-emerald-50 transition-colors"
+                            title="Restore"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            (click)="onPermanentSchoolYear(row)"
+                            class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors"
+                            title="Delete permanently"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          }
+          @case (ArchiveTab.Curricula) {
+            <table class="w-full border-collapse archive-table">
+              <thead>
+                <tr class="border-b-2 border-gray-200">
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Curriculum code</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Title</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Deleted at</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Deleted by</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700 uppercase text-sm">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (isLoading) {
+                  <tr>
+                    <td colspan="5" class="py-10 px-4 text-center text-gray-500">Loading…</td>
+                  </tr>
+                } @else if (curricula.length === 0) {
+                  <tr>
+                    <td colspan="5" class="py-10 px-4 text-center text-gray-500">No archived curricula.</td>
+                  </tr>
+                } @else {
+                  @for (row of curricula; track row.id) {
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <td class="py-4 px-4 text-gray-900 font-medium">{{ row.curriculumCode }}</td>
+                      <td class="py-4 px-4 text-gray-700">{{ row.curriculumTitle }}</td>
+                      <td class="py-4 px-4 text-gray-700 whitespace-nowrap">{{ row.deletedAt | date: 'mediumDate' }}</td>
+                      <td class="py-4 px-4 text-gray-700">{{ row.deletedBy }}</td>
+                      <td class="py-4 px-4">
+                        <div class="flex items-center gap-2">
+                          <button
+                            type="button"
+                            (click)="onRestoreCurriculum(row)"
+                            class="p-1.5 rounded-md text-emerald-600 hover:bg-emerald-50 transition-colors"
+                            title="Restore"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            (click)="onPermanentCurriculum(row)"
+                            class="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors"
+                            title="Delete permanently"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          }
+        }
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<app-confirmation-modal
+  [isOpen]="showRestoreConfirmation"
+  [config]="restoreConfirmationConfig"
+  (confirm)="onConfirmRestore()"
+  (cancel)="onCancelRestore()"
+/>
+
+<app-confirmation-modal
+  [isOpen]="showPermanentConfirmation"
+  [config]="permanentConfirmationConfig"
+  (confirm)="onConfirmPermanent()"
+  (cancel)="onCancelPermanent()"
+/>

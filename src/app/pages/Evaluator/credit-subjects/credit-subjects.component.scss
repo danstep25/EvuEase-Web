@@ -1,0 +1,308 @@
+
+.credit-subjects.evaluator-page {
+  padding: 3.125rem 2rem 1.25rem;
+  max-width: none;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.credit-subjects .evaluator-page__header {
+  margin-bottom: 1.5rem;
+}
+
+.credit-subjects .evaluator-page__subtitle {
+  margin-top: 0.5rem;
+}
+
+.credit-subjects.evaluator-page > .evaluator-surface {
+  margin-bottom: 0;
+}
+
+.credit-subjects.evaluator-page > .evaluator-surface.credit-subjects__panel--toolbar {
+  margin-bottom: 1.5rem;
+}
+
+.credit-subjects__title {
+  color: #0d214f;
+}
+
+.credit-subjects__panel {
+  box-shadow: 0 1px 3px rgba(13, 32, 79, 0.08);
+  border: 1px solid #e8ecf1;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.credit-subjects__panel--toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.25rem;
+  padding: 1.5625rem 1.5rem 1.5rem;
+}
+
+.credit-subjects__toolbar-copy {
+  flex: 1;
+  min-width: min(100%, 280px);
+}
+
+.credit-subjects__panel-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0d214f;
+  letter-spacing: -0.01em;
+}
+
+.credit-subjects__panel-lead {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
+.credit-subjects__add-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.35rem;
+  border: none;
+  border-radius: 8px;
+  background: #28a745;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    background: #218838;
+    box-shadow: 0 2px 6px rgba(40, 167, 69, 0.35);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #28a745;
+    outline-offset: 2px;
+  }
+}
+
+.credit-subjects__panel--table {
+  padding: 0;
+  overflow: hidden;
+}
+
+.credit-subjects__table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.credit-subjects__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.credit-subjects__table thead th {
+  text-align: left;
+  padding: 1rem 1.75rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b7280;
+  background: #fafbfc;
+  border-bottom: 1px solid #eef1f5;
+  white-space: nowrap;
+}
+
+.credit-subjects__table tbody td {
+  padding: 1.375rem 1.75rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+  color: #374151;
+}
+
+.credit-subjects__cell-status {
+  text-align: center;
+}
+
+.credit-subjects__cell-status .credit-subjects__status {
+  margin-inline: auto;
+}
+
+.credit-subjects__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.credit-subjects__cell-strong {
+  font-weight: 700;
+  color: #111827;
+}
+
+.credit-subjects__program-code {
+  display: block;
+  font-weight: 700;
+  color: #111827;
+}
+
+.credit-subjects__program-name {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.credit-subjects__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.credit-subjects__status--pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.credit-subjects__status--approved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.credit-subjects__status--rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.credit-subjects__status-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
+}
+
+.credit-subjects__th-actions {
+  text-align: right;
+}
+
+.credit-subjects__row {
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}
+
+.credit-subjects__link {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  color: #2563eb;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.credit-subjects__cell-actions {
+  text-align: right;
+}
+
+.credit-subjects__actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.credit-subjects__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #4b5563;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+
+  svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  &:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    color: #111827;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+
+  &--view:hover {
+    color: #2563eb;
+    border-color: #bfdbfe;
+    background: #eff6ff;
+  }
+
+  &--print:hover {
+    color: #00a65a;
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+  }
+}
+
+@media (max-width: 640px) {
+  .credit-subjects.evaluator-page {
+    padding: 2rem 1rem 1rem;
+  }
+
+  .credit-subjects__panel--toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.25rem 1rem 1.2rem;
+  }
+
+  .credit-subjects__add-btn {
+    width: 100%;
+  }
+
+  .credit-subjects__table thead th,
+  .credit-subjects__table tbody td {
+    padding-left: 1.125rem;
+    padding-right: 1.125rem;
+  }
+}
+

@@ -1,0 +1,48 @@
+<div class="evaluator-page">
+  <header class="evaluator-page__header">
+    <h1 class="evaluator-page__title">Grade History</h1>
+    <p class="evaluator-page__subtitle">
+      GWA: {{ summary.cumulativeGpa ?? '—' }} · Units completed: {{ summary.totalUnitsCompleted }}
+    </p>
+  </header>
+
+  @if (isLoading) {
+    <p class="sp-empty">Loading grade history…</p>
+  } @else if (grouped.length === 0) {
+    <div class="evaluator-surface evaluator-surface--padded">
+      <p class="sp-empty">No enrollment records yet.</p>
+    </div>
+  } @else {
+    @for (block of grouped; track block.label) {
+      <div class="evaluator-surface evaluator-surface--table sp-term-block">
+        <div class="sp-table-wrap">
+          <table class="sp-data-table">
+            <thead>
+              <tr class="sp-term-row">
+                <th scope="colgroup" colspan="5">{{ block.label }}</th>
+              </tr>
+              <tr>
+                <th scope="col" class="sp-data-table__th--center">Course Code</th>
+                <th scope="col">Subject</th>
+                <th scope="col" class="sp-data-table__th--center">Units</th>
+                <th scope="col" class="sp-data-table__th--center">Grade</th>
+                <th scope="col" class="sp-data-table__th--center">Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of block.rows; track row.enrollmentId) {
+                <tr>
+                  <td class="sp-data-table__cell-code">{{ row.courseCode }}</td>
+                  <td>{{ row.subjectDescription }}</td>
+                  <td class="sp-data-table__cell--center">{{ row.units }}</td>
+                  <td class="sp-data-table__cell--center">{{ row.grade || '—' }}</td>
+                  <td class="sp-data-table__cell--center">{{ row.remarks || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  }
+</div>
